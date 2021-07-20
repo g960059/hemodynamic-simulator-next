@@ -42,6 +42,7 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
   const dataRef = useRef(initialData);
   const hemodynamicPropsRef = useRef(initialHemodynamicProps);
   const tRef = useRef(initialTime);
+  const speedRef = useRef(1.0);
   const subscriptionsRef = useRef([])
   const subscribe = (update) => {
     const id = nanoid()
@@ -50,16 +51,16 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
   }
   const unsubscribe = id => {delete subscriptionsRef.current[id]} 
   const [isPlaying, setIsPlaying] = useAnimationFrame(deltaTime  => {
-    if(deltaTime >0 && dataRef.current.length>0){
-      let delta = deltaTime
+    let delta = speedRef.current * deltaTime
+    if(delta >0 && dataRef.current.length>0){
       const new_logger = {}
       let flag = 0
-      while (deltaTime > 0 ){
-        let dt = deltaTime >= 2 ? 2 : deltaTime
-        let t = tRef.current
-        dataRef.current = flag % 4==0 ? rk4(pvFunc,hemodynamicPropsRef.current,new_logger)(dataRef.current,t,dt): rk4(pvFunc,hemodynamicPropsRef.current,null)(dataRef.current,t,dt)
+      while (delta > 0 ){
+        let dt = delta >= 2 ? 2 : delta
+        let _t = tRef.current
+        dataRef.current = flag % 3==0 ? rk4(pvFunc,hemodynamicPropsRef.current,new_logger)(dataRef.current,_t,dt): rk4(pvFunc,hemodynamicPropsRef.current,null)(dataRef.current,_t,dt)
         tRef.current += dt
-        deltaTime -= dt
+        delta -= dt
         flag ++;
       }
       for(let update of Object.values(subscriptionsRef.current)){
@@ -68,8 +69,9 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
     }
   })
   const setHemodynamicProps = newProps => {hemodynamicPropsRef.current = newProps}
+  const setSpeed = newSpeed => speedRef.current = newSpeed
    
-  return {subscribe, unsubscribe, isPlaying, setIsPlaying,setHemodynamicProps}
+  return {subscribe, unsubscribe, isPlaying, setIsPlaying,setHemodynamicProps, setSpeed}
 }
 
 

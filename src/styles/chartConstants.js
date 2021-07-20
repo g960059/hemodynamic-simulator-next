@@ -56,7 +56,7 @@ export const LightTheme = {
   legendBackgroundBrush: "#1D2C35",
   lineSeriesColor: "white",
   majorGridLineBrush: "#e5e5e5",
-  minorGridLineBrush: "white",
+  minorGridLineBrush: "#e5e5e5",
   mountainAreaBrush: "white",
   mountainLineColor: "white",
   overviewFillBrush: "white",
