@@ -13,5 +13,7 @@ export default {
   Play: "Play",
   Pause: "Pause",
   NormalSpeed: "Normal",
-  SpeedRatio: "x"
+  SpeedRatio: "x",
+  PressurePlot: "Pressure",
+  PVPlot: "PVLoop"
 }

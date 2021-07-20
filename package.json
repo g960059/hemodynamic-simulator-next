@@ -9,7 +9,8 @@
     "@emotion/styled": "^11.3.0",
     "@material-ui/core": "^5.0.0-alpha.37",
     "@material-ui/icons": "^5.0.0-beta.0",
-    "@material-ui/styles": "^5.0.0-beta.0",
+    "@material-ui/lab": "^5.0.0-alpha.40",
+    "@material-ui/styles": "^5.0.0-beta.1",
     "@mui-treasury/layout": "^5.0.0-alpha.19",
     "chart.js": "^3.3.2",
     "clsx": "latest",
@@ -19,6 +20,7 @@
     "react": "latest",
     "react-chartjs-2": "^3.0.3",
     "react-dom": "latest",
+    "react-swipeable-views": "^0.14.0",
     "scichart": "^1.4.1604"
   },
   "scripts": {

@@ -14,4 +14,6 @@ export default {
   LA: "左房",
   RV: "右室",
   RA: "右房", 
+  PressurePlot: "圧曲線",
+  PVPlot: "圧容量曲線"
 }
