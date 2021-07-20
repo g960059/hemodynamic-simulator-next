@@ -9,5 +9,9 @@ export default {
   Play: "再生する",
   Pause: "停止する",
   NormalSpeed: "標準",
-  SpeedRatio: "倍速"
+  SpeedRatio: "倍速",
+  LV: "左室",
+  LA: "左房",
+  RV: "右室",
+  RA: "右房", 
 }

@@ -4,6 +4,7 @@ import {Menu, KeyboardArrowLeft,KeyboardArrowRight} from "@material-ui/icons";
 import { Root, Header, EdgeSidebar,EdgeTrigger,Content, Footer, SidebarContent } from "@mui-treasury/layout";
 import {usePvLoop} from '../src/hooks/usePvLoop'
 import RealTimeChart from '../src/components/RealTimeChart'
+import PVPlot from '../src/components/PVPlot'
 import PlaySpeedButtons from '../src/components/PlaySpeedButtons'
 import { makeStyles } from '@material-ui/styles';
 
@@ -100,6 +101,7 @@ const App = () => {
           <Grid container>
             <Grid item xs={12} md={8}>
               <RealTimeChart subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} initialDataTypes={['Plv', 'Pla', 'AoP']}/>
+              <PVPlot subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} initialDataTypes={['LV', 'LA']}/>
               <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>
             </Grid>
           </Grid>
