@@ -1,5 +1,16 @@
 import { alpha } from '@material-ui/core/styles';
 
+function changeColor(color, amount) {
+  const clamp = (val) => Math.min(Math.max(val, 0), 0xFF)
+  const fill = (str) => ('00' + str).slice(-2)
+
+  const num = parseInt(color.substr(1), 16)
+  const red = clamp((num >> 16) + amount)
+  const green = clamp(((num >> 8) & 0x00FF) + amount)
+  const blue = clamp((num & 0x0000FF) + amount)
+  return '#' + fill(red.toString(16)) + fill(green.toString(16)) + fill(blue.toString(16))
+}
+
 export const CHART_COLORS = {
   red: '#ff6384',
   orange: '#ff9f40',
@@ -21,13 +32,23 @@ export const COLORS = [
 ];
 
 export const ALPHA_COLORS = [
-  alpha(CHART_COLORS.red,0.2),
-  alpha(CHART_COLORS.blue,0.2),
-  alpha(CHART_COLORS.green,0.2),
-  alpha(CHART_COLORS.orange,0.2),
-  alpha(CHART_COLORS.purple,0.2),
-  alpha(CHART_COLORS.yellow,0.2),
-  alpha(CHART_COLORS.grey,0.2),
+  alpha(CHART_COLORS.red,0.7),
+  alpha(CHART_COLORS.blue,0.7),
+  alpha(CHART_COLORS.green,0.7),
+  alpha(CHART_COLORS.orange,0.7),
+  alpha(CHART_COLORS.purple,0.7),
+  alpha(CHART_COLORS.yellow,0.7),
+  alpha(CHART_COLORS.grey,0.7),
+]
+
+export const DARKEN_COLORS = [
+  changeColor(CHART_COLORS.red,-10),
+  changeColor(CHART_COLORS.blue,-10),
+  changeColor(CHART_COLORS.green,-10),
+  changeColor(CHART_COLORS.orange,-10),
+  changeColor(CHART_COLORS.purple,-10),
+  changeColor(CHART_COLORS.yellow,-10),
+  changeColor(CHART_COLORS.grey,-10),  
 ]
 
 export const LightTheme = {

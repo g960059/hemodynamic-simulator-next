@@ -3,17 +3,21 @@ import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divid
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
 import {FastLineRenderableSeries} from "scichart/charting/visuals/RenderableSeries/FastLineRenderableSeries";
+import { XyScatterRenderableSeries } from "scichart/Charting/Visuals/RenderableSeries/XyScatterRenderableSeries";
+import { EllipsePointMarker } from "scichart/Charting/Visuals/PointMarkers/EllipsePointMarker";
 import {XyDataSeries} from "scichart/charting/Model/XyDataSeries";
 import {EAxisAlignment} from "scichart/types/AxisAlignment";
 import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
 import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@material-ui/icons"
-import {LightTheme, COLORS, ALPHA_COLORS} from '../styles/chartConstants'
+import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS} from '../styles/chartConstants'
 import { useRouter } from 'next/router'
 import en from '../locales/en'
 import ja from '../locales/ja'
 
 const PV_COUNT = 400
+const EDPVR_STEP = 20
+const PVTypes = ['LV','LA','RV','RA']
 
 const getPVSeriesFn = () => {
   const LV = x => [x['Qlv'],x['Plv']]
@@ -22,6 +26,13 @@ const getPVSeriesFn = () => {
   const RA = x => [x['Qra'],x['Pra']]
   return {LV,LA, RV, RA}
 }
+const getHdProps = {
+  LV: x=>({Ees: x["LV_Ees"],V0:x["LV_V0"],alpha:x["LV_alpha"],beta:x["LV_beta"]}),
+  LA: x=>({Ees: x["LA_Ees"],V0:x["LA_V0"],alpha:x["LA_alpha"],beta:x["LA_beta"]}),
+  RV: x=>({Ees: x["RV_Ees"],V0:x["RV_V0"],alpha:x["RV_alpha"],beta:x["RV_beta"]}),
+  RA: x=>({Ees: x["RA_Ees"],V0:x["RA_V0"],alpha:x["RA_alpha"],beta:x["RA_beta"]}),
+}
+
 
 SciChartSurface.setRuntimeLicenseKey(process.env.LICENCE_KEY);
 
@@ -30,14 +41,34 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initi
   const t = locale==='en' ? en : ja
   const [loading, setLoading] = useState(true);
   const [sciChartSurface, setSciChartSurface] = useState();
+
   const dataRef = useRef({})
+  const leadingPointRef = useRef({});
   const fastLineSeriesRef = useRef({})
+  const scatterSeriesRef = useRef({});
+  const espvrDataRef = useRef({});
+  const espvrLineSeriesRef = useRef({});
+  const edpvrDataRef = useRef({});
+  const edpvrLineSeriesRef = useRef({}); 
+
+  const alphaRef = useRef({}); 
+  const betaRef = useRef({});
+  const V0Ref = useRef({});
+  const EesRef = useRef({});
+
   const sciChartSurfaceRef = useRef();
   const wasmContextRef = useRef();
   const subscriptionIdRef = useRef();
   const changingRef = useRef(null);
   const usedColorsRef = useRef([]);
   const xAxisRef = useRef();
+  const yMaxRef = useRef({});
+  const xMaxRef = useRef({});
+  const yPrevRef = useRef({});
+  const yPrevPrevRef = useRef({});
+  const xPrevRef = useRef({});
+  const xPrevPrevRef = useRef({});
+
   const [dataTypes, setDataTypes] = useState(initialDataTypes);
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -45,13 +76,44 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initi
     const colorIndex = [...COLORS.keys()].find(i=>!usedColorsRef.current.includes(i))
     usedColorsRef.current.push(colorIndex)
     dataRef.current[dataType] = new XyDataSeries(wasmContextRef.current);
+    leadingPointRef.current[dataType] = new XyDataSeries(wasmContextRef.current)
+    espvrDataRef.current[dataType] = new XyDataSeries(wasmContextRef.current)
+    edpvrDataRef.current[dataType] = new XyDataSeries(wasmContextRef.current)
     const fastLineSeries = new FastLineRenderableSeries(wasmContextRef.current, { 
-      stroke: COLORS[colorIndex],
+      stroke: ALPHA_COLORS[colorIndex],
       strokeThickness: 3,
       dataSeries: dataRef.current[dataType]
     })
+    const espvrSeries = new FastLineRenderableSeries(wasmContextRef.current, { 
+      stroke: "#9c9c9c",
+      strokeThickness: 2,
+      dataSeries: espvrDataRef.current[dataType]
+    })
+    const edpvrSeries = new FastLineRenderableSeries(wasmContextRef.current, { 
+      stroke: "#9c9c9c",
+      strokeThickness: 2,
+      dataSeries: edpvrDataRef.current[dataType]
+    })        
+    const leadingSeries = new XyScatterRenderableSeries(wasmContextRef.current, {
+        pointMarker: new EllipsePointMarker(wasmContextRef.current, {
+            width: 5,
+            height: 5,
+            strokeThickness: 2,
+            fill: COLORS[colorIndex],
+            stroke: COLORS[colorIndex]
+        }),
+        dataSeries: leadingPointRef.current[dataType],
+    })    
+
     fastLineSeriesRef.current[dataType] = fastLineSeries
+    scatterSeriesRef.current[dataType] = leadingSeries
+    espvrLineSeriesRef.current[dataType] = espvrSeries
+    edpvrLineSeriesRef.current[dataType] = edpvrSeries
+    
     sciChartSurfaceRef.current.renderableSeries.add(fastLineSeries)
+    sciChartSurfaceRef.current.renderableSeries.add(leadingSeries)
+    sciChartSurfaceRef.current.renderableSeries.add(espvrSeries)
+    sciChartSurfaceRef.current.renderableSeries.add(edpvrSeries)
   }
 
   const initSciChart = async () => {
@@ -80,49 +142,144 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initi
       const dataType = dataTypes[i]
       addDataSeries(dataType)
     }
-    // sciChartSurface.zoomExtents();
     return {sciChartSurface,wasmContext}
   }  
   const update = (data, time, hdprops) => {
     for(let i=0; i<dataTypes.length; i++){
       const dataType = dataTypes[i]
       const [_x, _y] = getPVSeriesFn(hdprops)[dataType](data)
+      const dataLength = _x.length
+      const y = _y[dataLength-1]
+      const x = _x[dataLength-1]
       if(dataRef.current[dataType].count()>PV_COUNT){
-        dataRef.current[dataType].removeRange(0,_x.length)
+        dataRef.current[dataType].removeRange(0,dataLength)
       }
       dataRef.current[dataType].appendRange(_x, _y)
-      const newMax = Math.ceil(dataRef.current[dataType].xRange.max / 20) * 20
-      if(xAxisRef.current.visibleRange.max < newMax){
-        xAxisRef.current.visibleRange = new NumberRange(0,newMax)
-      }      
+
+      // to update xMax, yMax
+      if(!yPrevRef.current[dataType]){
+        yPrevRef.current[dataType] = y
+        if(!yPrevPrevRef.current[dataType]){
+          yPrevPrevRef.current[dataType] = yPrevRef.current[dataType]
+        }
+      }
+      let yMax = yMaxRef.current[dataType] || 0
+      if(yPrevRef.current[dataType] >= yPrevPrevRef.current[dataType] && y < yPrevRef.current[dataType]){
+        yMax = (Math.ceil(yPrevRef.current[dataType]/20)+1)*20
+      }
+      yPrevPrevRef.current[dataType] = yPrevRef.current[dataType]
+      yPrevRef.current[dataType] = y
+
+            
+      if(!xPrevRef.current[dataType]){
+        xPrevRef.current[dataType] = x
+        if(!xPrevPrevRef.current[dataType]){
+          xPrevPrevRef.current[dataType] = xPrevRef.current[dataType]
+        }
+      }
+      let xMax = xMaxRef.current[dataType] 
+      if(xPrevRef.current[dataType] >= xPrevPrevRef.current[dataType] && x < xPrevRef.current[dataType]){
+        xMax = (Math.ceil(xPrevRef.current[dataType]/20)+1)*20
+      }
+      xPrevPrevRef.current[dataType] = xPrevRef.current[dataType]
+      xPrevRef.current[dataType] = x
+      const maxXMax = Object.values(xMaxRef.current).length >0 ? Math.max(...Object.values(xMaxRef.current)) : 0
+      
+      if(xAxisRef.current.visibleRange.max != maxXMax){
+        xAxisRef.current.visibleRange = new NumberRange(0,maxXMax)
+      }
+      if(leadingPointRef.current[dataType].count()> 0){
+        leadingPointRef.current[dataType].removeRange(0,leadingPointRef.current[dataType].count()-1);
+        leadingPointRef.current[dataType].append(x,y);
+      }else{
+        leadingPointRef.current[dataType].append(_x[dataLength-1],_y[dataLength-1]);
+      } 
+      // update annotation lines
+      const {alpha, beta, Ees, V0} = getHdProps[dataType](hdprops)
+      
+      if(Ees!= EesRef.current[dataType]|| V0 != V0Ref.current[dataType] || yMax != yMaxRef.current[dataType]){
+        EesRef.current[dataType] = Ees;
+        V0Ref.current[dataType] = V0;
+        if(yMax != yMaxRef.current[dataType]){
+          yMaxRef.current[dataType] = yMax
+        }
+        if(espvrDataRef.current[dataType].count()>0){
+          espvrDataRef.current[dataType].removeRange(0,espvrDataRef.current[dataType].count()-1)
+        }
+        if(Ees*(xMax-V0)<yMax){
+          espvrDataRef.current[dataType].appendRange([V0,xMax],[0,Ees*(xMax-V0)])
+        }else{
+          espvrDataRef.current[dataType].appendRange([V0,yMax/Ees+V0],[0,yMax])
+        }
+      }
+      if(alpha!= alphaRef.current[dataType] || beta!=betaRef.current[dataType]|| V0 != V0Ref.current[dataType] ||xMax != xMaxRef.current[dataType] || yMax != yMaxRef.current[dataType]){
+        alphaRef.current[dataType]= alpha
+        betaRef.current[dataType] = beta
+        V0Ref.current[dataType] = V0
+        if(yMax != yMaxRef.current[dataType]){
+          yMaxRef.current[dataType] = yMax
+        }
+        if(xMax != xMaxRef.current[dataType]){
+          xMaxRef.current[dataType] = xMax
+        }        
+        if(edpvrDataRef.current[dataType].count()>0){
+          edpvrDataRef.current[dataType].removeRange(0,edpvrDataRef.current[dataType].count()-1)
+        }
+        console.log(beta* (Math.exp(alpha * (xMax-V0))-1), yMax)
+        if(beta* (Math.exp(alpha * (xMax-V0))-1) < yMax){
+          const stepSize = (xMax-V0)/EDPVR_STEP
+          const px = [...(new Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize+V0)
+          const py = px.map(_px=>beta* (Math.exp(alpha * (_px-V0))-1))
+          edpvrDataRef.current[dataType].appendRange(px,py)
+        }else{
+          const stepSize = yMax/EDPVR_STEP
+          const py = [...(new Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize)
+          const px = py.map(_py=> Math.log1p(_py/beta)/alpha + V0) 
+          edpvrDataRef.current[dataType].appendRange(px,py)
+        }
+      }
     }
   }  
 
-  // const clickMenuItem = (index) => e => {
-  //   changingRef.current = isPlaying ? 'start' : 'stop';
-  //   setIsPlaying(false)
-  //   unsubscribe(subscriptionIdRef.current)
-  //   if(dataTypes.includes(pressureTypes[index])){
-  //     [0,1].forEach(i=>{dataRef.current[pressureTypes[index]][i].delete()});
-  //     delete dataRef.current[pressureTypes[index]];
-  //     [0,1].forEach(i=>{sciChartSurfaceRef.current.renderableSeries.remove(fastLineSeriesRef.current[pressureTypes[index]][i])});
-  //     delete fastLineSeriesRef.current[pressureTypes[index]];
-  //     usedColorsRef.current.splice(dataTypes.findIndex(x=>x==pressureTypes[index]),1);
-  //     setDataTypes(prev => prev.filter(x=>x!=pressureTypes[index]));
-  //   }else{
-  //     setDataTypes(prev => [...prev,pressureTypes[index]])
-  //     addDataSeries(pressureTypes[index])
-  //   }
-  // }
+  const clickMenuItem = (index) => e => {
+    changingRef.current = isPlaying ? 'start' : 'stop';
+    setIsPlaying(false)
+    unsubscribe(subscriptionIdRef.current)
+    if(dataTypes.includes(PVTypes[index])){
+      dataRef.current[PVTypes[index]].delete();
+      leadingPointRef.current[PVTypes[index]].delete();
+      espvrDataRef.current[PVTypes[index]].delete();
+      edpvrDataRef.current[PVTypes[index]].delete();
+      delete dataRef.current[PVTypes[index]];
+      delete leadingPointRef.current[PVTypes[index]];
+      delete espvrDataRef.current[PVTypes[index]];
+      delete edpvrDataRef.current[PVTypes[index]];
 
-  // useEffect(() => {
-  //   if(dataTypes.length >0 && changingRef.current != null){
-  //     unsubscribe(subscriptionIdRef.current)
-  //     subscriptionIdRef.current = subscribe(update)
-  //     if(changingRef.current == 'start'){setIsPlaying(true)}
-  //     changingRef.current = null
-  //   }
-  // }, [dataTypes]);
+      sciChartSurfaceRef.current.renderableSeries.remove(fastLineSeriesRef.current[PVTypes[index]]);
+      sciChartSurfaceRef.current.renderableSeries.remove(scatterSeriesRef.current[PVTypes[index]]);
+      sciChartSurfaceRef.current.renderableSeries.remove(espvrLineSeriesRef.current[PVTypes[index]]);
+      sciChartSurfaceRef.current.renderableSeries.remove(edpvrLineSeriesRef.current[PVTypes[index]]);
+      delete fastLineSeriesRef.current[PVTypes[index]];
+      delete scatterSeriesRef.current[PVTypes[index]];
+      delete espvrLineSeriesRef.current[PVTypes[index]];
+      delete edpvrLineSeriesRef.current[PVTypes[index]];
+
+      usedColorsRef.current.splice(dataTypes.findIndex(x=>x==PVTypes[index]),1);
+      setDataTypes(prev => prev.filter(x=>x!=PVTypes[index]));
+    }else{
+      setDataTypes(prev => [...prev,PVTypes[index]])
+      addDataSeries(PVTypes[index])
+    }
+  }
+
+  useEffect(() => {
+    if(dataTypes.length >0 && changingRef.current != null){
+      unsubscribe(subscriptionIdRef.current)
+      subscriptionIdRef.current = subscribe(update)
+      if(changingRef.current == 'start'){setIsPlaying(true)}
+      changingRef.current = null
+    }
+  }, [dataTypes]);
 
   useEffect(() => {
     (async ()=>{
@@ -155,27 +312,19 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initi
               </Grid>
             ))}
           </Grid>
-          {/* <Grid item xs={2} md={1} justifyContent='center' display='flex'>
+          <Grid item xs={2} md={1} justifyContent='center' display='flex'>
             <IconButton aria-controls='ts-menu' aria-haspopup= {true} onClick={e=>setAnchorEl(e.currentTarget)} style={{zIndex:100, marginBottom:'-8px'}} size='small'>
               <MoreVert/>
             </IconButton>
           </Grid>
           <Menu id="ts-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>setAnchorEl(null)}>
-            <ListItemButton onClick={()=>{setPressureMenuOpen(prev=>!prev)}}>
-              <ListItemText primary="PV Loop" />
-              {pressureMenuOpen ? <ExpandLess /> : <ExpandMore />}
-            </ListItemButton>          
-            <Collapse in={pressureMenuOpen} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                {pressureTypes.map((pType,index)=>(
-                  <MenuItem key={pType} onClick={clickMenuItem(index)} >
-                    <Checkbox checked ={dataTypes.includes(pType)} color='primary' />
-                    <ListItemText>{t[pType]}</ListItemText>
-                  </MenuItem>              
-                ))}
-              </List>
-            </Collapse>
-          </Menu> */}
+            {PVTypes.map((pType,index)=>(
+              <MenuItem key={pType} onClick={clickMenuItem(index)} >
+                <Checkbox checked ={dataTypes.includes(pType)} color='primary' />
+                <ListItemText>{t[pType]}</ListItemText>
+              </MenuItem>              
+            ))}
+          </Menu>
         </Grid>
         <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%',aspectRatio: '2 / 1'}}>
           <div id="scichart-pv-root" style={{width: '100%',height:'100%'}}></div>
