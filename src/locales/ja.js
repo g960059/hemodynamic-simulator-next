@@ -1,5 +1,5 @@
 export default {
-  Title:'循環動態シュミレーター',
+  Title:'循環動態シミュレーター',
   BasicController: "基本",
   AdvancedController: "詳細",
   Plv: "左室圧",
