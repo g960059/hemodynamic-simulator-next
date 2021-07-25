@@ -1,11 +1,23 @@
 import * as React from 'react';
 import Head from 'next/head';
 import { AppProps } from 'next/app';
-import { ThemeProvider } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@material-ui/core/styles';
 import { CacheProvider } from '@emotion/react';
 import {CssBaseline} from '@material-ui/core';
+import {pink,teal} from '@material-ui/core/colors'
 import createCache from '@emotion/cache';
-import theme from '../src/styles/theme';
+import Layout from '../src/components/layout'
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: pink[400]
+    },
+    secondary:{
+      main: teal[500]
+    },
+  },
+});
 
 export const cache = createCache({ key: 'css', prepend: true });
 
@@ -29,8 +41,9 @@ export default function MyApp(props: AppProps) {
       <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
-  
-          <Component {...pageProps} />
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
       </ThemeProvider>
     </CacheProvider>
   );

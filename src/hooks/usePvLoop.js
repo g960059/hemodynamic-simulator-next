@@ -56,9 +56,6 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
     const Timing = MutationTimings[hdp]
     const maybeChamber =  hdp.slice(0,2)
     let chamber = ['LV','LA','RA','RV'].includes(maybeChamber) ?  maybeChamber : 'LV'
-    if(hdp === 'HR'){
-      chamber = 'LA'
-    }
     const [_Tmax,_tau,_AV_delay]  = ['Tmax', 'tau', 'AV_delay'].map(x=>chamber+'_'+x)
     const [Tmax,tau,AV_delay, HR] = [hemodynamicPropsRef.current[_Tmax], hemodynamicPropsRef.current[_tau], hemodynamicPropsRef.current[_AV_delay], hemodynamicPropsRef.current['HR']]
     return t => {
@@ -67,8 +64,6 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
           return e(t-AV_delay,Tmax,tau,HR) < 0.001
         case 'EndSystolic':
           return e(t-AV_delay,Tmax,tau,HR) > 0.999
-        case 'HR':
-          return t < AV_delay.current + 15
         default:
           return true
       }
@@ -94,6 +89,11 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
           if(hdpKey === 'Volume'){
             dataRef.current[0] += hdpValue - dataRef.current.reduce((a,b)=>a+=b,0);
             delete hdpMutationsRef.current[hdpKey]
+          }else if(hdpKey === 'HR'){
+            if( tRef.current % (60000/hdpValue) < 160 && tRef.current % (60000/hemodynamicPropsRef.current['HR']) < 160 ){
+              hemodynamicPropsRef.current[hdpKey] = hdpValue
+              delete hdpMutationsRef.current[hdpKey]
+            }
           }else{
             if(isTiming(hdpKey)(tRef.current)){
               hemodynamicPropsRef.current[hdpKey] = hdpValue
@@ -104,9 +104,9 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
       }
     }
   })
-  const setHdps = (hdpKey, hdpValue) => {console.log(hdpKey, hdpValue); hdpMutationsRef.current[hdpKey] = hdpValue}
-  const getHdps = () => hemodynamicPropsRef.current
-  const setSpeed = newSpeed => speedRef.current = newSpeed
+  const setHdps = useCallback((hdpKey, hdpValue) => {hdpMutationsRef.current[hdpKey] = hdpValue})
+  const getHdps = useCallback(() => hemodynamicPropsRef.current)
+  const setSpeed = useCallback(newSpeed => speedRef.current = newSpeed)
   return {subscribe, unsubscribe, isPlaying, setIsPlaying,setHdps, getHdps, setSpeed}
 }
 

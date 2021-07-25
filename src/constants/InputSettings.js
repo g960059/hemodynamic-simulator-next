@@ -15,7 +15,7 @@ export const InputRanges = {
     min:100 , max:300 , step: 1
   },
   LV_tau : {
-    min:15 , max:120 , step: 1
+    min:15 , max: 80 , step: 1
   },
   LV_AV_delay : {
     min:0 , max: 300, step: 1

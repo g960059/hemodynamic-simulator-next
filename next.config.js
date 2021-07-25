@@ -1,7 +1,7 @@
 const CopyPlugin = require("copy-webpack-plugin");
-const withTM = require('next-transpile-modules')(['@mui-treasury/layout']);
 
-module.exports = withTM({
+
+module.exports = {
     basePath: '',
     webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
         // Note: we provide webpack above so you should not `require` it
@@ -24,4 +24,4 @@ module.exports = withTM({
         locales: ['en', 'ja'],
         defaultLocale: 'en'
     }
-  })
+  }

@@ -15,7 +15,7 @@ import { useRouter } from 'next/router'
 import en from '../locales/en'
 import ja from '../locales/ja'
 
-const PV_COUNT = 400
+const PV_COUNT = 1000
 const EDPVR_STEP = 20
 const PVTypes = ['LV','LA','RV','RA']
 
