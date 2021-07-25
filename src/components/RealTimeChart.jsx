@@ -103,6 +103,8 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
   const update = (data, time, hdprops) => {
     const newTime = time % TIME_WINDOW
     const _time = data['t']?.map(x=>x%TIME_WINDOW)
+    const startTime = _time[0]
+    const endTime = _time[_time.length-1]
     for(let i=0; i<dataTypes.length; i++){
       const dataType = dataTypes[i]
       const dataSeries = dataRef.current[dataType]
@@ -114,9 +116,15 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
       if(indiceRange1.max - indiceRange1.min > 0){
         dataSeries[j].removeRange(indiceRange1.min, indiceRange1.max - indiceRange1.min)
       }
-      const indiceRange2 = dataSeries[k].getIndicesRange(new NumberRange(0,newTime+TIME_WINDOW_GAP))
+      const indiceRange2 = dataSeries[k].getIndicesRange(new NumberRange(startTime,endTime+TIME_WINDOW_GAP))
+      if(TIME_WINDOW - newTime < 200){
+        dataSeries[k].clear()
+      }
       if(indiceRange2.max - indiceRange2.min > 0){
-        dataSeries[k].removeRange(indiceRange2.min, indiceRange2.max - indiceRange2.min)
+        // dataSeries[k].removeRange(indiceRange2.min, indiceRange2.max - indiceRange2.min + 1)
+        for(let l = indiceRange2.min; l <= indiceRange2.max; l++){
+          dataSeries[k].update(l,NaN)
+        }
       }
     }
   }  
