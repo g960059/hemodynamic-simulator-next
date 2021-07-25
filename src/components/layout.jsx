@@ -1,15 +1,14 @@
 import React from 'react';
 import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline} from '@material-ui/core';
 import {GitHub, Twitter} from '@material-ui/icons'
-import { makeStyles, createStyles} from '@material-ui/styles';
-import { Theme } from '@material-ui/core/styles';
+import { makeStyles} from '@material-ui/styles';
 
 import {useTranslation} from '../hooks/useTranslation'
 
 
 const drawerWidth = 0;
 
-const useStyles = makeStyles((theme: Theme) =>createStyles({
+const useStyles = makeStyles((theme) =>({
     root: {
       display: 'flex',
     },
