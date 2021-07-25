@@ -37,7 +37,7 @@ const getTimeSeriesFn = ({
   return {Plv, Pla, Prv, Pra, Iasp,Iapp, AoP, PAP}
 }
 
-SciChartSurface.setRuntimeLicenseKey(process.env.LICENCE_KEY);
+SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENCE_KEY);
 
 const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes,setDataTypes}) =>{
   const {locale} = useRouter()
