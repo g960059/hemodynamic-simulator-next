@@ -8,7 +8,7 @@
       "to": "./public/scichart2d.data"
     },{
       "from": "./node_modules/scichart/_wasm/scichart2d.wasm",
-      "to": "./public/scichart2d.wasm"
+      "to": "./public/js/scichart2d.wasm"
     }
   ]
 }
