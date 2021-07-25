@@ -5,13 +5,17 @@ import SwipeableViews from 'react-swipeable-views';
 import {Menu, KeyboardArrowLeft,KeyboardArrowRight} from "@material-ui/icons";
 import { Root, Header, EdgeSidebar,EdgeTrigger,Content, Footer, SidebarContent } from "@mui-treasury/layout";
 import {usePvLoop} from '../src/hooks/usePvLoop'
-import RealTimeChart from '../src/components/RealTimeChart'
+
 import PVPlot from '../src/components/PVPlot'
 import PlaySpeedButtons from '../src/components/PlaySpeedButtons'
+import {a11yProps, TabPanel} from '../src/components/TabUtils'
 import { makeStyles } from '@material-ui/styles';
-import { useRouter } from 'next/router'
-import en from '../src/locales/en'
-import ja from '../src/locales/ja'
+import {useTranslation} from '../src/hooks/useTranslation'
+import RealTimeChart from '../src/components/RealTimeChart'
+import OutputPanel from '../src/components/OutputPanel'
+import BasicController from '../src/components/controllers/BasicController'
+// import dynamic from 'next/dynamic'
+// const RealTimeChart =  dynamic(()=>import('../src/components/RealTimeChart'), { ssr: false })
 
 const useStyles = makeStyles((theme) =>({
     background: {
@@ -31,41 +35,15 @@ const useStyles = makeStyles((theme) =>({
   }),
 );
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
-        <Box>
-          {children}
-        </Box>
-      )}
-    </div>
-  );
-}
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
-
 
 const App = () => {
   const classes = useStyles();
-  const {locale} = useRouter()
-  const t = locale==='en' ? en : ja
+  const t = useTranslation();
   const [tabValue, setTabValue] = useState(0);
-  const {subscribe,unsubscribe ,isPlaying,setIsPlaying, setHemodynamicProps, setSpeed} = usePvLoop()
-
+  const {subscribe,unsubscribe ,isPlaying,setIsPlaying, setHdps, getHdps, setSpeed} = usePvLoop()
+  const [pressureDataTypes, setPressureDataTypes] = useState(['Plv', 'Pla', 'AoP']);
+  const [pvDataTypes, setPvDataTypes] = useState(['LV', 'LA']);
+  const [outputDataTypes, setOutputDataTypes] = useState(['AoP','PAP','CVP','SV','CO','PCWP']);
   return (
     <Root
       scheme={{
@@ -148,16 +126,20 @@ const App = () => {
               <SwipeableViews index={tabValue} onChangeIndex={index=>{setTabValue(index)}}>
                 <TabPanel value={tabValue} index={0} sx={{p:0}}>
                   <Box sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', p:[1,2], pt:2}}>
-                    <RealTimeChart subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} initialDataTypes={['Plv', 'Pla', 'AoP']}/>
+                    <RealTimeChart subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} dataTypes={pressureDataTypes} setDataTypes={setPressureDataTypes}/>
                   </Box>
                 </TabPanel>
                 <TabPanel value={tabValue} index={1} sx={{p:0}}>
                   <Box sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', p:[1,2], pt:2}}>
-                    <PVPlot subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} initialDataTypes={['LV', 'LA']}/>
+                    <PVPlot subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} dataTypes={pvDataTypes} setDataTypes={setPvDataTypes}/>
                   </Box>
                 </TabPanel>
               </SwipeableViews>
+              {/* <OutputPanel subscribe={subscribe} unsubscribe={unsubscribe} dataTypes={outputDataTypes} setDataTypes={setOutputDataTypes} getHdps = {getHdps} /> */}
               <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>
+            </Grid>
+            <Grid item xs={12}>
+              <BasicController getHdps={getHdps} setHdps={setHdps}/>
             </Grid>
           </Grid>
         </Box>

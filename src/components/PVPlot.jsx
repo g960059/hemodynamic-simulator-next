@@ -36,7 +36,7 @@ const getHdProps = {
 
 SciChartSurface.setRuntimeLicenseKey(process.env.LICENCE_KEY);
 
-const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initialDataTypes}) =>{
+const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes, setDataTypes}) =>{
   const {locale} = useRouter()
   const t = locale==='en' ? en : ja
   const [loading, setLoading] = useState(true);
@@ -69,7 +69,6 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initi
   const xPrevRef = useRef({});
   const xPrevPrevRef = useRef({});
 
-  const [dataTypes, setDataTypes] = useState(initialDataTypes);
   const [anchorEl, setAnchorEl] = useState(null);
 
   const addDataSeries = (dataType)=>{
@@ -204,7 +203,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initi
           yMaxRef.current[dataType] = yMax
         }
         if(espvrDataRef.current[dataType].count()>0){
-          espvrDataRef.current[dataType].removeRange(0,espvrDataRef.current[dataType].count()-1)
+          espvrDataRef.current[dataType].clear()
         }
         if(Ees*(xMax-V0)<yMax){
           espvrDataRef.current[dataType].appendRange([V0,xMax],[0,Ees*(xMax-V0)])
@@ -223,9 +222,8 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initi
           xMaxRef.current[dataType] = xMax
         }        
         if(edpvrDataRef.current[dataType].count()>0){
-          edpvrDataRef.current[dataType].removeRange(0,edpvrDataRef.current[dataType].count()-1)
+          edpvrDataRef.current[dataType].clear()
         }
-        console.log(beta* (Math.exp(alpha * (xMax-V0))-1), yMax)
         if(beta* (Math.exp(alpha * (xMax-V0))-1) < yMax){
           const stepSize = (xMax-V0)/EDPVR_STEP
           const px = [...(new Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize+V0)
@@ -286,7 +284,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initi
       const res = await initSciChart()
       setSciChartSurface(res.SciChartSurface)
       subscriptionIdRef.current = subscribe(update)
-      setIsPlaying(true)
+      // setIsPlaying(true)
       if(res){
         setLoading(false)
       }
@@ -326,7 +324,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initi
             ))}
           </Menu>
         </Grid>
-        <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%',aspectRatio: '2 / 1'}}>
+        <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%',aspectRatio: '2 / 1.3'}}>
           <div id="scichart-pv-root" style={{width: '100%',height:'100%'}}></div>
         </Box>
       </Box>

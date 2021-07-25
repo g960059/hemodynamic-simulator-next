@@ -13,7 +13,7 @@ const PlaySpeedButtons = ({isPlaying, setIsPlaying, setSpeed}) =>{
   const t = locale==='en' ? en : ja
 
   return (
-    <Stack direction='horizontal' justifyContent='center' alingItems='center' sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', p:[0.5,2]}}>
+    <Stack direction='horizontal' justifyContent='center' alignItems='center' sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', p:[0.5,2]}}>
       <IconButton onClick={()=>{setIsPlaying(prev=>!prev)}}>{isPlaying ? (
         <Stack justifyContent='center' alignItems='center'>
           <Pause/>

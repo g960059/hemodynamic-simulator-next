@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
-import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress} from '@material-ui/core'
+import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress, Button} from '@material-ui/core'
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
 import {FastLineRenderableSeries} from "scichart/charting/visuals/RenderableSeries/FastLineRenderableSeries";
@@ -12,6 +12,7 @@ import {LightTheme, COLORS, ALPHA_COLORS} from '../styles/chartConstants'
 import { useRouter } from 'next/router'
 import en from '../locales/en'
 import ja from '../locales/ja'
+
 
 const TIME_WINDOW = 6000
 const TIME_WINDOW_GAP = 200
@@ -38,7 +39,7 @@ const getTimeSeriesFn = ({
 
 SciChartSurface.setRuntimeLicenseKey(process.env.LICENCE_KEY);
 
-const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, initialDataTypes,}) =>{
+const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes,setDataTypes}) =>{
   const {locale} = useRouter()
   const t = locale==='en' ? en : ja
   const [loading, setLoading] = useState(true);
@@ -50,9 +51,10 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
   const subscriptionIdRef = useRef();
   const changingRef = useRef(null);
   const usedColorsRef = useRef([]);
-  const [dataTypes, setDataTypes] = useState(initialDataTypes);
   const [anchorEl, setAnchorEl] = useState(null);
   const [pressureMenuOpen, setPressureMenuOpen] = useState(dataTypes.some(x=> pressureTypes.includes(x)));
+
+
 
   const addDataSeries = (dataType)=>{
     const colorIndex = [...COLORS.keys()].find(i=>!usedColorsRef.current.includes(i))
@@ -149,7 +151,7 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
       const res = await initSciChart()
       setSciChartSurface(res.SciChartSurface)
       subscriptionIdRef.current = subscribe(update)
-      setIsPlaying(true)
+      // setIsPlaying(true)
       if(res){
         setLoading(false)
       }
@@ -164,7 +166,7 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
     }
   }, []);
 
-  return (
+  return <>
     <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{position: 'relative',backgroundColor:'white', p:[0.5,2],pb:0, pt:2, mb:-2}}>
       <Box width={1} style={{opacity: loading ? 0 : 1}}>
         <Grid container alignItems='center'>
@@ -206,8 +208,50 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
         <CircularProgress/>
       </Box>
     </Box>
-  )
+
+  </>
 })
 
 export default RealTimeChart
 
+
+// import CCapture from '@/../ccapture.js-npmfixed/src/CCapture'
+
+// const startRecording = () => {
+//   console.log(shouldRecord.current)
+//   shouldRecord.current = true
+//   console.log(shouldRecord.current)
+// }
+// const stopRecording = () =>{
+//   setShouldRecord(false);
+//   setIsRecording(false);
+//   shouldRecord.current = false
+//   isRecording.current = false
+//   capturer.current.stop();
+//   capturer.current.save((blob) => {
+//     const fileURL = window.URL.createObjectURL(blob)
+//     const tempLink = document.createElement('a')
+//     tempLink.href = fileURL
+//     tempLink.setAttribute('download', `${filename}.${getExtension(format)}`)
+//     tempLink.click()
+//   });
+// }
+
+//<Box width={1}>
+//{isRecording ? <Button onClick={()=>{stopRecording()}}>Stop</Button> : <Button onClick={()=>{startRecording()}}>Save</Button>}
+//</Box> 
+
+// console.log(shouldRecord.current, isRecording.current)
+// if(shouldRecord.current && !isRecording.current){
+//   isRecording.current = true
+//   capturer.current.start();
+// }
+// if(isRecording.current){
+//   capturer.current.capture(sciChartDomRef.current.children[0]);
+// }
+
+// const capturer = useRef(new CCapture( { format: 'webm',framerate: 24, verbose: true}));
+// const isRecording = useRef(false);
+// const shouldRecord = useRef(false);
+
+// const sciChartDomRef = useRef();

@@ -12,6 +12,10 @@ module.exports = withTM({
                 { from: "node_modules/scichart/_wasm/scichart2d.wasm", to: destWasm }
             ]
         }),)
+        config.resolve.fallback = {
+            ...config.resolve.fallback, 
+            fs: false, 
+          };        
 
         // Important: return the modified config
         return config

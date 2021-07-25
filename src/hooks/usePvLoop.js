@@ -3,11 +3,12 @@ import {useDocumentVisibilityChange, getVisibilityPropertyNames} from "./useDocu
 import {rk4}  from '../utils/RungeKutta/Rk4'
 import {e, pvFunc, P} from '../utils/pvFunc'
 import { nanoid } from 'nanoid'
+import {MutationTimings} from '../constants/InputSettings'
 
 
 export const useAnimationFrame = (callback,deps=[]) =>{
   const requestRef = useRef()
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const previousTimeRef = useRef()
   const animate = useCallback(time =>{
     if(previousTimeRef.current != undefined){
@@ -44,12 +45,35 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
   const tRef = useRef(initialTime);
   const speedRef = useRef(1.0);
   const subscriptionsRef = useRef([])
+  const hdpMutationsRef = useRef({});
   const subscribe = (update) => {
     const id = nanoid()
     subscriptionsRef.current[id] = update
     return id
   }
   const unsubscribe = id => {delete subscriptionsRef.current[id]} 
+  const isTiming = (hdp) => {
+    const Timing = MutationTimings[hdp]
+    const maybeChamber =  hdp.slice(0,2)
+    let chamber = ['LV','LA','RA','RV'].includes(maybeChamber) ?  maybeChamber : 'LV'
+    if(hdp === 'HR'){
+      chamber = 'LA'
+    }
+    const [_Tmax,_tau,_AV_delay]  = ['Tmax', 'tau', 'AV_delay'].map(x=>chamber+'_'+x)
+    const [Tmax,tau,AV_delay, HR] = [hemodynamicPropsRef.current[_Tmax], hemodynamicPropsRef.current[_tau], hemodynamicPropsRef.current[_AV_delay], hemodynamicPropsRef.current['HR']]
+    return t => {
+      switch(Timing){
+        case 'EndDiastolic':
+          return e(t-AV_delay,Tmax,tau,HR) < 0.001
+        case 'EndSystolic':
+          return e(t-AV_delay,Tmax,tau,HR) > 0.999
+        case 'HR':
+          return t < AV_delay.current + 15
+        default:
+          return true
+      }
+    }
+  }
   const [isPlaying, setIsPlaying] = useAnimationFrame(deltaTime  => {
     let delta = speedRef.current * deltaTime
     if(delta >0 && dataRef.current.length>0){
@@ -57,8 +81,7 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
       let flag = 0
       while (delta > 0 ){
         let dt = delta >= 2 ? 2 : delta
-        let _t = tRef.current
-        dataRef.current = flag % 3==0 ? rk4(pvFunc,hemodynamicPropsRef.current,new_logger)(dataRef.current,_t,dt): rk4(pvFunc,hemodynamicPropsRef.current,null)(dataRef.current,_t,dt)
+        dataRef.current = flag % 3==0 ? rk4(pvFunc,hemodynamicPropsRef.current,new_logger)(dataRef.current,tRef.current,dt): rk4(pvFunc,hemodynamicPropsRef.current,null)(dataRef.current,tRef.current,dt)
         tRef.current += dt
         delta -= dt
         flag ++;
@@ -66,18 +89,31 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
       for(let update of Object.values(subscriptionsRef.current)){
         update(new_logger, tRef.current, hemodynamicPropsRef.current)
       }
+      if(Object.keys(hdpMutationsRef.current).length > 0){
+        Object.entries(hdpMutationsRef.current).forEach(([hdpKey,hdpValue])=> {
+          if(hdpKey === 'Volume'){
+            dataRef.current[0] += hdpValue - dataRef.current.reduce((a,b)=>a+=b,0);
+            delete hdpMutationsRef.current[hdpKey]
+          }else{
+            if(isTiming(hdpKey)(tRef.current)){
+              hemodynamicPropsRef.current[hdpKey] = hdpValue
+              delete hdpMutationsRef.current[hdpKey]
+            }
+          }
+        })
+      }
     }
   })
-  const setHemodynamicProps = newProps => {hemodynamicPropsRef.current = newProps}
+  const setHdps = (hdpKey, hdpValue) => {console.log(hdpKey, hdpValue); hdpMutationsRef.current[hdpKey] = hdpValue}
+  const getHdps = () => hemodynamicPropsRef.current
   const setSpeed = newSpeed => speedRef.current = newSpeed
-   
-  return {subscribe, unsubscribe, isPlaying, setIsPlaying,setHemodynamicProps, setSpeed}
+  return {subscribe, unsubscribe, isPlaying, setIsPlaying,setHdps, getHdps, setSpeed}
 }
 
 
 
-export const DEFAULT_DATA = [547.8023811212952, 125.29247043455904, 327.3148549511764, 118.96936622914811, 145.92142650139675, 49.463089479002896, 127.49227638555105, 34.55375220239585, 6.854163282131312, 16.336219413346292]
-export const DEFAULT_TIME = 5.2397
+export const DEFAULT_DATA = [517.0283988780775, 139.6755778937746, 342.074495051476, 114.12917857876639, 138.23726297508844, 72.32261938109193, 92.40876881733028, 59.370961675606274, 7.629709285843546, 17.12302746294433]
+export const DEFAULT_TIME = 8892.826700000003
 
 export const DEFAULT_HEMODYANMIC_PROPS =  {
   Rcs : 20,
