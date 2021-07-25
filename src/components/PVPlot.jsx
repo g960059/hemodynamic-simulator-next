@@ -11,9 +11,8 @@ import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
 import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@material-ui/icons"
 import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS} from '../styles/chartConstants'
-import { useRouter } from 'next/router'
-import en from '../locales/en'
-import ja from '../locales/ja'
+import {useTranslation} from '../hooks/useTranslation'
+
 
 const PV_COUNT = 1000
 const EDPVR_STEP = 20
@@ -37,8 +36,7 @@ const getHdProps = {
 SciChartSurface.setRuntimeLicenseKey(process.env.LICENCE_KEY);
 
 const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes, setDataTypes}) =>{
-  const {locale} = useRouter()
-  const t = locale==='en' ? en : ja
+  const t = useTranslation();
   const [loading, setLoading] = useState(true);
   const [sciChartSurface, setSciChartSurface] = useState();
 
