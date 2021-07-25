@@ -33,7 +33,7 @@ const getHdProps = {
 }
 
 
-SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENCE_KEY);
+SciChartSurface.setRuntimeLicenseKey("ABT210712-8206-15116");
 
 const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes, setDataTypes}) =>{
   const t = useTranslation();
