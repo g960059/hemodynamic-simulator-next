@@ -99,6 +99,7 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
     sciChartSurface.zoomExtents();
     return {sciChartSurface,wasmContext}
   }  
+  console.log('foo')
   const update = (data, time, hdprops) => {
     const newTime = time % TIME_WINDOW
     const _time = data['t']?.map(x=>x%TIME_WINDOW)
