@@ -14,7 +14,7 @@ import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS} from '../styles/chartCo
 import {useTranslation} from '../hooks/useTranslation'
 
 
-const PV_COUNT = 1000
+const PV_COUNT = 2000
 const EDPVR_STEP = 20
 const PVTypes = ['LV','LA','RV','RA']
 
@@ -209,7 +209,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
           espvrDataRef.current[dataType].appendRange([V0,yMax/Ees+V0],[0,yMax])
         }
       }
-      if(alpha!= alphaRef.current[dataType] || beta!=betaRef.current[dataType]|| V0 != V0Ref.current[dataType] ||xMax != xMaxRef.current[dataType] || yMax != yMaxRef.current[dataType]){
+      if(alpha!= alphaRef.current[dataType] || beta!=betaRef.current[dataType]|| V0 != V0Ref.current[dataType] ||xMax != xMaxRef.current[dataType] || yMax != yMaxRef.current[dataType] || edpvrDataRef.current[dataType].count() < EDPVR_STEP){
         alphaRef.current[dataType]= alpha
         betaRef.current[dataType] = beta
         V0Ref.current[dataType] = V0
@@ -224,12 +224,12 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
         }
         if(beta* (Math.exp(alpha * (xMax-V0))-1) < yMax){
           const stepSize = (xMax-V0)/EDPVR_STEP
-          const px = [...(new Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize+V0)
+          const px = [...(Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize+V0)
           const py = px.map(_px=>beta* (Math.exp(alpha * (_px-V0))-1))
           edpvrDataRef.current[dataType].appendRange(px,py)
         }else{
           const stepSize = yMax/EDPVR_STEP
-          const py = [...(new Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize)
+          const py = [...(Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize)
           const px = py.map(_py=> Math.log1p(_py/beta)/alpha + V0) 
           edpvrDataRef.current[dataType].appendRange(px,py)
         }

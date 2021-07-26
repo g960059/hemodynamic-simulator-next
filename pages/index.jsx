@@ -10,6 +10,7 @@ import { makeStyles } from '@material-ui/styles';
 import {useTranslation} from '../src/hooks/useTranslation'
 import RealTimeChart from '../src/components/RealTimeChart'
 import OutputPanel from '../src/components/OutputPanel'
+import LogPlot from '../src/components/LogPlot'
 import BasicController from '../src/components/controllers/BasicController'
 // import dynamic from 'next/dynamic'
 // const RealTimeChart =  dynamic(()=>import('../src/components/RealTimeChart'), { ssr: false })
@@ -23,17 +24,21 @@ const useStyles = makeStyles((theme) =>(
       [theme.breakpoints.up('md')]: {
         height: `calc(100vh - 56px)`,
       },
-      [theme.breakpoints.up('sm')]: {
-        height: `calc(100vh - 64px)`,
-      },
+      // [theme.breakpoints.up('sm')]: {
+      //   height: `calc(100vh - 64px)`,
+      // },
     },
-    gridBox: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1px 2fr',
-      [theme.breakpoints.down('sm')]: {
-        gridTemplateColumns: '1fr !important',
+    subContainerBox: {
+      overflow: 'hidden',
+      overflowY: 'scroll',
+      height: `auto`,
+      [theme.breakpoints.up('md')]: {
+        maxHeight : `calc(100vh - 174px)`,
       },
-    },
+      // [theme.breakpoints.up('sm')]: {
+      //   maxHeight : `calc(100vh - 182px)`,
+      // },
+    },    
   })
 );
 
@@ -49,16 +54,18 @@ const App = () => {
   return (
     <> 
     <Grid container justifyContent='center' spacing={[0,1]}>
-      <Grid item xs={12} md={5} lg={4} justifyContent='center' sx={{order:[1,0]}}>
+      <Grid item xs={12} md={5} lg={4} justifyContent='center' sx={{order:[1,1,0]}}>
         <Box className={classes.containerBox} mx={[0,1]}>
-          <BasicController getHdps={getHdps} setHdps={setHdps}/>
+          <Box className={classes.subContainerBox}>
+            <BasicController getHdps={getHdps} setHdps={setHdps}/>
+          </Box>
           <Box sx={{display: { xs: 'none', md: 'block' }, mt:2}}>
-            <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>          
+            {tabValue != 2 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>}        
           </Box>
         </Box>
         <Divider orientation="vertical" flexItem xs={{display: { xs: 'none', md: 'block' }}}/>
       </Grid>
-      <Grid item xs={12} md={7} lg={8} sx={{order:[0,1]}}>
+      <Grid item xs={12} md={7} lg={8} sx={{order:[0,0,1]}}>
         <Box className={classes.containerBox} mx={[0,1]}>
           <Tabs
             value={tabValue} 
@@ -67,6 +74,7 @@ const App = () => {
           >
             <Tab label={t["PressurePlot"]} {...a11yProps(0)} />
             <Tab label={t["PVPlot"]} {...a11yProps(1)} />
+            <Tab label={t["LogPlot"]} {...a11yProps(2)} />
           </Tabs>
           <SwipeableViews index={tabValue} onChangeIndex={index=>{setTabValue(index)}}>
             <TabPanel value={tabValue} index={0} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
@@ -79,10 +87,15 @@ const App = () => {
                 <PVPlot subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} dataTypes={pvDataTypes} setDataTypes={setPvDataTypes}/>
               </Box>
             </TabPanel>
+            <TabPanel value={tabValue} index={2} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
+              <Box sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', p:[1,2], pt:2}}>
+                <LogPlot subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed} setHdps={setHdps} getHdps ={getHdps}/>
+              </Box>
+            </TabPanel>
           </SwipeableViews>
           {/* <OutputPanel subscribe={subscribe} unsubscribe={unsubscribe} dataTypes={outputDataTypes} setDataTypes={setOutputDataTypes} getHdps = {getHdps} /> */}
           <Box sx={{display: { xs: 'block', md: 'none' }}}>
-            <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>          
+            {tabValue != 2 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>}
           </Box>
         </Box>
       </Grid>

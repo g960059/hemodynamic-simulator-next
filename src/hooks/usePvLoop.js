@@ -41,7 +41,7 @@ export const useAnimationFrame = (callback,deps=[]) =>{
 
 export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,initialData=DEFAULT_DATA, initialTime=DEFAULT_TIME) => {
   const dataRef = useRef(initialData);
-  const hemodynamicPropsRef = useRef(initialHemodynamicProps);
+  const hemodynamicPropsRef = useRef({...initialHemodynamicProps});
   const tRef = useRef(initialTime);
   const speedRef = useRef(1.0);
   const subscriptionsRef = useRef([])
@@ -105,7 +105,7 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
     }
   })
   const setHdps = useCallback((hdpKey, hdpValue) => {hdpMutationsRef.current[hdpKey] = hdpValue})
-  const getHdps = useCallback(() => hemodynamicPropsRef.current)
+  const getHdps = () => hemodynamicPropsRef.current
   const setSpeed = useCallback(newSpeed => speedRef.current = newSpeed)
   return {subscribe, unsubscribe, isPlaying, setIsPlaying,setHdps, getHdps, setSpeed}
 }

@@ -2,6 +2,14 @@ export default {
   Title:'循環動態シミュレーター',
   BasicController: "基本",
   AdvancedController: "詳細",
+  PressurePlot: "圧曲線",
+  PVPlot: "圧容量曲線",
+  LogPlot: '経時変化',
+  BaseValue: '基準値',
+  TargetValue: '目標値',
+  TargetHdp: '変化させるパラメータ',
+  StartRecording: '記録開始',
+  StopRecording: '記録停止',
   Plv: "左室圧",
   Pla: "左房圧",
   Prv: "右室圧",
@@ -17,8 +25,6 @@ export default {
   LA: "左房",
   RV: "右室",
   RA: "右房", 
-  PressurePlot: "圧曲線",
-  PVPlot: "圧容量曲線",
   LV_Ees: "左室収縮能",
   LV_V0 : "左室最小容量",
   LV_alpha : "左室拡張能",
@@ -72,4 +78,5 @@ export default {
   Rtvr: "三尖弁逆流",
   Rtvs: "三尖弁狭窄"  
 }
+
 

@@ -20,7 +20,7 @@ export const P = (V, t,Ees,V0, alpha, beta,Tmax, tau, AV_delay,HR)=>{
   return Ped + e(t-AV_delay,Tmax,tau,HR)*(Pes-Ped)
 }
 
-const keys = ["t","Qvs", "Qas", "Qap", "Qvp", "Qlv", "Qla", "Qrv", "Qra", "Qas_prox","Qap_prox","Plv", "Pla", "Prv", "Pra","Ias","Ics","Imv","Ivp","Iap","Icp","Itv","Ivs","Iasp","Iapp", "AoP", "PAP"]
+const keys = ["t","Qvs", "Qas", "Qap", "Qvp", "Qlv", "Qla", "Qrv", "Qra", "Qas_prox","Qap_prox","Plv", "Pla", "Prv", "Pra","Ias","Ics","Imv","Ivp","Iap","Icp","Itv","Ivs","Iasp","Iapp", "AoP", "PAP",'HR']
 
 export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox],
     { Rcs,Rcp,Ras,Rvs,Rap,Rvp,Ras_prox,Rap_prox,Rmv,Rtv,Cas,Cvs,Cap,Cvp,Cas_prox,Cap_prox,
@@ -51,7 +51,7 @@ export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_p
     if(logger != null){
       let AoP = Qas_prox/Cas_prox + Iasp*Ras_prox
       let PAP = Qap_prox/Cap_prox + Iapp*Rap_prox
-      const vals = [t,Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Plv, Pla, Prv, Pra,Ias,Ics,Imv,Ivp,Iap,Icp,Itv,Ivs,Iasp,Iapp, AoP, PAP]
+      const vals = [t,Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Plv, Pla, Prv, Pra,Ias,Ics,Imv,Ivp,Iap,Icp,Itv,Ivs,Iasp,Iapp, AoP, PAP, HR]
       for(let i =0; i< keys.length; i++){
         (logger[keys[i]]||(logger[keys[i]]=[])).push(vals[i]);
       }

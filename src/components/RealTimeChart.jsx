@@ -9,10 +9,7 @@ import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
 import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@material-ui/icons"
 import {LightTheme, COLORS, ALPHA_COLORS} from '../styles/chartConstants'
-import { useRouter } from 'next/router'
-import en from '../locales/en'
-import ja from '../locales/ja'
-
+import { useTranslation } from '../hooks/useTranslation';
 
 const TIME_WINDOW = 6000
 const TIME_WINDOW_GAP = 200
@@ -40,8 +37,7 @@ const getTimeSeriesFn = ({
 SciChartSurface.setRuntimeLicenseKey("huWbZsQPS1xwT/5d4ZX5RzXPo1YdKSolsoHTDGIpnGTJMHTvT9PxmLbG57MPZR9A5ioKcgaTkpJxSI9Jmrhylqtp0onkF0jLC9+ob6gUxuOzRAJ5wQfJLaLprgrVcZCGPXHbnvWFITcp2NKKHn8Ty1/2wGaldBYzfmxtgoOpMvBUcmApFBeZUVkMicPFnUVapiKIev4LFKYthhpPjEQ5I7veQbYAL6FntEP81fMprqDCyfFhuwcdNyj4Ip9djDjW1mWoEMZcgES7cvZGjWEu7lbgJdORwBq4vOX36zB3DhV8ZrwKBMYtVh/KreQQiG5nJFkOlIZHvTSXzuBj2uRD9SGUj3SmpGi6cU7iHTA2ZuLfiQN5Il9AV/25kdaA2k4pqAju6WTCZJbN2l2mqK2/c1xpFQ4pCls59Zi8chYF1npubSmm0wACs3UADGT361i5qlrR117uRdn5a/r17ysWvdhofUUN1AnUilsKuc/E+WlDtRYKLgekjnEHXReBY/WSqgb7MD1U7shW6olCx8G5+evmHumMkuDFCyi5nJtr3G5bdFaDSasPpavkjJYG2iXjsUIYQH7Wbe0J5IIOGcx59iz3/AUAPFazhia9cGUP3ZljrLObQ3v0wK5H+h0v7ZclCv7+QBAJEE4W3tx5zEcUc3LxbESGyseZ0XdYYsfApctLf3RhLnW0c6DylxTKTj79LxCvqc46JH8LvljGmS/0IZBQpZuqvefZDyKDq1fE8P23UzrwKp37");
 
 const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes,setDataTypes}) =>{
-  const {locale} = useRouter()
-  const t = locale==='en' ? en : ja
+  const t = useTranslation();
   const [loading, setLoading] = useState(true);
   const [sciChartSurface, setSciChartSurface] = useState();
   const dataRef = useRef({})
@@ -53,8 +49,6 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
   const usedColorsRef = useRef([]);
   const [anchorEl, setAnchorEl] = useState(null);
   const [pressureMenuOpen, setPressureMenuOpen] = useState(dataTypes.some(x=> pressureTypes.includes(x)));
-
-
 
   const addDataSeries = (dataType)=>{
     const colorIndex = [...COLORS.keys()].find(i=>!usedColorsRef.current.includes(i))
