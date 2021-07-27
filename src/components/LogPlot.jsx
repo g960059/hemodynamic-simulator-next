@@ -24,19 +24,25 @@ class SV {
     this.lvedv = -Infinity
     this.lvesv = Infinity
   }
+  static getLabel(){
+    return "SV"
+  }
   update(data, time, hdps){
-    const maxValue = Math.max(...data['Qlv']);
-    const minValue = Math.min(...data['Qlv']);
-    if(this.lvedv < maxValue){
-      this.lvedv = maxValue;
-    }
-    if(this.lvesv > minValue){
-      this.lvesv = minValue;
-    }
+    const ts = data['t'].map(_t=> (_t - hdps['LV_AV_delay']) % (60000 / data['HR'][0]))
+    const _ts = ts.map(_t=> _t< hdps["LV_Tmax"] ? 10000 : _t - hdps["LV_Tmax"])
+    const tes = Math.min(..._ts)
+    if(tes < 5 ){
+      const tesIndex = _ts.findIndex(_t => _t === tes)
+      this.lvesv = data['Qlv'][tesIndex];
+    }else{
+      const ted = Math.max(...ts)
+      if(60000/data['HR'][0] - ted  < 5){
+        const tedIndex = ts.findIndex(_t => _t === ted)
+        this.lvedv = data['Qlv'][tedIndex];
+      }
+    } 
   }
   reset(){
-    this.lvedv = -Infinity
-    this.lvesv = Infinity
   }
   get() {
     return this.lvedv - this.lvesv
@@ -47,6 +53,9 @@ class EF {
   constructor(){
     this.lvedv = -Infinity
     this.lvesv = Infinity
+  }
+  static getLabel(){
+    return "EF"
   }
   update(data, time, hdps){
     const maxValue = Math.max(...data['Qlv']);
@@ -69,19 +78,21 @@ class EF {
 
 class LVEDP{
   constructor(){
-    this.lvedv = -Infinity
     this.lvedp = null
+  }
+  static getLabel(){
+    return "LVEDP"
   }
   update(data, time, hdps){
-    const maxValue = Math.max(...data['Qlv']);
-    if(this.lvedv < maxValue){
-      this.lvedv = maxValue
-      this.lvedp = data['Plv'][data['Qlv'].findIndex(x=>x===maxValue)]
-    }
+    const ts = data['t'].map(_t=> (_t - hdps['LV_AV_delay']) % (60000 / data['HR'][0]))
+    const _ts = ts.map(_t=> _t< hdps["LV_Tmax"] ? 10000 : _t - hdps["LV_Tmax"])
+    const ted = Math.max(...ts)
+    if(60000/data['HR'][0] - ted  < 5){
+      const tedIndex = ts.findIndex(_t => _t === ted)
+      this.lvedp = data['Plv'][tedIndex];
+    } 
   }
   reset(){
-    this.lvedv = -Infinity
-    this.lvedp = null
   }
   get(){
     return this.lvedp
@@ -91,6 +102,9 @@ class LVEDP{
 class HR {
   constructor(){
     this.HR = null
+  }
+  static getLabel(){
+    return "HR"
   }
   update(data, time, hdps){
     this.HR= data['HR'][0]
@@ -108,6 +122,9 @@ class CO {
     this.lvedv = null
     this.lvesv = null
     this.HR = null
+  }
+  static getLabel(){
+    return "CO"
   }
   update(data, time, hdps){
     this.HR= data['HR'][0]
@@ -131,11 +148,14 @@ class CO {
     return (this.lvedv - this.lvesv) * this.HR /1000
   }
 }
-class ArtrialKick {
+class LaKickRatio {
   constructor(){
     this.lvedv = -Infinity
     this.lvesv = Infinity
     this.HR = null
+  }
+  static getLabel(){
+    return "LA_Kick_Ratio"
   }
   update(data, time, hdps){
     this.HR= data['HR'][0]
@@ -158,6 +178,8 @@ class ArtrialKick {
   }
 }
 
+const AxisDataOptions = [SV, EF, LVEDP, HR, CO,LaKickRatio]
+
 SciChartSurface.setRuntimeLicenseKey("huWbZsQPS1xwT/5d4ZX5RzXPo1YdKSolsoHTDGIpnGTJMHTvT9PxmLbG57MPZR9A5ioKcgaTkpJxSI9Jmrhylqtp0onkF0jLC9+ob6gUxuOzRAJ5wQfJLaLprgrVcZCGPXHbnvWFITcp2NKKHn8Ty1/2wGaldBYzfmxtgoOpMvBUcmApFBeZUVkMicPFnUVapiKIev4LFKYthhpPjEQ5I7veQbYAL6FntEP81fMprqDCyfFhuwcdNyj4Ip9djDjW1mWoEMZcgES7cvZGjWEu7lbgJdORwBq4vOX36zB3DhV8ZrwKBMYtVh/KreQQiG5nJFkOlIZHvTSXzuBj2uRD9SGUj3SmpGi6cU7iHTA2ZuLfiQN5Il9AV/25kdaA2k4pqAju6WTCZJbN2l2mqK2/c1xpFQ4pCls59Zi8chYF1npubSmm0wACs3UADGT361i5qlrR117uRdn5a/r17ysWvdhofUUN1AnUilsKuc/E+WlDtRYKLgekjnEHXReBY/WSqgb7MD1U7shW6olCx8G5+evmHumMkuDFCyi5nJtr3G5bdFaDSasPpavkjJYG2iXjsUIYQH7Wbe0J5IIOGcx59iz3/AUAPFazhia9cGUP3ZljrLObQ3v0wK5H+h0v7ZclCv7+QBAJEE4W3tx5zEcUc3LxbESGyseZ0XdYYsfApctLf3RhLnW0c6DylxTKTj79LxCvqc46JH8LvljGmS/0IZBQpZuqvefZDyKDq1fE8P23UzrwKp37");
 
 const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHdps,getHdps, setSpeed}) =>{
@@ -165,10 +187,14 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
   const [loading, setLoading] = useState(true);
   const dataRef = useRef()
   const scatterSeriesRef = useRef()
-  const counterRef = useRef(10);
+  const counterRef = useRef(20);
   const sciChartSurfaceRef = useRef();
   const wasmContextRef = useRef();
   const subscriptionIdRef = useRef();
+
+  const [xAxisClass, setXAxisClass] = useState("LVEDP");
+  const [yAxisClass, setYAxisClass] = useState("SV");
+  
   const xRef = useRef();
   const yRef = useRef();
   const changingRef = useRef(null);
@@ -214,8 +240,9 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
     })    
     sciChartSurface.zoomExtents();
     sciChartSurfaceRef.current.renderableSeries.add(scatterSeriesRef.current)
-    xRef.current = new HR()
-    yRef.current = new CO()
+
+    xRef.current = new LVEDP()
+    yRef.current = new SV()
     return {sciChartSurface,wasmContext}
   }  
 
@@ -252,6 +279,19 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
         }
       }
     }
+  }
+  const startRecording = () => {
+    dataRef.current.clear(); 
+    difRef.current=0; 
+    const defaultValue = DEFAULT_HEMODYANMIC_PROPS[hdp]
+    if(hdp=='HR'){
+      setHdps(hdp, Math.round(defaultValue*(baseValue)/100))
+    }else{
+      setHdps(hdp,defaultValue*(baseValue)/100)
+    }
+    subscriptionIdRef.current = subscribe(update);
+    setSpeed(10); 
+    setIsPlaying(true)
   }  
 
   useEffect(() => {
@@ -286,6 +326,48 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
       </Box>
       <Box width={1} px={1}>
         <Stack>
+        <Grid container justifyContent="center" alignItems="center" sx={{mb:1}}>
+            <Grid item xs={6}>
+              <Typography variant='subtitle1'>{t['XAxisLog']}</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <FormControl>
+                <Select
+                  labelId="hdp-label"
+                  id="select"
+                  value={xAxisClass}
+                  onChange={e=>{
+                    setXAxisClass(e.target.value)
+                    xRef.current = new AxisDataOptions[AxisDataOptions.findIndex(d=>d.getLabel()===e.target.value)]()
+                  }}
+                  sx={{'.MuiSelect-select':{py:1, pl:2}}}
+                >
+                  {AxisDataOptions.map(d=><MenuItem value={d.getLabel()}>{t[d.getLabel()]}</MenuItem>)}
+                </Select>          
+              </FormControl>
+            </Grid>
+          </Grid>
+          <Grid container justifyContent="center" alignItems="center" sx={{mb:1}}>
+            <Grid item xs={6}>
+              <Typography variant='subtitle1'>{t['YAxisLog']}</Typography>
+            </Grid>
+            <Grid item xs={6}>
+              <FormControl>
+                <Select
+                  labelId="hdp-label"
+                  id="select"
+                  value={yAxisClass}
+                  onChange={e=>{
+                    setYAxisClass(e.target.value);
+                    yRef.current = new AxisDataOptions[AxisDataOptions.findIndex(d=>d.getLabel()===e.target.value)]()
+                  }}
+                  sx={{'.MuiSelect-select':{py:1, pl:2}}}
+                >
+                  {AxisDataOptions.map(d=><MenuItem value={d.getLabel()}>{t[d.getLabel()]}</MenuItem>)}
+                </Select>          
+              </FormControl>
+            </Grid>
+          </Grid>             
           <Grid container justifyContent="center" alignItems="center" sx={{mb:1}}>
             <Grid item xs={6}>
               <Typography variant='subtitle1'>{t['TargetHdp']}</Typography>
@@ -303,7 +385,7 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
                 </Select>          
               </FormControl>
             </Grid>
-          </Grid>
+          </Grid>               
           <Grid container justifyContent="center" alignItems="center" sx={{mb:1}}>
             <Grid item xs={6}>
               <Typography variant='subtitle1'>{t['BaseValue']}: <strong>{display(baseValue)}</strong></Typography>
@@ -330,7 +412,7 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
           </Grid>
           <Box display='flex'justifyContent="center" alignItems="center" mb={1}>
             {isPlaying ? <Button variant='contained' onClick={()=>{setIsPlaying(false);setSpeed(1);sciChartSurfaceRef.current?.delete()}}>{t['StopRecording']}</Button> :
-             <Button  variant='outlined' onClick={()=>{dataRef.current.clear(); difRef.current=0; subscriptionIdRef.current = subscribe(update);setSpeed(5); setIsPlaying(true)}}>{t['StartRecording']}</Button>
+             <Button  variant='outlined' onClick={startRecording}>{t['StartRecording']}</Button>
             }
           </Box>
         </Stack>
