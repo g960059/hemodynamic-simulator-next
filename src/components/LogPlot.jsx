@@ -192,7 +192,7 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
   const sciChartSurfaceRef = useRef()
   const wasmContextRef = useRef();
   const subscriptionIdRef = useRef();
-  const [recordSpeed, setRecordSpeed] = useState(1);
+  const [recordSpeed, setRecordSpeed] = useState(10);
 
   const [xAxisClass, setXAxisClass] = useState("LVEDP");
   const [yAxisClass, setYAxisClass] = useState("SV");

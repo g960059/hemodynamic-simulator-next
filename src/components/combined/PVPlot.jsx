@@ -15,7 +15,7 @@ import {useTranslation} from '../../hooks/useTranslation'
 import { Thickness } from 'scichart/Core/Thickness';
 
 
-const PV_COUNT = 1000
+const PV_COUNT = 500
 const EDPVR_STEP = 20
 const PVTypes = ['LV','LA','RV','RA']
 
@@ -68,6 +68,11 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
   const xMaxRef = useRef(-Infinity);
   const yMinRef = useRef(Infinity);
   const xMinRef = useRef(Infinity);
+  const yMaxCandidateRef = useRef(-Infinity);
+  const xMaxCandidateRef = useRef(-Infinity);
+  const yMinCandidateRef = useRef(Infinity);
+  const xMinCandidateRef = useRef(Infinity);
+  const counterRef = useRef(1)
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -172,19 +177,29 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
         leadingPointRef.current[dataType].append(_x[dataLength-1],_y[dataLength-1]);
       } 
       
-      if(time % (60000/hdprops['HR'] * 10) < 100){
-        // xMaxRef.current = xMaxRef.current * 0.9
-        // yMaxRef.current = yMaxRef.current * 0.9
-        // xMinRef.current = xMinRef.current * 1.1
-        // yMinRef.current = yMinRef.current * 1.1
+      if(time / (60000/hdprops['HR']) > counterRef.current){
+        xMaxRef.current = xMaxCandidateRef.current
+        yMaxRef.current = yMaxCandidateRef.current
+        xMinRef.current = xMinCandidateRef.current
+        yMinRef.current = yMinCandidateRef.current
+
+        xMaxCandidateRef.current *= 0.2
+        yMaxCandidateRef.current *= 0.2 
+        xMinCandidateRef.current *= 2
+        yMinCandidateRef.current *= 2
+        counterRef.current= Math.floor(time / (60000/hdprops['HR']))+1;
       }
       _x.forEach(px=>{
         if(px>xMaxRef.current){xMaxRef.current=px}
         if(px<xMinRef.current){xMinRef.current=px}
+        if(px>xMaxCandidateRef.current){xMaxCandidateRef.current=px}
+        if(px<xMinCandidateRef.current){xMinCandidateRef.current=px}
       })
       _y.forEach(py=>{
         if(py>yMaxRef.current){yMaxRef.current=py}
         if(py<yMinRef.current){yMinRef.current=py}
+        if(py>yMaxCandidateRef.current){yMaxCandidateRef.current=py}
+        if(py<yMinCandidateRef.current){yMinCandidateRef.current=py}
       })
       xAxisRef.current.visibleRange = new NumberRange(xMinRef.current,xMaxRef.current)
       yAxisRef.current.visibleRange = new NumberRange(yMinRef.current,yMaxRef.current)
@@ -250,6 +265,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
       Object.values(dataRef.current).forEach(d=>{
         d.delete();
       })
+      usedColorsRef.current = [];
       sciChartSurfaceRef.current?.delete()
     }
   }, [dataTypes]);

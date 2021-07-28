@@ -157,20 +157,22 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
     }
   }
 
-  useEffect(() => {
-    if(dataTypes.length >0 && changingRef.current != null){
-      unsubscribe(subscriptionIdRef.current)
-      subscriptionIdRef.current = subscribe(update)
-      if(changingRef.current == 'start'){setIsPlaying(true)}
-      changingRef.current = null
-    }
-  }, [dataTypes]);
+  // useEffect(() => {
+  //   if(dataTypes.length >0 && changingRef.current != null){
+  //     unsubscribe(subscriptionIdRef.current)
+  //     subscriptionIdRef.current = subscribe(update)
+  //     if(changingRef.current == 'start'){setIsPlaying(true)}
+  //     changingRef.current = null
+  //   }
+  // }, [dataTypes]);
 
   useEffect(() => {
     (async ()=>{
       const res = await initSciChart()
       setSciChartSurface(res.SciChartSurface)
       subscriptionIdRef.current = subscribe(update)
+      if(changingRef.current == 'start'){setIsPlaying(true)}
+      changingRef.current = null
       // setIsPlaying(true)
       if(res){
         setLoading(false)
@@ -182,6 +184,7 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
         d[0].delete();
         d[1].delete();
       })
+      usedColorsRef.current = [];
       sciChartSurface?.delete()
     }
   }, [dataTypes]);
