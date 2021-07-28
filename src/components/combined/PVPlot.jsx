@@ -72,6 +72,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
   const xMaxCandidateRef = useRef(-Infinity);
   const yMinCandidateRef = useRef(Infinity);
   const xMinCandidateRef = useRef(Infinity);
+
   const counterRef = useRef(1)
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -183,10 +184,10 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
         xMinRef.current = xMinCandidateRef.current
         yMinRef.current = yMinCandidateRef.current
 
-        xMaxCandidateRef.current *= 0.2
-        yMaxCandidateRef.current *= 0.2 
-        xMinCandidateRef.current *= 2
-        yMinCandidateRef.current *= 2
+        xMaxCandidateRef.current = xMaxCandidateRef.current - Math.abs(xMaxCandidateRef.current) * 0.8
+        yMaxCandidateRef.current = yMaxCandidateRef.current - Math.abs(yMaxCandidateRef.current) * 0.8
+        xMinCandidateRef.current = xMinCandidateRef.current + Math.abs(xMinCandidateRef.current) * 0.8
+        yMinCandidateRef.current = yMinCandidateRef.current + Math.abs(yMinCandidateRef.current) * 0.8
         counterRef.current= Math.floor(time / (60000/hdprops['HR']))+1;
       }
       _x.forEach(px=>{
@@ -201,8 +202,8 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
         if(py>yMaxCandidateRef.current){yMaxCandidateRef.current=py}
         if(py<yMinCandidateRef.current){yMinCandidateRef.current=py}
       })
-      xAxisRef.current.visibleRange = new NumberRange(xMinRef.current,xMaxRef.current)
-      yAxisRef.current.visibleRange = new NumberRange(yMinRef.current,yMaxRef.current)
+      xAxisRef.current.visibleRange = new NumberRange(xMinRef.current-0.1*(xMaxRef.current-xMinRef.current),xMaxRef.current)
+      yAxisRef.current.visibleRange = new NumberRange(yMinRef.current-(yMaxRef.current-yMinRef.current)*0.1,yMaxRef.current+(yMaxRef.current-yMinRef.current)*0.1)
 
       const lastIndex = _x.length-1
       annotationDataRef.current[dataType].clear()

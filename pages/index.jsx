@@ -62,7 +62,7 @@ const App = () => {
             <BasicController getHdps={getHdps} setHdps={setHdps}/>
           </Box>
           <Box sx={{display: { xs: 'none', md: 'block' }, mt:2}}>
-            {tabValue != 2 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>}        
+            {tabValue != 3 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>}        
           </Box>
         </Box>
         <Divider orientation="vertical" flexItem xs={{display: { xs: 'none', md: 'block' }}}/>
@@ -76,8 +76,8 @@ const App = () => {
           >
             <Tab label={t["PressurePlot"]} {...a11yProps(0)} />
             <Tab label={t["PVPlot"]} {...a11yProps(1)} />
-            <Tab label={t["LogPlot"]} {...a11yProps(2)} />
-            <Tab label={t["CombinedPlot"]} {...a11yProps(3)} />
+            <Tab label={t["CombinedPlot"]} {...a11yProps(2)} />
+            <Tab label={t["LogPlot"]} {...a11yProps(3)} />
           </Tabs>
           <SwipeableViews index={tabValue} onChangeIndex={index=>{setTabValue(index)}}>
             <TabPanel value={tabValue} index={0} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
@@ -92,18 +92,18 @@ const App = () => {
             </TabPanel>
             <TabPanel value={tabValue} index={2} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
               <Box sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', p:[1,2], pt:2}}>
-                <LogPlot subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed} setHdps={setHdps} getHdps ={getHdps}/>
+                <CombinedChart subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} dataTypes={combinedData} setDataTypes={setCombinedData}/>
               </Box>
-            </TabPanel>
+            </TabPanel>            
             <TabPanel value={tabValue} index={3} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
               <Box sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', p:[1,2], pt:2}}>
-                <CombinedChart subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} dataTypes={combinedData} setDataTypes={setCombinedData}/>
+                <LogPlot subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed} setHdps={setHdps} getHdps ={getHdps}/>
               </Box>
             </TabPanel>
           </SwipeableViews>
           {/* <OutputPanel subscribe={subscribe} unsubscribe={unsubscribe} dataTypes={outputDataTypes} setDataTypes={setOutputDataTypes} getHdps = {getHdps} /> */}
           <Box sx={{display: { xs: 'block', md: 'none' }}}>
-            {tabValue != 2 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>}
+            {tabValue != 3 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>}
           </Box>
         </Box>
       </Grid>

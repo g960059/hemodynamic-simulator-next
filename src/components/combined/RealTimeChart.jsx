@@ -85,7 +85,7 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
     xAxis.drawMajorGridLines =false;
     xAxis.drawMinorGridLines =false;
     yAxis.drawMinorGridLines =false;    
-    yAxis.growBy = new NumberRange(0,0);
+    yAxis.growBy = new NumberRange(0.1,0.1);
     yAxis.labelProvider.formatLabel = (dataValue => dataValue?.toFixed(0))
     sciChartSurface.xAxes.add(xAxis);
     sciChartSurface.yAxes.add(yAxis);
