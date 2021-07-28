@@ -79,10 +79,10 @@ function Layout(props) {
           <Typography variant="h6" noWrap component="div" sx={{fontFamily: "GT Haptik Regular" ,flexGrow: 1 }}>
             {t['Title']}
           </Typography>
-          <IconButton onClick={()=>{window.open('https://twitter.com/osushi0x0')}} sx={{display: { xs: 'none', md: 'block' }}}>
+          <IconButton onClick={()=>{window.open('https://twitter.com/0xGudemaru')}} sx={{display: { xs: 'none', md: 'block' }}}>
             <Twitter/>
           </IconButton>
-          <IconButton onClick={()=>{window.open('https://github.com/g960059/uniswap_simulator')}} sx={{display: { xs: 'none', md: 'block' }}}>
+          <IconButton onClick={()=>{window.open('https://github.com/g960059/hemodynamic-simulator-next')}} sx={{display: { xs: 'none', md: 'block' }}}>
             <GitHub/>
           </IconButton>
         </Toolbar>

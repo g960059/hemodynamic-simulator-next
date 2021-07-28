@@ -67,7 +67,7 @@ const App = () => {
         </Box>
         <Divider orientation="vertical" flexItem xs={{display: { xs: 'none', md: 'block' }}}/>
       </Grid>
-      <Grid item xs={12} md={7} lg={8} sx={{order:[0,0,1]}}>
+      <Grid item xs={12} md={7} lg={7} sx={{order:[0,0,1]}}>
         <Box className={classes.containerBox} mx={[0,1]}>
           <Tabs
             value={tabValue} 
