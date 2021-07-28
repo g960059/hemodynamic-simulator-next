@@ -12,6 +12,7 @@ import RealTimeChart from '../src/components/RealTimeChart'
 import OutputPanel from '../src/components/OutputPanel'
 import LogPlot from '../src/components/LogPlot'
 import BasicController from '../src/components/controllers/BasicController'
+import CombinedChart from '../src/components/combined/CombinedChart'
 // import dynamic from 'next/dynamic'
 // const RealTimeChart =  dynamic(()=>import('../src/components/RealTimeChart'), { ssr: false })
 
@@ -50,6 +51,7 @@ const App = () => {
   const {subscribe,unsubscribe ,isPlaying,setIsPlaying, setHdps, getHdps, setSpeed} = usePvLoop()
   const [pressureDataTypes, setPressureDataTypes] = useState(['Plv', 'Pla', 'AoP']);
   const [pvDataTypes, setPvDataTypes] = useState(['LV', 'LA']);
+  const [combinedData, setCombinedData] = useState(['RA']);
   const [outputDataTypes, setOutputDataTypes] = useState(['AoP','PAP','CVP','SV','CO','PCWP']);
   return (
     <> 
@@ -75,6 +77,7 @@ const App = () => {
             <Tab label={t["PressurePlot"]} {...a11yProps(0)} />
             <Tab label={t["PVPlot"]} {...a11yProps(1)} />
             <Tab label={t["LogPlot"]} {...a11yProps(2)} />
+            <Tab label={t["CombinedPlot"]} {...a11yProps(3)} />
           </Tabs>
           <SwipeableViews index={tabValue} onChangeIndex={index=>{setTabValue(index)}}>
             <TabPanel value={tabValue} index={0} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
@@ -90,6 +93,11 @@ const App = () => {
             <TabPanel value={tabValue} index={2} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
               <Box sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', p:[1,2], pt:2}}>
                 <LogPlot subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed} setHdps={setHdps} getHdps ={getHdps}/>
+              </Box>
+            </TabPanel>
+            <TabPanel value={tabValue} index={3} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
+              <Box sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', p:[1,2], pt:2}}>
+                <CombinedChart subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} dataTypes={combinedData} setDataTypes={setCombinedData}/>
               </Box>
             </TabPanel>
           </SwipeableViews>

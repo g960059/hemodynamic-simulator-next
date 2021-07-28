@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
-import {Box,Grid, Typography, Stack,MenuItem, Select,FormControl,InputLabel, IconButton, CircularProgress, Button, ButtonGroup} from '@material-ui/core'
+import {Box,Grid, Typography, Stack,MenuItem, Select,FormControl,InputLabel, IconButton, CircularProgress, Button, ButtonGroup, ToggleButtonGroup, ToggleButton} from '@material-ui/core'
 import {Refresh} from '@material-ui/icons';
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
@@ -9,14 +9,12 @@ import {XyDataSeries} from "scichart/Charting/Model/XyDataSeries";
 import {EAxisAlignment} from "scichart/types/AxisAlignment";
 import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
-import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore, Maximize} from "@material-ui/icons"
 import {LightTheme, COLORS, ALPHA_COLORS} from '../styles/chartConstants'
 import { useTranslation } from '../hooks/useTranslation';
 import {shallowCompare} from '../utils/utils'
 import {DEFAULT_HEMODYANMIC_PROPS} from '../hooks/usePvLoop'
 import {e} from '../utils/pvFunc'
 
-const TIME_WINDOW = 6000
 const BasicHdps = ['Volume','Ras','LV_Ees','LV_alpha','LV_tau','HR']
 
 class SV {
@@ -49,29 +47,14 @@ class SV {
   }
 }
 
-class EF {
+class EF extends SV{
   constructor(){
-    this.lvedv = -Infinity
-    this.lvesv = Infinity
+    super()
   }
   static getLabel(){
     return "EF"
   }
-  update(data, time, hdps){
-    const maxValue = Math.max(...data['Qlv']);
-    const minValue = Math.min(...data['Qlv']);
-    if(this.lvedv < maxValue){
-      this.lvedv = maxValue;
-    }
-    if(this.lvesv > minValue){
-      this.lvesv = minValue;
-    }
-  }
-  reset(){
-    this.lvedv = -Infinity
-    this.lvesv = Infinity
-  }
-  get() {
+  get(){
     return (this.lvedv - this.lvesv)/this.lvedv*100
   }
 }
@@ -152,29 +135,44 @@ class LaKickRatio {
   constructor(){
     this.lvedv = -Infinity
     this.lvesv = Infinity
-    this.HR = null
+    this.rvedv = -Infinity
+    this.rvesv = Infinity
   }
   static getLabel(){
     return "LA_Kick_Ratio"
   }
   update(data, time, hdps){
-    this.HR= data['HR'][0]
-    const maxValue = Math.max(...data['Qlv']);
-    const minValue = Math.min(...data['Qlv']);
-    if(this.lvedv < maxValue){
-      this.lvedv = maxValue;
-    }
-    if(this.lvesv > minValue){
-      this.lvesv = minValue;
-    }
+    const HR = data['HR'][0]
+    const tls = data['t'].map(_t=> (_t - hdps['LV_AV_delay']) % (60000 / HR))
+    const _tls = tls.map(_t=> _t< hdps["LV_Tmax"] ? 10000 : _t - hdps["LV_Tmax"])
+    const tesl = Math.min(..._tls)
+    if(tesl < 5 ){
+      const teslIndex = _tls.findIndex(_t => _t === tesl)
+      this.lvesv = data['Qlv'][teslIndex];
+    }else{
+      const tedl = Math.max(...tls)
+      if(60000/HR - tedl  < 5){
+        const tedlIndex = tls.findIndex(_t => _t === tedl)
+        this.lvedv = data['Qlv'][tedlIndex];
+      }
+    } 
+    const tsla = data['t'].map(_t=> (_t - hdps['LA_AV_delay']) % (60000 / HR))
+    const _tsla = tsla.map(_t=> _t< hdps["LA_Tmax"] ? 10000 : _t - hdps["LA_Tmax"])
+    const tesla = Math.min(..._tsla)
+    if(tesla < 5 ){
+      const teslaIndex = _tsla.findIndex(_t => _t === tesla)
+      this.laesv = data['Qla'][teslaIndex];
+    }else{
+      const tedla = Math.max(...tsla)
+      if(60000/HR - tedla  < 5){
+        const tedlaIndex = tsla.findIndex(_t => _t === tedla)
+        this.laedv = data['Qla'][tedlaIndex];
+      }
+    }    
   }
-  reset(){
-    this.lvedv = -Infinity
-    this.lvesv = Infinity
-    this.HR = null
-  }
+  reset(){}
   get() {
-    return (this.lvedv - this.lvesv) * this.HR
+    return  (this.laedv - this.laesv)  / (this.lvedv - this.lvesv) * 100
   }
 }
 
@@ -185,12 +183,16 @@ SciChartSurface.setRuntimeLicenseKey("huWbZsQPS1xwT/5d4ZX5RzXPo1YdKSolsoHTDGIpnG
 const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHdps,getHdps, setSpeed}) =>{
   const t = useTranslation();
   const [loading, setLoading] = useState(true);
-  const dataRef = useRef()
+  const dataRef = useRef();
+  const usedColorsRef = useRef([]);
+
+  const datasRef = useRef([])
   const scatterSeriesRef = useRef()
-  const counterRef = useRef(20);
-  const sciChartSurfaceRef = useRef();
+  const counterRef = useRef(30);
+  const sciChartSurfaceRef = useRef()
   const wasmContextRef = useRef();
   const subscriptionIdRef = useRef();
+  const [recordSpeed, setRecordSpeed] = useState(1);
 
   const [xAxisClass, setXAxisClass] = useState("LVEDP");
   const [yAxisClass, setYAxisClass] = useState("SV");
@@ -206,11 +208,30 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
 
   const [recording, setRecording] = useState(false);
   
+
+  const addNewScatterSeries = () => {
+    const colorIndex = [...COLORS.keys()].find(i=>!usedColorsRef.current.includes(i))
+    usedColorsRef.current.push(colorIndex)
+    dataRef.current = new XyDataSeries(wasmContextRef.current)
+    datasRef.current.push(dataRef.current)
+
+    scatterSeriesRef.current = new XyScatterRenderableSeries(wasmContextRef.current, {
+      pointMarker: new EllipsePointMarker(wasmContextRef.current, {
+          width: 5,
+          height: 5,
+          strokeThickness: 2,
+          fill: COLORS[colorIndex],
+          stroke: COLORS[colorIndex]
+      }),
+      dataSeries: dataRef.current,
+    })    
+    sciChartSurfaceRef.current.renderableSeries.add(scatterSeriesRef.current)
+  }
+
   const initSciChart = async () => {
     const { sciChartSurface, wasmContext } = await SciChartSurface.create(
       "scichart-root-log"
     );
-    sciChartSurfaceRef.current = sciChartSurface
     wasmContextRef.current = wasmContext
     sciChartSurface.applyTheme(LightTheme)
     const xAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Bottom,autoRange: EAutoRange.Always,drawMinorTickLines:false});
@@ -227,19 +248,7 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
     sciChartSurface.xAxes.add(xAxis);
     sciChartSurface.yAxes.add(yAxis);
 
-    dataRef.current = new XyDataSeries(wasmContextRef.current)
-    scatterSeriesRef.current = new XyScatterRenderableSeries(wasmContextRef.current, {
-      pointMarker: new EllipsePointMarker(wasmContextRef.current, {
-          width: 5,
-          height: 5,
-          strokeThickness: 2,
-          fill: COLORS[0],
-          stroke: COLORS[0]
-      }),
-      dataSeries: dataRef.current,
-    })    
     sciChartSurface.zoomExtents();
-    sciChartSurfaceRef.current.renderableSeries.add(scatterSeriesRef.current)
 
     xRef.current = new LVEDP()
     yRef.current = new SV()
@@ -257,7 +266,7 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
       yRef.current.reset()
       if(0<x && x<10000 && 0<y && y< 10000){
         dataRef.current.appendRange([x],[y]);
-        counterRef.current = Math.floor(time*hdprops['HR']/ 60000 )+20
+        counterRef.current = Math.floor(time*hdprops['HR']/ 60000 )+30
         const defaultValue = DEFAULT_HEMODYANMIC_PROPS[hdp]
         if(targetValue == Math.round(baseValue + difRef.current)){
           setIsPlaying(false)
@@ -281,7 +290,9 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
     }
   }
   const startRecording = () => {
-    dataRef.current.clear(); 
+    unsubscribe(subscriptionIdRef.current)
+    addNewScatterSeries()
+
     difRef.current=0; 
     const defaultValue = DEFAULT_HEMODYANMIC_PROPS[hdp]
     if(hdp=='HR'){
@@ -289,8 +300,9 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
     }else{
       setHdps(hdp,defaultValue*(baseValue)/100)
     }
+
     subscriptionIdRef.current = subscribe(update);
-    setSpeed(10); 
+    setSpeed(recordSpeed); 
     setIsPlaying(true)
   }  
 
@@ -298,14 +310,15 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
     (async ()=>{
       setIsPlaying(false)
       const res = await initSciChart()
-      sciChartSurfaceRef.current = res.SciChartSurface
+      sciChartSurfaceRef.current = res.sciChartSurface
       if(res){
         setLoading(false)
       }
     })();
     return ()=>{
       unsubscribe(subscriptionIdRef.current)
-      dataRef.current.delete();
+      datasRef.current.forEach(d=>{d.delete()})
+      sciChartSurfaceRef.current?.delete()
     }
   }, []);
   const display = (value) => {
@@ -411,9 +424,22 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
             </Grid>
           </Grid>
           <Box display='flex'justifyContent="center" alignItems="center" mb={1}>
-            {isPlaying ? <Button variant='contained' onClick={()=>{setIsPlaying(false);setSpeed(1);sciChartSurfaceRef.current?.delete()}}>{t['StopRecording']}</Button> :
-             <Button  variant='outlined' onClick={startRecording}>{t['StartRecording']}</Button>
-            }
+            <Stack direction='horizontal'>
+              <ToggleButtonGroup
+                color="primary"
+                value={recordSpeed}
+                exclusive
+                onChange={(e,v)=>{setRecordSpeed(v)}}
+                sx={{mr:2}}
+              >
+                <ToggleButton value={2}>{t['LowSpeed']}</ToggleButton>
+                <ToggleButton value={10}>{t['NormalSpeed']}</ToggleButton>
+                <ToggleButton value={50}>{t['HighSpeed']}</ToggleButton>
+              </ToggleButtonGroup>
+              {isPlaying ? <Button variant='contained' onClick={()=>{setIsPlaying(false);setSpeed(1)}}>{t['StopRecording']}</Button> :
+                <Button  variant='contained' onClick={()=>{startRecording()}}>{t['StartRecording']}</Button>
+                }
+            </Stack>
           </Box>
         </Stack>
       </Box>

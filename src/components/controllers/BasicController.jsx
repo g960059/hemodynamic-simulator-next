@@ -88,12 +88,12 @@ export const InputButtons = React.memo(({hdp, hdps,setHdps}) => {
     }
   }
   return (
-    <Grid container justifyContent="center" alignItems="center">
-      <Grid item xs={5}>
-        <Typography variant='subtitle2'>{display()}</Typography>
+    <Grid container justifyContent="center" alignItems="center" display='flex' sx={{mb:1}}>
+      <Grid item xs={6}>
+        <Typography variant='subtitle1'>{display()}</Typography>
       </Grid>
-      <Grid item xs={7}>
-        <ButtonGroup variant="outlined" sx={{mb:1}}>
+      <Grid item xs={6} justifyContent="center" alignItems="center" display='flex'>
+        <ButtonGroup variant="outlined" size="small">
           <Button onClick={onHandle(-10)} disabled={value<=30}>-10%</Button>
           <Button onClick={onHandle(0)}><Refresh/></Button>
           <Button onClick={onHandle(10)}>+10%</Button>

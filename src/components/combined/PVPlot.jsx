@@ -10,8 +10,9 @@ import {EAxisAlignment} from "scichart/types/AxisAlignment";
 import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
 import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@material-ui/icons"
-import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS} from '../styles/chartConstants'
-import {useTranslation} from '../hooks/useTranslation'
+import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS} from '../../styles/chartConstants'
+import {useTranslation} from '../../hooks/useTranslation'
+import { Thickness } from 'scichart/Core/Thickness';
 
 
 const PV_COUNT = 1000
@@ -48,6 +49,9 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
   const edpvrDataRef = useRef({});
   const edpvrLineSeriesRef = useRef({}); 
 
+  const annotationDataRef = useRef({})
+  const annotationSeriesRef=useRef({})
+
   const alphaRef = useRef({}); 
   const betaRef = useRef({});
   const V0Ref = useRef({});
@@ -59,12 +63,11 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
   const changingRef = useRef(null);
   const usedColorsRef = useRef([]);
   const xAxisRef = useRef();
-  const yMaxRef = useRef({});
-  const xMaxRef = useRef({});
-  const yPrevRef = useRef({});
-  const yPrevPrevRef = useRef({});
-  const xPrevRef = useRef({});
-  const xPrevPrevRef = useRef({});
+  const yAxisRef = useRef();
+  const yMaxRef = useRef(-Infinity);
+  const xMaxRef = useRef(-Infinity);
+  const yMinRef = useRef(Infinity);
+  const xMinRef = useRef(Infinity);
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -110,6 +113,14 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
     sciChartSurfaceRef.current.renderableSeries.add(leadingSeries)
     sciChartSurfaceRef.current.renderableSeries.add(espvrSeries)
     sciChartSurfaceRef.current.renderableSeries.add(edpvrSeries)
+
+    annotationDataRef.current[dataType] = new XyDataSeries(wasmContextRef.current);
+    annotationSeriesRef.current[dataType] = new FastLineRenderableSeries(wasmContextRef.current, { 
+      stroke: ALPHA_COLORS[colorIndex],
+      strokeThickness: 2,
+      dataSeries: annotationDataRef.current[dataType]
+    })
+    sciChartSurfaceRef.current.renderableSeries.add(annotationSeriesRef.current[dataType])
   }
 
   const initSciChart = async () => {
@@ -119,8 +130,8 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
     sciChartSurfaceRef.current = sciChartSurface
     wasmContextRef.current = wasmContext
     sciChartSurface.applyTheme(LightTheme)
-    const xAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Bottom,autoRange: EAutoRange.Never,drawMinorTickLines:false});
-    const yAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Left,autoRange: EAutoRange.Always,drawMinorTickLines:false});
+    const xAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Bottom,autoRange: EAutoRange.Never, drawLabels:false, drawMinorTickLines:false});
+    const yAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Left,autoRange: EAutoRange.Never,drawMinorTickLines:false});
     xAxis.drawMajorGridLines =false;
     xAxis.drawMinorGridLines =false;
     yAxis.drawMinorGridLines =false;    
@@ -131,6 +142,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
     yAxis.growBy = new NumberRange(0.1, 0.05);
     yAxis.labelProvider.formatLabel = (dataValue => dataValue?.toFixed(0))
     xAxisRef.current = xAxis
+    yAxisRef.current = yAxis
     sciChartSurface.xAxes.add(xAxis);
     sciChartSurface.yAxes.add(yAxis);
 
@@ -138,6 +150,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
       const dataType = dataTypes[i]
       addDataSeries(dataType)
     }
+    sciChartSurface.padding = Thickness.fromNumber(0);
     return {sciChartSurface,wasmContext}
   }  
   const update = (data, time, hdprops) => {
@@ -152,87 +165,33 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
       }
       dataRef.current[dataType].appendRange(_x, _y)
 
-      // to update xMax, yMax
-      if(!yPrevRef.current[dataType]){
-        yPrevRef.current[dataType] = y
-        if(!yPrevPrevRef.current[dataType]){
-          yPrevPrevRef.current[dataType] = yPrevRef.current[dataType]
-        }
-      }
-      let yMax = yMaxRef.current[dataType] || 0
-      if(yPrevRef.current[dataType] >= yPrevPrevRef.current[dataType] && y < yPrevRef.current[dataType]){
-        yMax = (Math.ceil(yPrevRef.current[dataType]/20)+1)*20
-      }
-      yPrevPrevRef.current[dataType] = yPrevRef.current[dataType]
-      yPrevRef.current[dataType] = y
-
-            
-      if(!xPrevRef.current[dataType]){
-        xPrevRef.current[dataType] = x
-        if(!xPrevPrevRef.current[dataType]){
-          xPrevPrevRef.current[dataType] = xPrevRef.current[dataType]
-        }
-      }
-      let xMax = xMaxRef.current[dataType] 
-      if(xPrevRef.current[dataType] >= xPrevPrevRef.current[dataType] && x < xPrevRef.current[dataType]){
-        xMax = (Math.ceil(xPrevRef.current[dataType]/20)+1)*20
-      }
-      xPrevPrevRef.current[dataType] = xPrevRef.current[dataType]
-      xPrevRef.current[dataType] = x
-      const maxXMax = Object.values(xMaxRef.current).length >0 ? Math.max(...Object.values(xMaxRef.current)) : 0
-      
-      if(xAxisRef.current.visibleRange.max != maxXMax){
-        xAxisRef.current.visibleRange = new NumberRange(0,maxXMax)
-      }
       if(leadingPointRef.current[dataType].count()> 0){
         leadingPointRef.current[dataType].removeRange(0,leadingPointRef.current[dataType].count()-1);
         leadingPointRef.current[dataType].append(x,y);
       }else{
         leadingPointRef.current[dataType].append(_x[dataLength-1],_y[dataLength-1]);
       } 
-      // update annotation lines
-      const {alpha, beta, Ees, V0} = getHdProps[dataType](hdprops)
       
-      if(Ees!= EesRef.current[dataType]|| V0 != V0Ref.current[dataType] || yMax != yMaxRef.current[dataType]){
-        EesRef.current[dataType] = Ees;
-        V0Ref.current[dataType] = V0;
-        if(yMax != yMaxRef.current[dataType]){
-          yMaxRef.current[dataType] = yMax
-        }
-        if(espvrDataRef.current[dataType].count()>0){
-          espvrDataRef.current[dataType].clear()
-        }
-        if(Ees*(xMax-V0)<yMax){
-          espvrDataRef.current[dataType].appendRange([V0,xMax],[0,Ees*(xMax-V0)])
-        }else{
-          espvrDataRef.current[dataType].appendRange([V0,yMax/Ees+V0],[0,yMax])
-        }
+      if(time % (60000/hdprops['HR'] * 10) < 100){
+        // xMaxRef.current = xMaxRef.current * 0.9
+        // yMaxRef.current = yMaxRef.current * 0.9
+        // xMinRef.current = xMinRef.current * 1.1
+        // yMinRef.current = yMinRef.current * 1.1
       }
-      if(alpha!= alphaRef.current[dataType] || beta!=betaRef.current[dataType]|| V0 != V0Ref.current[dataType] ||xMax != xMaxRef.current[dataType] || yMax != yMaxRef.current[dataType] || edpvrDataRef.current[dataType].count() < EDPVR_STEP){
-        alphaRef.current[dataType]= alpha
-        betaRef.current[dataType] = beta
-        V0Ref.current[dataType] = V0
-        if(yMax != yMaxRef.current[dataType]){
-          yMaxRef.current[dataType] = yMax
-        }
-        if(xMax != xMaxRef.current[dataType]){
-          xMaxRef.current[dataType] = xMax
-        }        
-        if(edpvrDataRef.current[dataType].count()>0){
-          edpvrDataRef.current[dataType].clear()
-        }
-        if(beta* (Math.exp(alpha * (xMax-V0))-1) < yMax){
-          const stepSize = (xMax-V0)/EDPVR_STEP
-          const px = [...(Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize+V0)
-          const py = px.map(_px=>beta* (Math.exp(alpha * (_px-V0))-1))
-          edpvrDataRef.current[dataType].appendRange(px,py)
-        }else{
-          const stepSize = yMax/EDPVR_STEP
-          const py = [...(Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize)
-          const px = py.map(_py=> Math.log1p(_py/beta)/alpha + V0) 
-          edpvrDataRef.current[dataType].appendRange(px,py)
-        }
-      }
+      _x.forEach(px=>{
+        if(px>xMaxRef.current){xMaxRef.current=px}
+        if(px<xMinRef.current){xMinRef.current=px}
+      })
+      _y.forEach(py=>{
+        if(py>yMaxRef.current){yMaxRef.current=py}
+        if(py<yMinRef.current){yMinRef.current=py}
+      })
+      xAxisRef.current.visibleRange = new NumberRange(xMinRef.current,xMaxRef.current)
+      yAxisRef.current.visibleRange = new NumberRange(yMinRef.current,yMaxRef.current)
+
+      const lastIndex = _x.length-1
+      annotationDataRef.current[dataType].clear()
+      annotationDataRef.current[dataType].appendRange([_x[lastIndex],xMaxRef.current],[_y[lastIndex], _y[lastIndex]])
     }
   }  
 
@@ -267,14 +226,14 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
     }
   }
 
-  useEffect(() => {
-    if(dataTypes.length >0 && changingRef.current != null){
-      unsubscribe(subscriptionIdRef.current)
-      subscriptionIdRef.current = subscribe(update)
-      if(changingRef.current == 'start'){setIsPlaying(true)}
-      changingRef.current = null
-    }
-  }, [dataTypes]);
+  // useEffect(() => {
+  //   if(dataTypes.length >0 && changingRef.current != null){
+  //     unsubscribe(subscriptionIdRef.current)
+  //     subscriptionIdRef.current = subscribe(update)
+  //     if(changingRef.current == 'start'){setIsPlaying(true)}
+  //     changingRef.current = null
+  //   }
+  // }, [dataTypes]);
 
   useEffect(() => {
     (async ()=>{
@@ -293,12 +252,12 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
       })
       sciChartSurfaceRef.current?.delete()
     }
-  }, []);
+  }, [dataTypes]);
 
   return (
-    <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{position: 'relative',backgroundColor:'white', p:[0.5,2],pb:0, pt:2, mb:-2}}>
+    <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{position: 'relative',backgroundColor:'white', pb:0,pr:0,pt:2, mb:-2}}>
       <Box width={1} style={{opacity: loading ? 0 : 1}}>
-        <Grid container alignItems='center'>
+        <Grid container alignItems='center' sx={{marginBottom: '6px'}}>
           <Grid item container xs={10} md={11} spacing={1} justifyContent='flex-start' display='flex' sx={{pl:2}}>
             {dataTypes.map((dataType,i)=>(
               <Grid item justifyContent='center' alignItems='center' display='flex' key={dataType} style={{marginBottom:'-4px'}}> 
@@ -306,11 +265,6 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
                 <Typography variant='caption' noWrap>{t[dataType]}</Typography>
               </Grid>
             ))}
-          </Grid>
-          <Grid item xs={2} md={1} justifyContent='center' display='flex'>
-            <IconButton aria-controls='ts-menu' aria-haspopup= {true} onClick={e=>setAnchorEl(e.currentTarget)} style={{zIndex:100, marginBottom:'-8px'}} size='small'>
-              <MoreVert/>
-            </IconButton>
           </Grid>
           <Menu id="ts-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>setAnchorEl(null)}>
             {PVTypes.map((pType,index)=>(
@@ -321,7 +275,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
             ))}
           </Menu>
         </Grid>
-        <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%',aspectRatio: '2 / 1.3'}}>
+        <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%',aspectRatio: '1 / 1'}}>
           <div id="scichart-pv-root" style={{width: '100%',height:'100%'}}></div>
         </Box>
       </Box>

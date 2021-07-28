@@ -32,13 +32,13 @@ export const COLORS = [
 ];
 
 export const ALPHA_COLORS = [
-  alpha(CHART_COLORS.red,0.7),
-  alpha(CHART_COLORS.blue,0.7),
-  alpha(CHART_COLORS.green,0.7),
-  alpha(CHART_COLORS.orange,0.7),
-  alpha(CHART_COLORS.purple,0.7),
-  alpha(CHART_COLORS.yellow,0.7),
-  alpha(CHART_COLORS.grey,0.7),
+  alpha(CHART_COLORS.red,0.4),
+  alpha(CHART_COLORS.blue,0.4),
+  alpha(CHART_COLORS.green,0.4),
+  alpha(CHART_COLORS.orange,0.4),
+  alpha(CHART_COLORS.purple,0.4),
+  alpha(CHART_COLORS.yellow,0.4),
+  alpha(CHART_COLORS.grey,0.4),
 ]
 
 export const DARKEN_COLORS = [

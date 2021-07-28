@@ -90,7 +90,7 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
             dataRef.current[0] += hdpValue - dataRef.current.reduce((a,b)=>a+=b,0);
             delete hdpMutationsRef.current[hdpKey]
           }else if(hdpKey === 'HR'){
-            if( tRef.current % (60000/hdpValue) < 160 && tRef.current % (60000/hemodynamicPropsRef.current['HR']) < 160 ){
+            if( ((60000/hdpValue) - (tRef.current-160) % (60000/hdpValue)) < 100 && ((60000/hemodynamicPropsRef.current['HR']) - (tRef.current-160) % (60000/hemodynamicPropsRef.current['HR'])) < 100 ){
               hemodynamicPropsRef.current[hdpKey] = hdpValue
               delete hdpMutationsRef.current[hdpKey]
             }
