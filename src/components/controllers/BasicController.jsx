@@ -93,11 +93,20 @@ export const InputButtons = React.memo(({hdp, hdps,setHdps}) => {
         <Typography variant='subtitle1'>{display()}</Typography>
       </Grid>
       <Grid item xs={6} justifyContent="center" alignItems="center" display='flex'>
-        <ButtonGroup variant="outlined" size="small">
-          <Button onClick={onHandle(-10)} disabled={value<=30}>-10%</Button>
-          <Button onClick={onHandle(0)}><Refresh/></Button>
-          <Button onClick={onHandle(10)}>+10%</Button>
-        </ButtonGroup>
+
+        {hdp.includes('vr') ? (
+          <ButtonGroup variant="outlined" size="small">
+            <Button onClick={value<20 ? onHandle(-1): onHandle(-10)}>{value<20 ? "-1%" : "-10%"}</Button>
+            <Button onClick={onHandle(0)}><Refresh/></Button>
+            <Button onClick={onHandle(10)}>+10%</Button>
+          </ButtonGroup>
+        ) : (
+          <ButtonGroup variant="outlined" size="small">
+            <Button onClick={onHandle(-10)} disabled={value<=30}>-10%</Button>
+            <Button onClick={onHandle(0)}><Refresh/></Button>
+            <Button onClick={onHandle(10)}>+10%</Button>
+          </ButtonGroup>
+        )}
       </Grid>
     </Grid>
   )
