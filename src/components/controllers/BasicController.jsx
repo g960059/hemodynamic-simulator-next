@@ -30,7 +30,7 @@ const BasicController = React.memo(({getHdps,setHdps}) => {
         <TabPanel value="2" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
           <Stack justifyContent="center" alignItems="center" >
             {AdvancedHdps.map(hdp=>(
-              <InputSlider hdp={hdp} hdps={hdps} setHdps={setHdps}/>
+              <InputButtons hdp={hdp} hdps={hdps} setHdps={setHdps}/>
             ))}
           </Stack>   
         </TabPanel>
@@ -67,11 +67,11 @@ export const InputButtons = React.memo(({hdp, hdps,setHdps}) => {
   const display = () => {
     if(hdp == 'HR') return `${t[hdp]} (${Math.round(DEFAULT_HEMODYANMIC_PROPS[hdp]*value/100)} bpm)`
     if(value == 100) return `${t[hdp]}`
-    if(hdp.includes('alpha')) return `${t[hdp]} (${value-100>0 ? "-": "+"}${Math.abs((value-100))}%)`
+    if(hdp.includes('alpha') || hdp.includes('tau')) return `${t[hdp]} (${value-100>0 ? "-": "+"}${Math.abs((value-100))}%)`
     return `${t[hdp]} (${value-100>0 ? "+": ""}${Math.round((value-100))}%)`
   }
   const onHandle = (changeValue)=>()=>{
-    if(hdp.includes('alpha')){changeValue = -changeValue}
+    if(hdp.includes('alpha') || hdp.includes('tau')){changeValue = -changeValue}
     if(changeValue == 0){
       setValue(100);
       setHdps(hdp, DEFAULT_HEMODYANMIC_PROPS[hdp])
