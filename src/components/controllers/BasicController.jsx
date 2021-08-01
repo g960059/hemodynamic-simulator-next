@@ -96,7 +96,7 @@ export const InputButtons = React.memo(({hdp, hdps,setHdps}) => {
 
         {hdp.includes('vr') ? (
           <ButtonGroup variant="outlined" size="small">
-            <Button onClick={value<20 ? onHandle(-1): onHandle(-10)}>{value<20 ? "-1%" : "-10%"}</Button>
+            <Button onClick={value<20 ? onHandle(-0.5): onHandle(-10)} disabled={value<=0.5}>{value<20 ? "-0.5%" : "-10%"}</Button>
             <Button onClick={onHandle(0)}><Refresh/></Button>
             <Button onClick={onHandle(10)}>+10%</Button>
           </ButtonGroup>

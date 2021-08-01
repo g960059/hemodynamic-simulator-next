@@ -1,5 +1,6 @@
 export default {
   Title:'循環動態シミュレーター',
+  Description: "インタラクティブに循環動態を学ぶ",
   BasicController: "基本",
   AdvancedController: "詳細",
   PressurePlot: "圧曲線",

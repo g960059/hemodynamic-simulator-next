@@ -1,5 +1,6 @@
 export default {
   Title: 'Circulatory Dynamic Simulator',
+  Description: "Circulatory Dynamic Simulator for Interactive Education",
   BasicController: "Basic",
   AdvancedController: "Advanced",
   PressurePlot: "Pressure",

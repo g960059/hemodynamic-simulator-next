@@ -7,6 +7,7 @@ import {CssBaseline} from '@material-ui/core';
 import {pink,teal} from '@material-ui/core/colors'
 import createCache from '@emotion/cache';
 import Layout from '../src/components/layout'
+import {useTranslation} from '../src/hooks/useTranslation'
 
 const theme = createTheme({
   palette: {
@@ -23,6 +24,7 @@ export const cache = createCache({ key: 'css', prepend: true });
 
 export default function MyApp(props: AppProps) {
   const { Component, pageProps } = props;
+  const t = useTranslation();
 
   React.useEffect(() => {
     // Remove the server-side injected CSS.
@@ -35,7 +37,10 @@ export default function MyApp(props: AppProps) {
   return (
     <CacheProvider value={cache}>
       <Head>
-        <title>My page</title>
+        <title>{t['Title']}</title>
+        <meta property="og:title" content={t['Title']} key="title" />
+        <meta name="description" content={t["Description"]} />
+        <meta property="og:description" content={t["Description"]} />        
         <meta name="viewport" content="initial-scale=1, width=device-width" />
       </Head>
       <ThemeProvider theme={theme}>
