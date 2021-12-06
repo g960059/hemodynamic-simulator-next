@@ -48,7 +48,6 @@ export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_p
     let deltaAvp = Plv-Qas_prox/Cas_prox
     let Iasp = deltaAvp > 0 ? (deltaAvp)/(Ras_prox+Ravs) : (deltaAvp)/(Ras_prox+Ravr)
     let Iimp = implella[impella_type][impella_aux_level](-deltaAvp)/30
-    console.log("deltaAvp: ", deltaAvp, "Iimp: ", Iimp);
     let Iapp =(Prv-Qap_prox/Cap_prox) > 0 ? (Prv-Qap_prox/Cap_prox)/(Rap_prox+Rpvs) : (Prv-Qap_prox/Cap_prox)/(Rap_prox+Rpvr) 
 
     if(logger != null){
