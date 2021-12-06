@@ -1,80 +1,46 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress} from '@mui/material'
 import {useTranslation} from '../hooks/useTranslation'
+import {AoP,CVP,PAP,SV, EF, LVEDP, HR, CO,LaKickRatio} from '../utils/metrics'
 
-const dataTypeKeyMap = {
-  AoP:'AoP',
-  PAP:'PAP',
-  CVP:'Pra',
-  SV:'Qlv',
-  CO:'Qlv',
-  EF:'Qlv',
-  PCWP:'Pla'
-}
-const dataTypeUnit = {
-  AoP:'mmHg',
-  PAP:'mmHg',
-  CVP:'mmHg',
-  SV:'ml',
-  CO:'L/min',
-  EF:'%',
-  PCWP:'mmHg'
-}
 
-const display = (dataType, hdp) => storage => {
-  if(!storage[dataTypeKeyMap[dataType]]) return null
-  if(['AoP','PAP','CVP'].includes(dataType)){
-    return storage[dataTypeKeyMap[dataType]].max.toFixed() + '/' + storage[dataTypeKeyMap[dataType]].min.toFixed()
-  }
-  if(dataType === 'PCWP') return (storage[dataTypeKeyMap[dataType]].max/3  + storage[dataTypeKeyMap[dataType]].min*2/3).toFixed()
-  if(dataType === 'SV') return (storage[dataTypeKeyMap[dataType]].max - storage[dataTypeKeyMap[dataType]].min).toFixed()
-  if(dataType === 'CO') return ((storage[dataTypeKeyMap[dataType]].max - storage[dataTypeKeyMap[dataType]].min) * hdp.HR/1000).toFixed()
-  if(dataType === 'EF') return ((storage[dataTypeKeyMap[dataType]].max - storage[dataTypeKeyMap[dataType]].min) / storage[dataTypeKeyMap[dataType]].max * 100).toFixed()
-}
 
-const OutputPanel = React.memo(({subscribe,unsubscribe, dataTypes,setDataTypes, getHdps}) =>{
+const OutputPanel = React.memo(({subscribe,unsubscribe, dataTypes, getHdps}) =>{
   const t = useTranslation();
-  const dataRef = useRef({})
   const subscriptionIdRef = useRef();
 
-  const initializeDataType = (dataType) => {
-    if(!dataRef.current[dataTypeKeyMap[dataType]]){
-      dataRef.current[dataTypeKeyMap[dataType]] = {min: Infinity, max: -Infinity}
+  const outputOptions = [AoP,CVP,PAP,SV, EF, LVEDP, CO,LaKickRatio]
+  const instancesRef = useRef([]);
+  const [refresh, setRefresh] = useState(0);
+  const update = (data, time, hdprops) => {
+    for(let instance of instancesRef.current){
+      instance.update(data, time, hdprops)
+    }
+    let current = Math.floor(time / (60000/ data['HR'][0]));
+    if(refresh != current){
+      setRefresh(current);
     }
   }
-
-  const update = (data, time, hdprops) => {
-    console.log('hey')
-    Object.keys(dataRef.current).forEach(sk => {
-      Object.entries(dataRef.current[sk]).forEach(([k,v])=>{
-        if(data[sk]?.length>0){
-          if(k=='min'){
-            if(v > data[sk][0]){dataRef.current[sk][k] = data[sk][0]}
-          }
-          if(k=='max'){
-            if(v < data[sk][0]){dataRef.current[sk][k] = data[sk][0]}
-          }
-        }
-      })
-    })
-  }  
-
   useEffect(() => {
-    for(let i=0; i<dataTypes.length; i++){
-      initializeDataType(dataTypes[i])
+    for(let i=0; i<outputOptions.length; i++){
+      let instance = new outputOptions[i]();
+      instancesRef.current.push(instance);
+      subscriptionIdRef.current = subscribe(update);
     }
-    subscriptionIdRef.current = subscribe(update)
     return ()=>{
+      instancesRef.current.splice(0);
       unsubscribe(subscriptionIdRef.current)
     }
   }, []);
-
   return (
-    <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{ p:[0.5,2],pb:0, pt:2, mb:-2}}>
-      {dataTypes.map(dataType=>(
-        <Stack justifyContent='center' alignItems='center'>
-          <Typography variant='h5' style={{display: 'inline'}}>{t[dataType]}</Typography>
-          <Typography variant='h5' >{display(dataType,getHdps())(dataRef.current)}</Typography>
+    <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{ p:[0.5,2],pb:0, pt:2, mb:-2, backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
+      {instancesRef.current.map((instance,i) =>(
+        <Stack justifyContent='center' alignItems='center' sx={{mx:1}}>
+          <Typography variant='subtitle2' style={{display: 'inline'}}>{t["output_label"][outputOptions[i].getLabel()]}</Typography>
+          <Stack direction='row' justifyContent='center' alignItems='center'>
+            <Typography variant='subtitle2'sx={{mr:.5}}>{instance.get()}</Typography>
+            <Typography variant='body2'sx={{color: 'text.secondary'}}>{outputOptions[i].getUnit()}</Typography>
+          </Stack>
         </Stack>
       ))}
     </Box>
@@ -83,3 +49,22 @@ const OutputPanel = React.memo(({subscribe,unsubscribe, dataTypes,setDataTypes, 
 
 export default OutputPanel
 
+
+// const dataTypeKeyMap = {
+//   AoP:'AoP',
+//   PAP:'PAP',
+//   CVP:'Pra',
+//   SV:'Qlv',
+//   CO:'Qlv',
+//   EF:'Qlv',
+//   PCWP:'Pla'
+// }
+// const dataTypeUnit = {
+//   AoP:'mmHg',
+//   PAP:'mmHg',
+//   CVP:'mmHg',
+//   SV:'ml',
+//   CO:'L/min',
+//   EF:'%',
+//   PCWP:'mmHg'
+// }

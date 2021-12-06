@@ -90,7 +90,17 @@ export default {
   Rtvr: "三尖弁逆流",
   Rtvs: "三尖弁狭窄",
   assisted_circulation: "補助循環",
-  auxiliary_level: "補助レベル"
+  auxiliary_level: "補助レベル",
+  output_label: {
+    AoP: "AoP",
+    CO: "CO",
+    SV: "SV",
+    EF: "EF",
+    LA_Kick_Ratio: "LA寄与率",
+    LVEDP: "LVEDP",
+    PAP:"PAP",
+    CVP:"CVP"
+  }
 }
 
 

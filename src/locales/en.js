@@ -90,5 +90,15 @@ export default {
   Rtvr: "Tricupsid Regurgitation",
   Rtvs: "Tricupsid Stenosis",
   assisted_circulation : "Assisted Circulation",
-  auxiliary_level: "Auxiliary Level"
+  auxiliary_level: "Auxiliary Level",
+  output_label: {
+    AoP: "AoP",
+    CO: "CO",
+    SV: "SV",
+    EF: "EF",
+    LA_Kick_Ratio: "LA kick ratio",
+    LVEDP: "LVEDP",
+    PAP:"PAP",
+    CVP:"CVP"
+  }
 }

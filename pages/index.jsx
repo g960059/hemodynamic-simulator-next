@@ -104,7 +104,7 @@ const App = () => {
               </Box>
             </TabPanel>
           </SwipeableViews>
-          {/* <OutputPanel subscribe={subscribe} unsubscribe={unsubscribe} dataTypes={outputDataTypes} setDataTypes={setOutputDataTypes} getHdps = {getHdps} /> */}
+          <OutputPanel subscribe={subscribe} unsubscribe={unsubscribe} dataTypes={outputDataTypes}  getHdps = {getHdps} />
           <Box sx={{display: { xs: 'block', md: 'none' }}}>
             {tabValue != 3 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>}
           </Box>
