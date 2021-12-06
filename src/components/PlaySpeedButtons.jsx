@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
-import {Box, Button, IconButton, Stack, Typography, Menu, MenuItem} from '@material-ui/core'
-import {PlayArrow,Pause} from "@material-ui/icons";
+import {Box, Button, IconButton, Stack, Typography, Menu, MenuItem} from '@mui/material'
+import {PlayArrow,Pause} from "@mui/icons-material";
 import { useRouter } from 'next/router'
 import en from '../locales/en'
 import ja from '../locales/ja'

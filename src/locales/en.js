@@ -88,5 +88,7 @@ export default {
   Rpvr: "Pulmonrary Regurgitation",
   Rpvs: "Pulmonrary Stenosis",
   Rtvr: "Tricupsid Regurgitation",
-  Rtvs: "Tricupsid Stenosis"    
+  Rtvs: "Tricupsid Stenosis",
+  assisted_circulation : "Assisted Circulation",
+  auxiliary_level: "Auxiliary Level"
 }

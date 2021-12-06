@@ -1,10 +1,10 @@
 import * as React from 'react';
 import Head from 'next/head';
 import { AppProps } from 'next/app';
-import { ThemeProvider, createTheme } from '@material-ui/core/styles';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
-import {CssBaseline} from '@material-ui/core';
-import {pink,teal} from '@material-ui/core/colors'
+import {CssBaseline} from '@mui/material';
+import {pink,teal} from '@mui/material/colors'
 import createCache from '@emotion/cache';
 import Layout from '../src/components/layout'
 import {useTranslation} from '../src/hooks/useTranslation'

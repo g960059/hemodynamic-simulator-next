@@ -1,7 +1,7 @@
 import React from 'react';
-import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline} from '@material-ui/core';
-import {GitHub, Twitter} from '@material-ui/icons'
-import { makeStyles} from '@material-ui/styles';
+import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline} from '@mui/material';
+import {GitHub, Twitter} from '@mui/icons-material'
+import { makeStyles} from '@mui/styles';
 
 import {useTranslation} from '../hooks/useTranslation'
 

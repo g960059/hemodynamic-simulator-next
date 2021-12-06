@@ -88,7 +88,9 @@ export default {
   Rpvr: "肺動脈弁逆流",
   Rpvs: "肺動脈弁狭窄",
   Rtvr: "三尖弁逆流",
-  Rtvs: "三尖弁狭窄"  
+  Rtvs: "三尖弁狭窄",
+  assisted_circulation: "補助循環",
+  auxiliary_level: "補助レベル"
 }
 
 

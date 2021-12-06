@@ -1,19 +1,22 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
-import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress, Button} from '@material-ui/core'
+import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress, Button} from '@mui/material'
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
+import { chartBuilder } from "scichart/Builder/chartBuilder";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
 import {FastLineRenderableSeries} from "scichart/Charting/Visuals/RenderableSeries/FastLineRenderableSeries";
 import {XyDataSeries} from "scichart/Charting/Model/XyDataSeries";
 import {EAxisAlignment} from "scichart/types/AxisAlignment";
+import { EAxisType } from "scichart/types/AxisType";
 import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
-import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@material-ui/icons"
+import {NumericLabelProvider} from "scichart/Charting/Visuals/Axis/LabelProvider/NumericLabelProvider";
+import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@mui/icons-material"
 import {LightTheme, COLORS, ALPHA_COLORS} from '../styles/chartConstants'
 import { useTranslation } from '../hooks/useTranslation';
 
 
 const TIME_WINDOW = 6000
-const TIME_WINDOW_GAP = 200
+const TIME_WINDOW_GAP = 300
 const pressureTypes = ['AoP','Pla','Plv','PAP','Pra','Prv']
 
 const getTimeSeriesFn = ({ 
@@ -35,7 +38,7 @@ const getTimeSeriesFn = ({
   return {Plv, Pla, Prv, Pra, Iasp,Iapp, AoP, PAP}
 }
 
-SciChartSurface.setRuntimeLicenseKey("huWbZsQPS1xwT/5d4ZX5RzXPo1YdKSolsoHTDGIpnGTJMHTvT9PxmLbG57MPZR9A5ioKcgaTkpJxSI9Jmrhylqtp0onkF0jLC9+ob6gUxuOzRAJ5wQfJLaLprgrVcZCGPXHbnvWFITcp2NKKHn8Ty1/2wGaldBYzfmxtgoOpMvBUcmApFBeZUVkMicPFnUVapiKIev4LFKYthhpPjEQ5I7veQbYAL6FntEP81fMprqDCyfFhuwcdNyj4Ip9djDjW1mWoEMZcgES7cvZGjWEu7lbgJdORwBq4vOX36zB3DhV8ZrwKBMYtVh/KreQQiG5nJFkOlIZHvTSXzuBj2uRD9SGUj3SmpGi6cU7iHTA2ZuLfiQN5Il9AV/25kdaA2k4pqAju6WTCZJbN2l2mqK2/c1xpFQ4pCls59Zi8chYF1npubSmm0wACs3UADGT361i5qlrR117uRdn5a/r17ysWvdhofUUN1AnUilsKuc/E+WlDtRYKLgekjnEHXReBY/WSqgb7MD1U7shW6olCx8G5+evmHumMkuDFCyi5nJtr3G5bdFaDSasPpavkjJYG2iXjsUIYQH7Wbe0J5IIOGcx59iz3/AUAPFazhia9cGUP3ZljrLObQ3v0wK5H+h0v7ZclCv7+QBAJEE4W3tx5zEcUc3LxbESGyseZ0XdYYsfApctLf3RhLnW0c6DylxTKTj79LxCvqc46JH8LvljGmS/0IZBQpZuqvefZDyKDq1fE8P23UzrwKp37");
+SciChartSurface.setRuntimeLicenseKey("nac2rMGjekVDJ0tcaayVGckXXaozKTVvSIfVhuk9ywdbBc7oiXADBXZCkajSv4FzWFHCNM81JrsbXRh3k8Z4sBxRn5pVsAD6WK88b26kWQhwzdEhGwl5QgcLwSLGgGbz/EENeIEB4hA6H58o49zmciynUP+46AeDzbW3lI0sFqFygtr3NZ2WPk/d1wiTPX8QYDvczs71ywybTo3eSpMsBrq1jNv+VZ+C9y0Mbg2/svmB3jIx0t5MJKcJock7T6dcRgKJuL9iq3dQTchtO3/UNxwHPvAUa48Lfmlq3bksy0YDRfaIdqWs2lL8liEApipL9OW+lQXdvK1Pj3qT0mIOjWO3ysJRa5SCL7iT+Vq1tT9S8GCvzh6UeBctJAQ1iKtd3GeSE7lsN3jYpilkyLYj83aawtsspyiniAl8uQI2whJLHikoyCUkaDQMuCfRLSsZ0ZyFqEJyK5Uft5ia3ISpUC9jJi/07Vubwai6FAonxiZyUFIFKRWt/hIX4n4ExQ2SfYTgsV1M9CbvuZ3S4IuATSOJXR9jbU7VOuHswfrakcASDuECPs74kBgZ5WR8Gg2rz4/aMo0MBFkP0LPCrB9daGCizpg0uozv0TGc0karwwhgRmNpbY6RJoy0hviQbSyVGoovB7SuhjaKMaHdNIhJmAFf6gAlmQ0M/rsBFVK13J/7RlqofsGfAr66Ez6pxUlEezibkyx9tdH2D/fLhiuDgRRaQmPXsUEn4jzFq6hpch5h2rq+DLaF");
 
 const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes,setDataTypes}) =>{
   const t = useTranslation();
@@ -67,25 +70,39 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
   }
 
   const initSciChart = async () => {
-    const { sciChartSurface, wasmContext } = await SciChartSurface.create(
-      "scichart-root"
-    );
+    const { sciChartSurface, wasmContext } = await chartBuilder.buildChart("scichart-root", {
+      xAxes: {
+        type: EAxisType.NumericAxis,
+        options: {
+          autoRange: EAutoRange.Never,
+          visibleRange:new NumberRange(0, TIME_WINDOW), 
+          drawLabels:false,
+          drawMinorTickLines:false,
+          drawMajorGridLines: false,
+          drawMinorGridLines: false,
+        }
+      },      
+      yAxes: {
+        type: EAxisType.NumericAxis,
+        options: {
+          axisAlignment: EAxisAlignment.Left,
+          autoRange: EAutoRange.Always,
+          drawMinorTickLines:false, 
+          drawMinorGridLines: false,
+          axisBorder: {
+            borderRight: 1,
+            color: "#e5e5e5"
+          },
+          growBy: new NumberRange(0.1,0.05),
+          labelProvider: new NumericLabelProvider({
+            labelPrecision: 1,
+          }) 
+        }
+      },
+    });        
     sciChartSurfaceRef.current = sciChartSurface
     wasmContextRef.current = wasmContext
     sciChartSurface.applyTheme(LightTheme)
-    const xAxis = new NumericAxis(wasmContext,{autoRange: EAutoRange.Never,visibleRange:new NumberRange(0, TIME_WINDOW), drawLabels:false,drawMinorTickLines:false});
-    const yAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Left,autoRange: EAutoRange.Always,drawMinorTickLines:false});
-    xAxis.drawMajorGridLines =false;
-    xAxis.drawMinorGridLines =false;
-    yAxis.drawMinorGridLines =false;    
-    yAxis.axisBorder = {
-      borderRight: 1,
-      color: "#e5e5e5"
-    };
-    yAxis.growBy = new NumberRange(0.1, 0.05);
-    yAxis.labelProvider.formatLabel = (dataValue => dataValue?.toFixed(0))
-    sciChartSurface.xAxes.add(xAxis);
-    sciChartSurface.yAxes.add(yAxis);
 
     for(let i=0; i<dataTypes.length; i++){
       const dataType = dataTypes[i]
@@ -112,14 +129,14 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
         dataSeries[j].removeRange(indiceRange1.min, indiceRange1.max - indiceRange1.min)
       }
       const indiceRange2 = dataSeries[k].getIndicesRange(new NumberRange(startTime,endTime+TIME_WINDOW_GAP))
+      if(indiceRange2.max - indiceRange2.min > 0){
+        dataSeries[k].removeRange(indiceRange2.min, indiceRange2.max-indiceRange2.min+1)
+        // for(let l = indiceRange2.min; l <= indiceRange2.max; l++){
+          // dataSeries[k].update(l,NaN)
+        // }
+      }
       if(TIME_WINDOW - newTime < 200){
         dataSeries[k].clear()
-      }
-      if(indiceRange2.max - indiceRange2.min > 0){
-        // dataSeries[k].removeRange(indiceRange2.min, indiceRange2.max - indiceRange2.min + 1)
-        for(let l = indiceRange2.min; l <= indiceRange2.max; l++){
-          dataSeries[k].update(l,NaN)
-        }
       }
     }
   }  

@@ -1,9 +1,9 @@
 import React,{useState} from 'react';
-import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, Slider,Tab, Button, ButtonGroup} from '@material-ui/core'
-import {TabContext,TabList,TabPanel} from '@material-ui/lab';
+import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, Slider,Tab, Button, ButtonGroup,ToggleButtonGroup,ToggleButton, Select} from '@mui/material'
+import {TabContext,TabList,TabPanel} from '@mui/lab';
 import {useTranslation} from '../../hooks/useTranslation'
 import {InputRanges} from '../../constants/InputSettings'
-import {Refresh} from '@material-ui/icons';
+import {Refresh} from '@mui/icons-material';
 import {DEFAULT_HEMODYANMIC_PROPS} from '../../hooks/usePvLoop'
 
 const BasicHdps = ['Volume','Ras','LV_Ees','LV_alpha','LV_tau','HR']
@@ -32,6 +32,8 @@ const BasicController = React.memo(({getHdps,setHdps}) => {
             {AdvancedHdps.map(hdp=>(
               <InputButtons hdp={hdp} hdps={hdps} setHdps={setHdps}/>
             ))}
+            <Divider flexItem>{t["assisted_circulation"]}</Divider>
+            <ImpellaButton hdps={hdps} setHdps={setHdps}/>
           </Stack>   
         </TabPanel>
       </TabContext>      
@@ -110,4 +112,66 @@ export const InputButtons = React.memo(({hdp, hdps,setHdps}) => {
       </Grid>
     </Grid>
   )
+})
+export const ImpellaButton = React.memo(({hdps,setHdps}) => {
+  const t = useTranslation();
+  const [type, setType] = useState(hdps["impella_type"]);
+  const [level, setLevel] = useState(hdps["impella_aux_level"]);
+  const handleChange = (e, newType) =>{
+    if(newType=='None'){
+      setType("None");
+      setHdps("impella_type","None");
+    }else{
+      setType(newType);
+      setHdps("impella_aux_level",level);
+      setHdps("impella_type",newType);
+    }
+  }
+  const handleLevel = e => {
+    setLevel(e.target.value);
+    if (type !='None') {
+      setHdps("impella_aux_level",e.target.value);
+    }
+  }
+
+
+  return <>
+    <Grid container justifyContent="space-between" alignItems="center" display='flex' sx={{mb:1,mt:1}}>
+      <Grid item xs={12} justifyContent="space-between" alignItems="center" display='flex' sx={{mb:.5}}>
+        <Typography variant='h6'>Impella</Typography>
+      </Grid>
+      <Grid itex xs={12}  justifyContent="space-between" alignItems="center" display='flex'>
+        <ToggleButtonGroup
+          color="primary"
+          value={type}
+          exclusive
+          onChange={handleChange}
+          size="small"
+        >
+          <ToggleButton value="None">Off</ToggleButton>
+          <ToggleButton value="2.5">2.5</ToggleButton>
+          <ToggleButton value="CP">CP</ToggleButton>
+          <ToggleButton value="5.0">5.0</ToggleButton>
+        </ToggleButtonGroup>
+        {
+          type != "None" && <Grid item justifyContent="space-between" alignItems="center" display='flex'>
+            <Typography variant="subtitle2" sx={{pr:.5}}>{t["auxiliary_level"]}</Typography>
+            <Select
+              labelId="impella-level-select-label"
+              id="impella-level-select"
+              value={level}
+              onChange={handleLevel}
+              size="small"
+            >
+              {
+                [...Array(9).keys()].map(i => 
+                  <MenuItem value={"P"+(i+1)}>{"P"+(i+1)}</MenuItem> 
+                )
+              }
+            </Select>
+          </Grid>
+        }        
+      </Grid>
+    </Grid>
+  </>
 })

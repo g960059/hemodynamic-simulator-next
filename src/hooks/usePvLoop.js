@@ -178,5 +178,7 @@ export const DEFAULT_HEMODYANMIC_PROPS =  {
   Rpvs: 0,
   Rtvr: 10000,
   Rtvs: 0,
+  impella_type: "None", 
+  impella_aux_level: "P5"
 }
 

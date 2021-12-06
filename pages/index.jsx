@@ -1,20 +1,23 @@
 import React, { useRef, useState, useEffect, useLayoutEffect, useCallback} from 'react'
-import {Box, Button,CircularProgress, Grid, CssBaseline, IconButton, ButtonBase, Stack, Typography, Tab,Tabs, Divider} from '@material-ui/core'
+import {Box, Button,CircularProgress, Grid, CssBaseline, IconButton, ButtonBase, Stack, Typography, Tab,Tabs, Divider} from '@mui/material'
 import SwipeableViews from 'react-swipeable-views';
 import {usePvLoop} from '../src/hooks/usePvLoop'
 
 import PVPlot from '../src/components/PVPlot'
 import PlaySpeedButtons from '../src/components/PlaySpeedButtons'
 import {a11yProps, TabPanel} from '../src/components/TabUtils'
-import { makeStyles } from '@material-ui/styles';
+import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../src/hooks/useTranslation'
 import RealTimeChart from '../src/components/RealTimeChart'
 import OutputPanel from '../src/components/OutputPanel'
 import LogPlot from '../src/components/LogPlot'
 import BasicController from '../src/components/controllers/BasicController'
 import CombinedChart from '../src/components/combined/CombinedChart'
+import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 // import dynamic from 'next/dynamic'
 // const RealTimeChart =  dynamic(()=>import('../src/components/RealTimeChart'), { ssr: false })
+// Set this code once in application startup
+SciChartSurface.setRuntimeLicenseKey("j3aVXSGZO23k42CCUenqTAAFoPWU5oCEw4TRfOwo+ZPNTB9vnmOCSF3Kcm1Lfb+bxz944AxJ2gPypOt820lF3xAR6NPuphVp8D5ZJe9yT2bvt/J+0NLg1bdmN7XfQ7JnOVNe3CDQQWGKw1ascjhsowwRSECTRoJ8fNJZMf3qq2R55VJUuiLxmbjtu4FPFi5aBc+BYJliCqhVaEGFhJ1ewMP8ZWlxmL44widB6WTwe+RJ42PKjqEBIx4m8adyOdaEvdvV5cjMUgRqkkkeo5jEq/WjcZRMcCm+HJQxwD56E4vHX+L/wOWILeOAYZgdcG6uZnBaSGt2Zrp/3Z353PtMLfwzMTKt8a2kzxoeJBrpezPNUWU3rojJ9iZdYS2AheNg1x51Jh0t05iZ98C4h4nSyyHsBlD9+BkiIeq19eQo7RbEqn026515lUm81V7SUPpYANv6WEoHZuJ1R2W1c1vgyzi6oeEXg/ybISCcjldD7tnjts2IjgjfAuiNwdxY7N7Z/IPinkAc0AztkRHiROkscwmNHb4ygmMUGQ8c2eUIXIy2usID4WofJbgaBRX6a2ocB+WNcdV2CiH7fI4br8f8grcUSFkp/Hkab9x8zkttp5NDMoHdf2U9HEBXL5LfX0RUJFi6hMzcHXV8L6+INf8zNc8aUiG2f5oB+748n/chVimgWuh63ou0KItn84SC1KVAF1mLqTOBYiPFNt480WK4gESM+Czs7Lt9e9RMw2QW5TeChqsrKWLM");
 
 const useStyles = makeStyles((theme) =>(
   {
