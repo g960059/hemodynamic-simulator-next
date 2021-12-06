@@ -9,7 +9,7 @@ module.exports = {
         const destWasm = dev ? "static/chunks/pages" : "static/chunks";
         config.plugins.push(new CopyPlugin({
             patterns: [
-                { from: "node_modules/scichart/_wasm/scichart2d.wasm", to: destWasm  }
+                { from: "node_modules/scichart/_wasm/scichart2d.wasm", to: "static/chunks/pages"  }
             ]
         }),)
         config.resolve.fallback = {
