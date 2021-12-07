@@ -39,7 +39,7 @@ const OutputPanel = React.memo(({subscribe,unsubscribe, dataTypes, getHdps}) =>{
           <Typography variant='subtitle2' style={{display: 'inline'}}>{t["output_label"][outputOptions[i].getLabel()]}</Typography>
           <Stack direction='row' justifyContent='center' alignItems='center'>
             <Typography variant='subtitle2'sx={{mr:.5}}>{instance.get()}</Typography>
-            <Typography variant='caption'sx={{color: 'text.secondary'}}>{outputOptions[i].getUnit()}</Typography>
+            <Typography variant='caption'sx={{color: 'text.secondary'}} noWrap>{outputOptions[i].getUnit()}</Typography>
           </Stack>
         </Stack>
       ))}

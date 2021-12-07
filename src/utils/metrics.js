@@ -235,41 +235,52 @@ export class LaKickRatio {
 export class PVA {
   constructor(){
     this.area=0;
-    this.prev=0;
+    this.pressures=[];
+    this.volumes=[];
+    this.tc=0;
     this.areas=[];
-    this.tc=0
-    this.lastP=null;
-    this.lastQ=null;
   }
   static getLabel(){
     return "PVA"
   }
   static getUnit(){
-    return "mmHg・ml"
+    return "mmHg·ml"
   }
   update(data, time, hdps){
-    let tp = Math.floor(time / (60000 / data['HR'][0]))
+    const HR = data['HR'][0];
+    const len = data['t'].length;
     let pressures = [...data["Plv"]];
     let volumes = [...data["Qlv"]];
-    if(this.lastP!=null&&this.lastQ!=null){
-      pressures.unshift(this.lastP);
-      volumes.unshift(this.lastQ);
+    let next_pressures=[];
+    let next_volumes=[];
+    let ts = data["t"].map(x=>Math.floor(x/(60000/HR)))
+    if(this.tc==0){
+      this.tc= Math.floor(data['t'][0]/(60000/HR));
     }
-    let len = pressures.length
-    for(let i=0;i<len-1;i++){
-      this.prev+=pressures[i]*(volumes[i]- volumes[i+1]);
+    for(let i =0; i<len;i++){
+      if(ts[i]===this.tc){
+        this.pressures.push(pressures[i]);
+        this.volumes.push(volumes[i]);
+      }else{
+        next_pressures.push(pressures[i]);
+        next_volumes.push(volumes[i]);
+      }
     }
-    this.lastP=pressures[len-1];
-    this.lastQ=volumes[len-1];
-    if(this.tc != tp){
-      this.tc = tp;
-      this.areas.push(this.prev);
-      this.prev=0;
-      if(this.areas.length>7){
+    if(ts[len-1]!=this.tc){
+      let total=0;
+      const len_ = this.pressures.length
+      for(let i=0;i<len_-5;i+=3){
+        total += (this.pressures[i+1]+this.pressures[i+2]+this.pressures[i+3])*(this.volumes[i]+this.volumes[i+1]+this.volumes[i+2]-this.volumes[i+3]-this.volumes[i+4]-this.volumes[i+5])/9;
+      }
+      this.areas.push(total);
+      if(this.areas.length>10){
         this.areas.shift();
       }
       let areas = [...this.areas].sort((a,b)=>a-b);
       this.area = areas[Math.floor(areas.length/2)];
+      this.pressures = next_pressures;
+      this.volumes = next_volumes;
+      this.tc = ts[len-1];
     }
   }
   reset(){}
@@ -281,11 +292,10 @@ export class PVA {
 export class CPO {
   constructor(){
     this.area=0;
-    this.prev=0;
+    this.pressures=[];
+    this.volumes=[];
+    this.tc=0;
     this.areas=[];
-    this.tc=0
-    this.lastP=null;
-    this.lastQ=null;
   }
   static getLabel(){
     return "CPO"
@@ -294,35 +304,48 @@ export class CPO {
     return "W"
   }
   update(data, time, hdps){
-    let tp = Math.floor(time / (60000 / data['HR'][0]))
-    if(this.tc != tp){
-      this.tc = tp;
-      this.areas.push(this.prev);
-      this.prev=0;
-      if(this.areas.length>7){
+    const HR = data['HR'][0];
+    const len = data['t'].length;
+    let pressures = [...data["Plv"]];
+    let volumes = [...data["Qlv"]];
+    let next_pressures=[];
+    let next_volumes=[];
+    let ts = data["t"].map(x=>Math.floor(x/(60000/HR)))
+    if(this.tc==0){
+      this.tc= Math.floor(data['t'][0]/(60000/HR));
+    }
+    for(let i =0; i<len;i++){
+      if(ts[i]===this.tc){
+        this.pressures.push(pressures[i]);
+        this.volumes.push(volumes[i]);
+      }else{
+        next_pressures.push(pressures[i]);
+        next_volumes.push(volumes[i]);
+      }
+    }
+    if(ts[len-1]!=this.tc){
+      let total=0;
+      const len_ = this.pressures.length
+      for(let i=0;i<len_-5;i+=3){
+        total += (this.pressures[i+1]+this.pressures[i+2]+this.pressures[i+3])*(this.volumes[i]+this.volumes[i+1]+this.volumes[i+2]-this.volumes[i+3]-this.volumes[i+4]-this.volumes[i+5])/9;
+      }
+      this.areas.push(total);
+      if(this.areas.length>10){
         this.areas.shift();
       }
       let areas = [...this.areas].sort((a,b)=>a-b);
       this.area = areas[Math.floor(areas.length/2)]*101325/760/1000000 * data['HR'][0]/60;
+      this.pressures = next_pressures;
+      this.volumes = next_volumes;
+      this.tc = ts[len-1];
     }
-    let pressures = [...data["Plv"]];
-    let volumes = [...data["Qlv"]];
-    if(this.lastP!=null&&this.lastQ!=null){
-      pressures.unshift(this.lastP);
-      volumes.unshift(this.lastQ);
-    }
-    let len = pressures.length
-    for(let i=0;i<len-1;i++){
-      this.prev+=pressures[i]*(volumes[i]- volumes[i+1]);
-    }
-    this.lastP=pressures[len-1];
-    this.lastQ=volumes[len-1];
   }
   reset(){}
   get() {
     return this.area.toPrecision(3);
   }
 }
+
 
 // export class PVA {
 //   constructor(){
