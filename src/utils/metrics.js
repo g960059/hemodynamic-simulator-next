@@ -277,3 +277,49 @@ export class PVA {
     return Math.round(this.area)
   }
 }
+
+export class CPO {
+  constructor(){
+    this.area=0;
+    this.prev=0;
+    this.areas=[];
+    this.tc=0
+    this.lastP=null;
+    this.lastQ=null;
+  }
+  static getLabel(){
+    return "CPO"
+  }
+  static getUnit(){
+    return "W"
+  }
+  update(data, time, hdps){
+    let tp = Math.floor(time / (60000 / data['HR'][0]))
+    if(this.tc != tp){
+      this.tc = tp;
+      this.areas.push(this.prev);
+      this.prev=0;
+      if(this.areas.length>5){
+        this.areas.shift();
+      }
+      let areas = [...this.areas].sort((a,b)=>a-b);
+      this.area = areas[Math.floor(areas.length/2)]*101325/760/1000000 * data['HR'][0]/60;
+    }
+    let pressures = [...data["Plv"]];
+    let volumes = [...data["Qlv"]];
+    if(this.lastP!=null&&this.lastQ!=null){
+      pressures.unshift(this.lastP);
+      volumes.unshift(this.lastQ);
+    }
+    let len = pressures.length
+    for(let i=0;i<len-1;i++){
+      this.prev+=pressures[i]*(volumes[i]- volumes[i+1]);
+    }
+    this.lastP=pressures[len-1];
+    this.lastQ=volumes[len-1];
+  }
+  reset(){}
+  get() {
+    return this.area.toPrecision(3);
+  }
+}

@@ -102,5 +102,6 @@ export default {
     CVP:"CVP",
     LAP:"LAP",
     PVA:"PVA",
+    CPO:"CPO"
   }
 }
