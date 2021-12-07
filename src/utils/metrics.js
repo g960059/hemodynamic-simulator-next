@@ -265,7 +265,7 @@ export class PVA {
       this.tc = tp;
       this.areas.push(this.prev);
       this.prev=0;
-      if(this.areas.length>5){
+      if(this.areas.length>7){
         this.areas.shift();
       }
       let areas = [...this.areas].sort((a,b)=>a-b);
@@ -299,7 +299,7 @@ export class CPO {
       this.tc = tp;
       this.areas.push(this.prev);
       this.prev=0;
-      if(this.areas.length>5){
+      if(this.areas.length>7){
         this.areas.shift();
       }
       let areas = [...this.areas].sort((a,b)=>a-b);
