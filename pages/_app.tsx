@@ -8,6 +8,7 @@ import {pink,teal} from '@mui/material/colors'
 import createCache from '@emotion/cache';
 import Layout from '../src/components/layout'
 import {useTranslation} from '../src/hooks/useTranslation'
+import NextHeadSeo from 'next-head-seo';
 
 const theme = createTheme({
   palette: {
@@ -36,13 +37,16 @@ export default function MyApp(props: AppProps) {
 
   return (
     <CacheProvider value={cache}>
-      <Head>
-        <title>{t['Title']}</title>
-        <meta property="og:title" content={t['Title']} key="title" />
-        <meta name="description" content={t["Description"]} />
-        <meta property="og:description" content={t["Description"]} />        
-        <meta name="viewport" content="initial-scale=1, width=device-width" />
-      </Head>
+      <NextHeadSeo
+        title={t['Title']}
+        description={t["Description"]}
+        og={{
+          title: t['Title'], 
+          url: 'https://www.essentialflow.org/',
+          type: 'website',
+          siteName: t['Title'],
+        }}
+      />
       <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
