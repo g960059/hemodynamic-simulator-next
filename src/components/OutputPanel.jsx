@@ -33,7 +33,7 @@ const OutputPanel = React.memo(({subscribe,unsubscribe, dataTypes, getHdps}) =>{
     }
   }, []);
   return (
-    <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{ p:[0.5,2],pb:0, pt:2, mb:-2, backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
+    <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{ p:{xs:0.5,md:2},pt:0,pb:{xs:1}, backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', overflowX:"scroll",display:"-webkit-box"}}>
       {instancesRef.current.map((instance,i) =>(
         <Stack justifyContent='center' alignItems='center' sx={{mx:1}}>
           <Typography variant='subtitle2' style={{display: 'inline'}}>{t["output_label"][outputOptions[i].getLabel()]}</Typography>
