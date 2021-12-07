@@ -249,16 +249,6 @@ export class PVA {
   }
   update(data, time, hdps){
     let tp = Math.floor(time / (60000 / data['HR'][0]))
-    if(this.tc != tp){
-      this.tc = tp;
-      this.areas.push(this.prev);
-      this.prev=0;
-      if(this.areas.length>5){
-        this.areas.shift();
-      }
-      let areas = [...this.areas].sort((a,b)=>a-b);
-      this.area = areas[Math.floor(areas.length/2)];
-    }
     let pressures = [...data["Plv"]];
     let volumes = [...data["Qlv"]];
     if(this.lastP!=null&&this.lastQ!=null){
@@ -271,6 +261,16 @@ export class PVA {
     }
     this.lastP=pressures[len-1];
     this.lastQ=volumes[len-1];
+    if(this.tc != tp){
+      this.tc = tp;
+      this.areas.push(this.prev);
+      this.prev=0;
+      if(this.areas.length>5){
+        this.areas.shift();
+      }
+      let areas = [...this.areas].sort((a,b)=>a-b);
+      this.area = areas[Math.floor(areas.length/2)];
+    }
   }
   reset(){}
   get() {
@@ -323,3 +323,69 @@ export class CPO {
     return this.area.toPrecision(3);
   }
 }
+
+// export class PVA {
+//   constructor(){
+//     this.area=0;
+//     this.prev=0;
+//     this.areas=[];
+//     this.tc=0
+//     this.lastP=[];
+//     this.lastQ=[];
+//   }
+//   static getLabel(){
+//     return "PVA"
+//   }
+//   static getUnit(){
+//     return "mmHg・ml"
+//   }
+//   update(data, time, hdps){
+//     let HR = data['HR'][0]
+//     let tps = data["t"].map(x=>Math.floor(x/(60000/HR)))
+//     let index = null;
+//     for(let i=0; i< tps.length;i++){
+//       if(this.tc!=tps[i]) {
+//         index=i;
+//         this.tc=tps[i];
+//       }
+//       let pressures = [...data["Plv"]];
+//       let volumes = [...data["Qlv"]];
+//       let nextP
+//       let nextQ
+//       if(index != null){
+//         nextP = pressures.splice(index);
+//         nextQ = volumes.splice(index);
+//       }else{
+//         nextP = [pressures[pressures.length-1]];
+//         nextQ = [volumes[volumes.length-1]];
+//       }
+//       console.log("index:",index);
+//       console.log("tc:",this.tc);
+//       console.log("t:", data["t"]);
+//       console.log("tps:",tps);
+//       console.log("lastP: ",this.lastP,"lastQ:", this.lastQ);
+//       console.log("nextP: ",nextP,"nextQ:", nextQ);
+//       pressures = [...this.lastP, ...pressures];
+//       volumes = [...this.lastQ,...volumes];
+//       this.lastP = nextP;
+//       this.lastQ = nextQ;
+//       let len = pressures.length
+//       for(let i=0;i<len-1;i++){
+//         this.prev+=pressures[i]*(volumes[i]- volumes[i+1]);
+//       }
+//       if(index!=0){
+//         this.areas.push(this.prev);
+//         this.prev=0;
+//         if(this.areas.length>5){
+//           this.areas.shift();
+//         }
+//         let areas = [...this.areas].sort((a,b)=>a-b);
+//         this.area = areas[Math.floor(areas.length/2)];
+//       }
+//     }
+//   }
+//   reset(){}
+//   get() {
+//     return Math.round(this.area)
+//   }
+// }
