@@ -7,6 +7,7 @@ import {CssBaseline} from '@mui/material';
 import {pink,teal} from '@mui/material/colors'
 import createCache from '@emotion/cache';
 import Layout from '../src/components/layout'
+import GoogleAnalytics from '../src/components/GoogleAnalytics'
 import {useTranslation} from '../src/hooks/useTranslation'
 import NextHeadSeo from 'next-head-seo';
 
@@ -47,6 +48,7 @@ export default function MyApp(props: AppProps) {
           siteName: t['Title'],
         }}
       />
+      <GoogleAnalytics />
       <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
