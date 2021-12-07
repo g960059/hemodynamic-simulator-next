@@ -99,6 +99,8 @@ export default {
     LA_Kick_Ratio: "LA kick ratio",
     LVEDP: "LVEDP",
     PAP:"PAP",
-    CVP:"CVP"
+    CVP:"CVP",
+    LAP:"LAP",
+    PVA:"PVA",
   }
 }

@@ -99,7 +99,9 @@ export default {
     LA_Kick_Ratio: "LA寄与率",
     LVEDP: "LVEDP",
     PAP:"PAP",
-    CVP:"CVP"
+    CVP:"CVP",
+    LAP:"LAP",
+    PVA:"PVA",
   }
 }
 

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress} from '@mui/material'
 import {useTranslation} from '../hooks/useTranslation'
-import {AoP,CVP,PAP,SV, EF, LVEDP, HR, CO,LaKickRatio} from '../utils/metrics'
+import {AoP,CVP,PAP,LAP,SV,EF,PVA,LVEDP,HR,CO,LaKickRatio} from '../utils/metrics'
 
 
 
@@ -9,7 +9,7 @@ const OutputPanel = React.memo(({subscribe,unsubscribe, dataTypes, getHdps}) =>{
   const t = useTranslation();
   const subscriptionIdRef = useRef();
 
-  const outputOptions = [AoP,CVP,PAP,SV, EF, LVEDP, CO,LaKickRatio]
+  const outputOptions = [AoP,LAP,PAP,CVP,SV,EF,CO,PVA,LVEDP,LaKickRatio]
   const instancesRef = useRef([]);
   const [refresh, setRefresh] = useState(0);
   const update = (data, time, hdprops) => {

@@ -92,10 +92,9 @@ export class AoP{
       this.max = this.max_next;
       this.min_next= Infinity;
       this.max_next = -Infinity;
-    }else{
-      this.min_next = Math.min(...data[this.prop],this.min_next);
-      this.max_next = Math.max(...data[this.prop],this.max_next)
     }
+    this.min_next = Math.min(...data[this.prop],this.min_next);
+    this.max_next = Math.max(...data[this.prop],this.max_next);
   }
   reset(){
   }
@@ -119,6 +118,15 @@ export class CVP extends AoP {
   }
   static getLabel(){
     return "CVP"
+  }
+}
+export class LAP extends AoP {
+  constructor(){
+    super();
+    this.prop ="Pla"
+  }
+  static getLabel(){
+    return "LAP"
   }
 }
 export class HR {
@@ -175,7 +183,8 @@ export class CO {
   get() {
     return ((this.lvedv - this.lvesv) * this.HR /1000)?.toPrecision(3)
   }
-}export class LaKickRatio {
+}
+export class LaKickRatio {
   constructor(){
     this.lvedv = -Infinity
     this.lvesv = Infinity
@@ -220,5 +229,51 @@ export class CO {
   reset(){}
   get() {
     return  ((this.laedv - this.laesv)  / (this.lvedv - this.lvesv) * 100)?.toPrecision(3)
+  }
+}
+
+export class PVA {
+  constructor(){
+    this.area=0;
+    this.prev=0;
+    this.areas=[];
+    this.tc=0
+    this.lastP=null;
+    this.lastQ=null;
+  }
+  static getLabel(){
+    return "PVA"
+  }
+  static getUnit(){
+    return "mmHg・ml"
+  }
+  update(data, time, hdps){
+    let tp = Math.floor(time / (60000 / data['HR'][0]))
+    if(this.tc != tp){
+      this.tc = tp;
+      this.areas.push(this.prev);
+      this.prev=0;
+      if(this.areas.length>5){
+        this.areas.shift();
+      }
+      let areas = [...this.areas].sort((a,b)=>a-b);
+      this.area = areas[Math.floor(areas.length/2)];
+    }
+    let pressures = [...data["Plv"]];
+    let volumes = [...data["Qlv"]];
+    if(this.lastP!=null&&this.lastQ!=null){
+      pressures.unshift(this.lastP);
+      volumes.unshift(this.lastQ);
+    }
+    let len = pressures.length
+    for(let i=0;i<len-1;i++){
+      this.prev+=pressures[i]*(volumes[i]- volumes[i+1]);
+    }
+    this.lastP=pressures[len-1];
+    this.lastQ=volumes[len-1];
+  }
+  reset(){}
+  get() {
+    return Math.round(this.area)
   }
 }
