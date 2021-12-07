@@ -33,13 +33,13 @@ const OutputPanel = React.memo(({subscribe,unsubscribe, dataTypes, getHdps}) =>{
     }
   }, []);
   return (
-    <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{ p:{xs:0.5,md:2},pt:0,pb:{xs:1}, backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', overflowX:"scroll",display:"-webkit-box"}}>
+    <Box width={1} justifyContent='center' alignItems='center' sx={{ p:{xs:0.5,md:2},pt:0,pb:{xs:1}, backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', overflowX:{xs:"scroll",md:"none"},display:{xs:"-webkit-box",md:"grid"},gridTemplateColumns:{md:"repeat(auto-fill,minmax(100px,1fr))"}}}>
       {instancesRef.current.map((instance,i) =>(
         <Stack justifyContent='center' alignItems='center' sx={{mx:1}}>
           <Typography variant='subtitle2' style={{display: 'inline'}}>{t["output_label"][outputOptions[i].getLabel()]}</Typography>
           <Stack direction='row' justifyContent='center' alignItems='center'>
             <Typography variant='subtitle2'sx={{mr:.5}}>{instance.get()}</Typography>
-            <Typography variant='body2'sx={{color: 'text.secondary'}}>{outputOptions[i].getUnit()}</Typography>
+            <Typography variant='caption'sx={{color: 'text.secondary'}}>{outputOptions[i].getUnit()}</Typography>
           </Stack>
         </Stack>
       ))}
