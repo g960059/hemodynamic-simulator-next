@@ -10,7 +10,7 @@ import { EAxisType } from "scichart/types/AxisType";
 import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
 import {NumericLabelProvider} from "scichart/Charting/Visuals/Axis/LabelProvider/NumericLabelProvider";
-import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore,Check} from "@mui/icons-material"
+import {FiberManualRecord,MoreVert,Check} from "@mui/icons-material"
 import {LightTheme, COLORS, ALPHA_COLORS} from '../styles/chartConstants'
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -190,15 +190,15 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
     <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{position: 'relative',backgroundColor:'white', p:[0.5,2],pb:0, pt:2, mb:-2}}>
       <Box width={1} style={{opacity: loading ? 0 : 1}}>
         <Grid container alignItems='center'>
-          <Grid item container xs={8} md={9} spacing={1} justifyContent='flex-start' display='flex' sx={{pl:2}}>
+          <Grid item container xs={9} md={9} spacing={1} justifyContent='flex-start' display='flex' sx={{pl:2}}>
             {dataTypes.map((dataType,i)=>(
               <Grid item justifyContent='center' alignItems='center' display='flex' key={dataType} style={{marginBottom:'-4px'}}> 
                 <FiberManualRecord sx={{color:COLORS[usedColorsRef.current[i]]}} />
-                <Typography variant='caption' noWrap>{t[dataType]}</Typography>
+                <Typography variant='subtitle2' noWrap>{t[dataType]}</Typography>
               </Grid>
             ))}
           </Grid>
-          <Grid item xs={4} md={3} justifyContent='flex-end' display='flex'>
+          <Grid item xs={3} md={3} justifyContent='flex-end' display='flex'>
             <Button size='small' variant='outlined' onClick={e=>setAnchorEl(e.currentTarget)} sx={{mr:1}}>
               {t["ChangePVloopItmes"]}
             </Button>

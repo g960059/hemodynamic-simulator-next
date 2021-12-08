@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
-import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress, Button} from '@mui/material'
+import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress, Button,MenuList,ListItemIcon} from '@mui/material'
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
 import {FastLineRenderableSeries} from "scichart/Charting/Visuals/RenderableSeries/FastLineRenderableSeries";
@@ -9,7 +9,7 @@ import { EAxisType } from "scichart/types/AxisType";
 import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
 import {NumericLabelProvider} from "scichart/Charting/Visuals/Axis/LabelProvider/NumericLabelProvider";
-import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@mui/icons-material"
+import {FiberManualRecord,MoreVert, Check} from "@mui/icons-material"
 import {LightTheme, COLORS, ALPHA_COLORS} from '../../styles/chartConstants'
 
 import { chartBuilder } from "scichart/Builder/chartBuilder";
@@ -213,26 +213,17 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
     <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{position: 'relative',backgroundColor:'white', pb:0,pl:0, pt:2, mb:-2}}>
       <Box width={1} style={{opacity: loading ? 0 : 1}}>
         <Grid container alignItems='center' justifyContent='flex-end'>
-          <Grid item xs={2} md={1} justifyContent='center' display='flex'>
-            <IconButton aria-controls='ts-menu' aria-haspopup= {true} onClick={e=>setAnchorEl(e.currentTarget)} style={{zIndex:100, marginBottom:'-8px'}} size='small'>
-              <MoreVert/>
-            </IconButton>
+          <Grid item justifyContent='center' display='flex'>    
+            <Button size='small' variant='outlined' onClick={e=>setAnchorEl(e.currentTarget)} sx={{mr:1}}>
+              {t["ChangePVloopItmes"]}
+            </Button>
           </Grid>
-          <Menu id="ts-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>setAnchorEl(null)}>
-            <ListItemButton onClick={()=>{setPressureMenuOpen(prev=>!prev)}}>
-              <ListItemText primary="Pressure" />
-              {pressureMenuOpen ? <ExpandLess /> : <ExpandMore />}
-            </ListItemButton>          
-            <Collapse in={pressureMenuOpen} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                {pressureTypes.map((pType,index)=>(
-                  <MenuItem key={pType} onClick={clickMenuItem(index)} >
-                    <Checkbox checked ={dataTypes.includes(pType)} color='primary' />
-                    <ListItemText>{t[pType]}</ListItemText>
-                  </MenuItem>              
-                ))}
-              </List>
-            </Collapse>
+          <Menu id="ts-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>setAnchorEl(null)} MenuListProps={{variant:'menu', dense:true}}>
+            {pressureTypes.map((pType,index)=>(
+              <MenuItem key={pType} onClick={clickMenuItem(index)} >
+                {dataTypes.includes(pType) ? <><ListItemIcon><Check/></ListItemIcon>{t[pType]}</> : <ListItemText inset >{t[pType]}</ListItemText> }
+              </MenuItem>              
+            ))}
           </Menu>
         </Grid>
         <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%',aspectRatio: '1 / 1'}}>

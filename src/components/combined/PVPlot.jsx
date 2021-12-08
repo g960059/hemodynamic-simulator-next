@@ -151,7 +151,6 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
     yAxisRef.current = yAxis
     sciChartSurface.xAxes.add(xAxis);
     sciChartSurface.yAxes.add(yAxis);
-
     for(let i=0; i<dataTypes.length; i++){
       const dataType = dataTypes[i]
       addDataSeries(dataType)
@@ -253,6 +252,8 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
 
   useEffect(() => {
     (async ()=>{
+      const playNow = isPlaying;
+      setIsPlaying(false)
       const res = await initSciChart()
       sciChartSurfaceRef.current = res.sciChartSurface
       subscriptionIdRef.current = subscribe(update)
@@ -260,12 +261,30 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
       if(res){
         setLoading(false)
       }
+      if(playNow){
+        setIsPlaying(true)
+      }
     })();
     return ()=>{
+      setIsPlaying(false)
       unsubscribe(subscriptionIdRef.current)
-      Object.values(dataRef.current).forEach(d=>{
-        d.delete();
-      })
+      for(let i=0; dataRef.current.length;i++){
+        dataRef.current[i].delete();
+        leadingPointRef.current[i].delete();
+        espvrDataRef.current[i].delete();
+        edpvrDataRef.current[i].delete();
+        sciChartSurfaceRef.current.renderableSeries.remove(fastLineSeriesRef.current[i]);
+        sciChartSurfaceRef.current.renderableSeries.remove(scatterSeriesRef.current[i]);
+        sciChartSurfaceRef.current.renderableSeries.remove(espvrLineSeriesRef.current[i]);
+        sciChartSurfaceRef.current.renderableSeries.remove(edpvrLineSeriesRef.current[i]);
+        delete leadingPointRef.current[i];
+        delete espvrDataRef.current[i];
+        delete edpvrDataRef.current[i];
+        delete fastLineSeriesRef.current[i];
+        delete scatterSeriesRef.current[i];
+        delete espvrLineSeriesRef.current[i];
+        delete edpvrLineSeriesRef.current[i];
+      }
       usedColorsRef.current = [];
       sciChartSurfaceRef.current?.delete()
     }
@@ -274,12 +293,12 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
   return (
     <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{position: 'relative',backgroundColor:'white', pb:0,pr:0,pt:2, mb:-2}}>
       <Box width={1} style={{opacity: loading ? 0 : 1}}>
-        <Grid container alignItems='center' sx={{marginBottom: '6px'}}>
+        <Grid container alignItems='center' sx={{marginBottom: '11px'}}>
           <Grid item container xs={10} md={11} spacing={1} justifyContent='flex-start' display='flex' sx={{pl:2}}>
             {dataTypes.map((dataType,i)=>(
               <Grid item justifyContent='center' alignItems='center' display='flex' key={dataType} style={{marginBottom:'-4px'}}> 
                 <FiberManualRecord sx={{color:COLORS[usedColorsRef.current[i]]}} />
-                <Typography variant='caption' noWrap>{t[dataType]}</Typography>
+                <Typography variant='subtitle2' noWrap>{t[dataType]}</Typography>
               </Grid>
             ))}
           </Grid>
