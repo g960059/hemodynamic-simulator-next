@@ -229,7 +229,6 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
         <CircularProgress/>
       </Box>
     </Box>
-
   </>
 })
 

@@ -13,10 +13,10 @@ import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@mui/icons-mate
 import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS} from '../styles/chartConstants'
 import {useTranslation} from '../hooks/useTranslation'
 
-
 const PV_COUNT = 1000
 const EDPVR_STEP = 20
 const PVTypes = ['LV','LA','RV','RA']
+const format = x => (Math.floor(x/20)+1.8)*20
 
 const getPVSeriesFn = () => {
   const LV = x => [x['Qlv'],x['Plv']]
@@ -61,10 +61,9 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
   const xAxisRef = useRef();
   const yMaxRef = useRef({});
   const xMaxRef = useRef({});
-  const yPrevRef = useRef({});
-  const yPrevPrevRef = useRef({});
-  const xPrevRef = useRef({});
-  const xPrevPrevRef = useRef({});
+  const yMaxPrevRef = useRef({});
+  const xMaxPrevRef = useRef({});
+  const tcRef = useRef(0);
 
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -141,86 +140,76 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
     return {sciChartSurface,wasmContext}
   }  
   const update = (data, time, hdprops) => {
+    const HR = data['HR'][0];
+    let changedVisibleRange = false;
+    const tp = Math.floor(time/(60000/HR));
     for(let i=0; i<dataTypes.length; i++){
       const dataType = dataTypes[i]
       const [_x, _y] = getPVSeriesFn(hdprops)[dataType](data)
-      const dataLength = _x.length
-      const y = _y[dataLength-1]
-      const x = _x[dataLength-1]
+      const len = _x.length
+      const y = _y[len-1]
+      const x = _x[len-1]
       if(dataRef.current[dataType].count()>PV_COUNT){
-        dataRef.current[dataType].removeRange(0,dataLength)
+        dataRef.current[dataType].removeRange(0,len)
       }
       dataRef.current[dataType].appendRange(_x, _y)
 
-      // to update xMax, yMax
-      if(!yPrevRef.current[dataType]){
-        yPrevRef.current[dataType] = y
-        if(!yPrevPrevRef.current[dataType]){
-          yPrevPrevRef.current[dataType] = yPrevRef.current[dataType]
-        }
-      }
-      let yMax = yMaxRef.current[dataType] || 0
-      if(yPrevRef.current[dataType] >= yPrevPrevRef.current[dataType] && y < yPrevRef.current[dataType]){
-        yMax = (Math.ceil(yPrevRef.current[dataType]/20)+1)*20
-      }
-      yPrevPrevRef.current[dataType] = yPrevRef.current[dataType]
-      yPrevRef.current[dataType] = y
-
-            
-      if(!xPrevRef.current[dataType]){
-        xPrevRef.current[dataType] = x
-        if(!xPrevPrevRef.current[dataType]){
-          xPrevPrevRef.current[dataType] = xPrevRef.current[dataType]
-        }
-      }
-      let xMax = xMaxRef.current[dataType] 
-      if(xPrevRef.current[dataType] >= xPrevPrevRef.current[dataType] && x < xPrevRef.current[dataType]){
-        xMax = (Math.ceil(xPrevRef.current[dataType]/20)+1)*20
-      }
-      xPrevPrevRef.current[dataType] = xPrevRef.current[dataType]
-      xPrevRef.current[dataType] = x
-      const maxXMax = Object.values(xMaxRef.current).length >0 ? Math.max(...Object.values(xMaxRef.current)) : 0
-      
-      if(xAxisRef.current.visibleRange.max != maxXMax){
-        xAxisRef.current.visibleRange = new NumberRange(0,maxXMax)
-      }
       if(leadingPointRef.current[dataType].count()> 0){
         leadingPointRef.current[dataType].removeRange(0,leadingPointRef.current[dataType].count()-1);
-        leadingPointRef.current[dataType].append(x,y);
-      }else{
-        leadingPointRef.current[dataType].append(_x[dataLength-1],_y[dataLength-1]);
-      } 
-      // update annotation lines
+      }
+      leadingPointRef.current[dataType].append(x,y);
+      if(tp!=tcRef.current){
+        xMaxRef.current[dataType] = format(xMaxPrevRef.current[dataType]);
+        yMaxRef.current[dataType] = format(yMaxPrevRef.current[dataType]);
+        xMaxPrevRef.current[dataType]=0;
+        yMaxPrevRef.current[dataType]=0;
+      }
+      xMaxPrevRef.current[dataType] = Math.max(xMaxPrevRef.current[dataType],..._x);
+      yMaxPrevRef.current[dataType] = Math.max(yMaxPrevRef.current[dataType],..._y);
+      xMaxPrevRef.current["All"]  = Math.max(xMaxPrevRef.current["All"],xMaxPrevRef.current[dataType]);
+      yMaxPrevRef.current["All"] = Math.max(yMaxPrevRef.current["All"],yMaxPrevRef.current[dataType]);
+    }
+    if(tp!=tcRef.current){
+      const newXMax = format(xMaxPrevRef.current["All"]);
+      const newYMax= format(yMaxPrevRef.current["All"]);
+      if(newXMax != xMaxRef.current["All"] || newYMax !=yMaxRef.current["All"]){
+        changedVisibleRange =true;
+      }
+      if(newXMax != xMaxRef.current["All"]){
+        xMaxRef.current["All"] = newXMax;
+        if(newXMax){
+          xAxisRef.current.visibleRange = new NumberRange(0,newXMax);
+        }
+      }
+      if(newYMax !=yMaxRef.current["All"]){
+        // yAxisRef.current.visibleRange.max = new NumberRange(0,newYMax);
+        yMaxRef.current["All"] = newYMax;
+      }
+      xMaxPrevRef.current["All"]=0;
+      yMaxPrevRef.current["All"]=0;
+      tcRef.current = tp;
+    }
+    
+    for(let i=0; i<dataTypes.length; i++){
+      const dataType = dataTypes[i]
+      const xMax = xMaxRef.current[dataType];
+      const yMax = yMaxRef.current[dataType];
       const {alpha, beta, Ees, V0} = getHdProps[dataType](hdprops)
-      
-      if(Ees!= EesRef.current[dataType]|| V0 != V0Ref.current[dataType] || yMax != yMaxRef.current[dataType]){
+      if(Ees!=EesRef.current[dataType] || changedVisibleRange){
         EesRef.current[dataType] = Ees;
         V0Ref.current[dataType] = V0;
-        if(yMax != yMaxRef.current[dataType]){
-          yMaxRef.current[dataType] = yMax
-        }
-        if(espvrDataRef.current[dataType].count()>0){
-          espvrDataRef.current[dataType].clear()
-        }
+        espvrDataRef.current[dataType].clear()
         if(Ees*(xMax-V0)<yMax){
           espvrDataRef.current[dataType].appendRange([V0,xMax],[0,Ees*(xMax-V0)])
         }else{
           espvrDataRef.current[dataType].appendRange([V0,yMax/Ees+V0],[0,yMax])
         }
       }
-      if(alpha!= alphaRef.current[dataType] || beta!=betaRef.current[dataType]|| V0 != V0Ref.current[dataType] ||xMax != xMaxRef.current[dataType] || yMax != yMaxRef.current[dataType] || edpvrDataRef.current[dataType].count() < EDPVR_STEP){
+      if(alpha!=alphaRef.current[dataType] || beta!=betaRef.current[dataType] || V0!=V0Ref.current[dataType] || changedVisibleRange){
         alphaRef.current[dataType]= alpha
         betaRef.current[dataType] = beta
         V0Ref.current[dataType] = V0
-        if(yMax != yMaxRef.current[dataType]){
-          yMaxRef.current[dataType] = yMax
-        }
-        if(xMax != xMaxRef.current[dataType]){
-          xMaxRef.current[dataType] = xMax
-        }        
-        if(edpvrDataRef.current[dataType].count()>0){
-          edpvrDataRef.current[dataType].clear()
-        }
+        edpvrDataRef.current[dataType].clear()
         if(beta* (Math.exp(alpha * (xMax-V0))-1) < yMax){
           const stepSize = (xMax-V0)/EDPVR_STEP
           const px = [...(Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize+V0)

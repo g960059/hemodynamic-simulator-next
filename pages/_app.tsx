@@ -1,5 +1,4 @@
 import * as React from 'react';
-import Head from 'next/head';
 import { AppProps } from 'next/app';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
