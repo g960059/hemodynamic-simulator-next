@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
-import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress} from '@mui/material'
+import {Box,Grid, Typography, Stack,MenuItem,MenuList,ListItemIcon,Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress,Button,Radio,RadioGroup,FormControlLabel} from '@mui/material'
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
 import {FastLineRenderableSeries} from "scichart/Charting/Visuals/RenderableSeries/FastLineRenderableSeries";
@@ -9,7 +9,7 @@ import {XyDataSeries} from "scichart/Charting/Model/XyDataSeries";
 import {EAxisAlignment} from "scichart/types/AxisAlignment";
 import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
-import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@mui/icons-material"
+import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore,Check} from "@mui/icons-material"
 import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS} from '../styles/chartConstants'
 import {useTranslation} from '../hooks/useTranslation'
 
@@ -59,13 +59,16 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
   const changingRef = useRef(null);
   const usedColorsRef = useRef([]);
   const xAxisRef = useRef();
+  const yAxisRef = useRef();
   const yMaxRef = useRef({});
   const xMaxRef = useRef({});
   const yMaxPrevRef = useRef({});
   const xMaxPrevRef = useRef({});
   const tcRef = useRef(0);
+  const autoScaleRef = useRef(true);
 
   const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl2, setAnchorEl2] = useState(null);
 
   const addDataSeries = (dataType)=>{
     const colorIndex = [...COLORS.keys()].find(i=>!usedColorsRef.current.includes(i))
@@ -119,7 +122,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
     wasmContextRef.current = wasmContext
     sciChartSurface.applyTheme(LightTheme)
     const xAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Bottom,autoRange: EAutoRange.Never,drawMinorTickLines:false});
-    const yAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Left,autoRange: EAutoRange.Always,drawMinorTickLines:false});
+    const yAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Left,autoRange: EAutoRange.Never,drawMinorTickLines:false});
     xAxis.drawMajorGridLines =false;
     xAxis.drawMinorGridLines =false;
     yAxis.drawMinorGridLines =false;    
@@ -130,6 +133,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
     yAxis.growBy = new NumberRange(0.1, 0.05);
     yAxis.labelProvider.formatLabel = (dataValue => dataValue?.toFixed(0))
     xAxisRef.current = xAxis
+    yAxisRef.current = yAxis
     sciChartSurface.xAxes.add(xAxis);
     sciChartSurface.yAxes.add(yAxis);
 
@@ -177,13 +181,15 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
       }
       if(newXMax != xMaxRef.current["All"]){
         xMaxRef.current["All"] = newXMax;
-        if(newXMax){
+        if(newXMax && autoScaleRef.current){
           xAxisRef.current.visibleRange = new NumberRange(0,newXMax);
         }
       }
       if(newYMax !=yMaxRef.current["All"]){
-        // yAxisRef.current.visibleRange.max = new NumberRange(0,newYMax);
         yMaxRef.current["All"] = newYMax;
+        if(newYMax && autoScaleRef.current){
+          yAxisRef.current.visibleRange = new NumberRange(0,newYMax);
+        }
       }
       xMaxPrevRef.current["All"]=0;
       yMaxPrevRef.current["All"]=0;
@@ -195,7 +201,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
       const xMax = xMaxRef.current[dataType];
       const yMax = yMaxRef.current[dataType];
       const {alpha, beta, Ees, V0} = getHdProps[dataType](hdprops)
-      if(Ees!=EesRef.current[dataType] || changedVisibleRange){
+      if(Ees!=EesRef.current[dataType] || changedVisibleRange || espvrDataRef.current[dataType].count()==0){
         EesRef.current[dataType] = Ees;
         V0Ref.current[dataType] = V0;
         espvrDataRef.current[dataType].clear()
@@ -205,7 +211,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
           espvrDataRef.current[dataType].appendRange([V0,yMax/Ees+V0],[0,yMax])
         }
       }
-      if(alpha!=alphaRef.current[dataType] || beta!=betaRef.current[dataType] || V0!=V0Ref.current[dataType] || changedVisibleRange){
+      if(alpha!=alphaRef.current[dataType] || beta!=betaRef.current[dataType] || V0!=V0Ref.current[dataType] || changedVisibleRange || edpvrDataRef.current[dataType].count()==0){
         alphaRef.current[dataType]= alpha
         betaRef.current[dataType] = beta
         V0Ref.current[dataType] = V0
@@ -288,26 +294,36 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
     <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{position: 'relative',backgroundColor:'white', p:[0.5,2],pb:0, pt:2, mb:-2}}>
       <Box width={1} style={{opacity: loading ? 0 : 1}}>
         <Grid container alignItems='center'>
-          <Grid item container xs={10} md={11} spacing={1} justifyContent='flex-start' display='flex' sx={{pl:2}}>
+          <Grid item container xs={7} md={8} spacing={1} justifyContent='flex-start' display='flex' sx={{pl:2}}>
             {dataTypes.map((dataType,i)=>(
               <Grid item justifyContent='center' alignItems='center' display='flex' key={dataType} style={{marginBottom:'-4px'}}> 
                 <FiberManualRecord sx={{color:COLORS[usedColorsRef.current[i]]}} />
-                <Typography variant='caption' noWrap>{t[dataType]}</Typography>
+                <Typography variant='subtitle2' noWrap>{t[dataType]}</Typography>
               </Grid>
             ))}
           </Grid>
-          <Grid item xs={2} md={1} justifyContent='center' display='flex'>
-            <IconButton aria-controls='ts-menu' aria-haspopup= {true} onClick={e=>setAnchorEl(e.currentTarget)} style={{zIndex:100, marginBottom:'-8px'}} size='small'>
-              <MoreVert/>
-            </IconButton>
+          <Grid item xs={5} md={4} justifyContent='flex-end' display='flex'>
+            <Button size='small' variant='outlined' onClick={e=>setAnchorEl(e.currentTarget)} sx={{mr:1}}>
+              {t["ChangePVloopItmes"]}
+            </Button>
+            <Button size='small' variant='outlined' onClick={e=>setAnchorEl2(e.currentTarget)}>
+              {t["LayoutSetting"]}
+            </Button>
           </Grid>
-          <Menu id="ts-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>setAnchorEl(null)}>
+          <Menu id="ts-menu" anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>setAnchorEl(null)} MenuListProps={{variant:'menu', dense:true}}>
             {PVTypes.map((pType,index)=>(
               <MenuItem key={pType} onClick={clickMenuItem(index)} >
-                <Checkbox checked ={dataTypes.includes(pType)} color='primary' />
-                <ListItemText>{t[pType]}</ListItemText>
+                {dataTypes.includes(pType) ? <><ListItemIcon><Check/></ListItemIcon>{t[pType]}</> : <ListItemText inset >{t[pType]}</ListItemText> }
               </MenuItem>              
             ))}
+          </Menu>
+          <Menu id="ts-menu2" anchorEl={anchorEl2} open={Boolean(anchorEl2)} onClose={()=>setAnchorEl2(null)} MenuListProps={{variant:'menu', dense:true}}>
+            <MenuItem onClick={()=>{autoScaleRef.current=!autoScaleRef.current}}>{
+                autoScaleRef.current ? 
+                  <><ListItemIcon><Check/></ListItemIcon>{t["AutoFit"]}</> :
+                  <ListItemText inset >{t["AutoFit"]}</ListItemText>
+              }
+            </MenuItem>
           </Menu>
         </Grid>
         <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%',aspectRatio: '2 / 1.3'}}>

@@ -91,6 +91,9 @@ export default {
   Rtvs: "三尖弁狭窄",
   assisted_circulation: "補助循環",
   auxiliary_level: "補助レベル",
+  ChangePVloopItmes:"項目選択",
+  AutoFit:"スケールの自動調整",
+  LayoutSetting:"表示設定",
   output_label: {
     AoP: "AoP",
     CO: "CO",

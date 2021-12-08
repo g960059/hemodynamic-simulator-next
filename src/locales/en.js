@@ -91,6 +91,9 @@ export default {
   Rtvs: "Tricupsid Stenosis",
   assisted_circulation : "Assisted Circulation",
   auxiliary_level: "Auxiliary Level",
+  ChangePVloopItmes:"Select Items",
+  AutoFit:"Auto Scaling",
+  LayoutSetting:"Layout Settings",
   output_label: {
     AoP: "AoP",
     CO: "CO",
