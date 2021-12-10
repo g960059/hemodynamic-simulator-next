@@ -42,7 +42,7 @@ export default function MyApp(props: AppProps) {
         description={t["Description"]}
         og={{
           title: t['Title'], 
-          url: 'https://www.essentialflow.org/',
+          url: 'https://www.hemodynamic-simulator.com/',
           type: 'website',
           siteName: t['Title'],
         }}

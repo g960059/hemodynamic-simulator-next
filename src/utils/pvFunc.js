@@ -22,13 +22,13 @@ export const P = (V, t,Ees,V0, alpha, beta,Tmax, tau, AV_delay,HR)=>{
 
 const keys = ["t","Qvs", "Qas", "Qap", "Qvp", "Qlv", "Qla", "Qrv", "Qra", "Qas_prox","Qap_prox","Plv", "Pla", "Prv", "Pra","Ias","Ics","Imv","Ivp","Iap","Icp","Itv","Ivs","Iasp","Iapp", "AoP", "PAP",'HR']
 
-export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox],
+export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Qtube],
     { Rcs,Rcp,Ras,Rvs,Rap,Rvp,Ras_prox,Rap_prox,Rmv,Rtv,Cas,Cvs,Cap,Cvp,Cas_prox,Cap_prox,
       LV_Ees,LV_V0,LV_alpha,LV_beta,LV_Tmax,LV_tau,LV_AV_delay,
       LA_Ees,LA_V0,LA_alpha,LA_beta,LA_Tmax,LA_tau,LA_AV_delay,
       RV_Ees,RV_V0,RV_alpha,RV_beta,RV_Tmax,RV_tau,RV_AV_delay,
       RA_Ees,RA_V0,RA_alpha,RA_beta,RA_Tmax,RA_tau,RA_AV_delay,HR,
-      Ravs, Ravr, Rmvr, Rmvs, Rpvr, Rpvs, Rtvr, Rtvs, impella_type, impella_aux_level
+      Ravs, Ravr, Rmvr, Rmvs, Rpvr, Rpvs, Rtvr, Rtvs, impella_type, impella_aux_level,ecmo_speed,Ctube,Rtube
     } ={}
     ,logger =null
     )=>{
@@ -49,6 +49,9 @@ export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_p
     let Iasp = deltaAvp > 0 ? (deltaAvp)/(Ras_prox+Ravs) : (deltaAvp)/(Ras_prox+Ravr)
     let Iimp = implella[impella_type][impella_aux_level](-deltaAvp)/30
     let Iapp =(Prv-Qap_prox/Cap_prox) > 0 ? (Prv-Qap_prox/Cap_prox)/(Rap_prox+Rpvs) : (Prv-Qap_prox/Cap_prox)/(Rap_prox+Rpvr) 
+    const deltaP = Qtube/Ctube-Qvs/Cvs
+    const Ip = ecmo_speed ==0 ? 0 : (2.43*10**(-5)*ecmo_speed*deltaP + 2.86*10**(-2)*ecmo_speed - 0.153*deltaP-15.7)/1000;
+    const Itube= ecmo_speed ==0 ? 0 : (Qtube/Ctube - Qas_prox/Cas_prox)/Rtube;
 
     if(logger != null){
       let AoP = Qas_prox/Cas_prox + Iasp*Ras_prox
@@ -58,7 +61,7 @@ export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_p
         (logger[keys[i]]||(logger[keys[i]]=[])).push(vals[i]);
       }
     }
-    return [Ias-Ivs, Ics-Ias, Icp-Iap, Iap-Ivp, Imv-Iasp-Iimp, Ivp-Imv, Itv-Iapp, Ivs-Itv, Iasp-Ics+Iimp, Iapp-Icp]
+    return [Ias-Ivs-Ip, Ics-Ias, Icp-Iap, Iap-Ivp, Imv-Iasp-Iimp, Ivp-Imv, Itv-Iapp, Ivs-Itv, Iasp-Ics+Iimp+Itube, Iapp-Icp, Ip-Itube]
 }
 
 //0:Qvs, 1:Qas,2:Qap,3:Qvp,4:Qlv,5:Qla,6:Qrv,7:Qra,8:Qas_prox,9:Qap_prox,10:Plv,11:Pla,12:Prv,13:Pra,14:Ias,15:Ics,16:Imv,17:Ivp,18:Iap,19:Icp,20:Itv,21:Ivs,22:Iasp,23:Iapp

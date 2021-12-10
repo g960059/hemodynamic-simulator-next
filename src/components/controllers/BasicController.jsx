@@ -34,6 +34,7 @@ const BasicController = React.memo(({getHdps,setHdps}) => {
             ))}
             <Divider flexItem>{t["assisted_circulation"]}</Divider>
             <ImpellaButton hdps={hdps} setHdps={setHdps}/>
+            <EcmoButton hdps={hdps} setHdps={setHdps}/>
           </Stack>   
         </TabPanel>
       </TabContext>      
@@ -134,7 +135,6 @@ export const ImpellaButton = React.memo(({hdps,setHdps}) => {
     }
   }
 
-
   return <>
     <Grid container justifyContent="space-between" alignItems="center" display='flex' sx={{mb:1,mt:1}}>
       <Grid item xs={12} justifyContent="space-between" alignItems="center" display='flex' sx={{mb:.5}}>
@@ -171,6 +171,69 @@ export const ImpellaButton = React.memo(({hdps,setHdps}) => {
             </Select>
           </Grid>
         }        
+      </Grid>
+    </Grid>
+  </>
+})
+
+export const EcmoButton = React.memo(({hdps,setHdps}) => {
+  const t = useTranslation();
+  const [ecmoSpeed, setEcmoSpeed] = useState(hdps["ecmo_speed"]);
+  const [isRunning, setIsRunning] = useState(false);
+
+  const handleChange = (e, v) =>{
+    if(v){
+      setIsRunning(v);
+      if(ecmoSpeed==0){
+        setEcmoSpeed(5000);
+        setHdps("ecmo_speed",5000);
+      }else{
+        setHdps("ecmo_speed",ecmoSpeed);
+      }
+    }else{
+      setIsRunning(v);
+      setHdps("ecmo_speed",0);
+    }
+  }
+  const handleSpeed = e => {
+    setEcmoSpeed(e.target.value);
+    setHdps("ecmo_speed",e.target.value);
+  }
+
+  return <>
+    <Grid container justifyContent="space-between" alignItems="center" display='flex' sx={{mb:1,mt:1}}>
+      <Grid item xs={12} justifyContent="space-between" alignItems="center" display='flex' sx={{mb:.5}}>
+        <Typography variant='h6'>ECMO</Typography>
+      </Grid>
+      <Grid itex xs={12}  justifyContent="space-between" alignItems="center" display='flex'>
+        <ToggleButtonGroup
+          color="primary"
+          value={isRunning}
+          exclusive
+          onChange={handleChange}
+          size="small"
+        >
+          <ToggleButton value={false}>Off</ToggleButton>
+          <ToggleButton value={true}>On</ToggleButton>
+        </ToggleButtonGroup>   
+        {
+          isRunning && <Grid item justifyContent="space-between" alignItems="center" display='flex'>
+            <Typography variant="subtitle2" sx={{pr:.5}}>{t["ecmo_speed"]}</Typography>
+            <Select
+              labelId="ecmo-speed-select-label"
+              id="ecmo-speed-select"
+              value={ecmoSpeed}
+              onChange={handleSpeed}
+              size="small"
+            >
+              {
+                [...Array(7).keys()].map(i => 
+                  <MenuItem value={(i+1)*1000}>{(i+1)*1000}rpm</MenuItem> 
+                )
+              }
+            </Select>
+          </Grid>
+        }              
       </Grid>
     </Grid>
   </>

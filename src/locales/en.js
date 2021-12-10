@@ -94,6 +94,7 @@ export default {
   ChangePVloopItmes:"Select Items",
   AutoFit:"Auto Scaling",
   LayoutSetting:"Layout Settings",
+  ecmo_speed:"Rotation Speed",
   output_label: {
     AoP: "AoP",
     CO: "CO",

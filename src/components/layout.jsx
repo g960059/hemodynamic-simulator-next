@@ -1,10 +1,11 @@
-import React from 'react';
-import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline} from '@mui/material';
-import {GitHub, Twitter} from '@mui/icons-material'
+import React,{useState,useEffect} from 'react';
+import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline, Button,Dialog, DialogContent,Avatar,DialogContentText, Menu, MenuItem,Divider} from '@mui/material';
 import { makeStyles} from '@mui/styles';
-
 import {useTranslation} from '../hooks/useTranslation'
+import Image from 'next/image'
 
+import {StyledAuth,app} from '../utils/firebase'
+import {getAuth,onAuthStateChanged,signOut} from "firebase/auth";
 
 const drawerWidth = 0;
 
@@ -71,20 +72,67 @@ const useStyles = makeStyles((theme) =>({
 function Layout(props) {
   const t = useTranslation();
   const classes = useStyles();
+  const [user, setUser] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const auth = getAuth(app)
+  useEffect(() => {
+    onAuthStateChanged(auth,currentUser => {
+      if(currentUser){
+        setUser(currentUser);
+        setDialogOpen(false);
+      }else{
+        setUser(null);
+      }
+    })
+  }, []);
   return (
     <>
       <CssBaseline />
       <AppBar position="static" elevation={0} className={classes.appBar} classes={{root:classes.appBarRoot}}>
         <Toolbar>
-          <Typography variant="h6" noWrap component="div" sx={{fontFamily: "GT Haptik Regular" ,flexGrow: 1 }}>
+          <Box sx={{display:{xs:'none',sm:'block'}, mb:'-6px'}}><Image src="/HeaderIcon.png" width={30} height={30}/></Box>
+          <Typography variant="h6" noWrap component="div" sx={{fontFamily: "GT Haptik Regular" ,flexGrow: 1,fontWeight: 'bold'}}>
             {t['Title']}
           </Typography>
-          <IconButton onClick={()=>{window.open('https://twitter.com/0xGudemaru')}} sx={{display: { xs: 'none', md: 'block' }}}>
-            <Twitter/>
-          </IconButton>
-          <IconButton onClick={()=>{window.open('https://github.com/g960059/hemodynamic-simulator-next')}} sx={{display: { xs: 'none', md: 'block' }}}>
-            <GitHub/>
-          </IconButton>
+          {
+            user && <IconButton size="small" id="profile-button" aria-controls="profile-menu" aria-haspopup="true" aria-expanded={profileOpen ? 'true' : undefined} onClick={e=>setAnchorEl(e.currentTarget)}><Avatar src={user?.photoURL} sx={{border:'1px solid lightgray'}}>{user?.displayName[0]}</Avatar></IconButton> 
+          }{
+            !user && <Button variant='contained' onClick={()=>{setDialogOpen(true)}} disableElevation>Log in</Button>
+          }
+          <Dialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} sx={{'& .firebaseui-idp-button':{borderRadius: "0.45em"}, '& .MuiDialog-paper':{borderRadius: '9px'},'& .MuiDialogContent-root':{width:"400px"}, '& .MuiBackdrop-root':{background:"rgba(0, 0, 0, 0.2)"}}}>
+            <DialogContent>
+              <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{mt:2,mb:3}}>
+                <Image src="/HeaderIcon.png" width={40} height={40}/>
+                <Typography variant="h5" noWrap component="div" sx={{fontFamily: "GT Haptik Regular",fontWeight: 'bold'}}>
+                  {t['Title']}
+                </Typography>
+              </Box>
+              <DialogContentText>
+                循環動態シミュレーターで様々な病態や治療法への理解を深めていきましょう。
+              </DialogContentText>
+              <Box width={1} display='flex' justifyContent='center' alignItems='center'>
+                <StyledAuth/>
+              </Box>
+              <DialogContentText sx={{mt:.5}}>
+                利用規約、プライバシーポリシーに同意したうえでログインしてください。
+              </DialogContentText>
+            </DialogContent>
+          </Dialog>
+          <Menu
+            id="profile-menu"
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={()=>{setAnchorEl(null);}}
+            MenuListProps={{
+              'aria-labelledby': 'profile-button',
+            }}
+          >
+            <MenuItem onClick={()=>{}}>{user?.displayName}</MenuItem>
+            <Divider />
+            <MenuItem onClick={()=>{signOut(auth).then(()=>{setAnchorEl(null);})}}>Log out</MenuItem>
+          </Menu>          
         </Toolbar>
       </AppBar>
       <Box className={classes.background}></Box>

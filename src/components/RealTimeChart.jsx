@@ -168,10 +168,11 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
 
   useEffect(() => {
     (async ()=>{
+      changingRef.current = isPlaying ? 'start' : 'stop';
       const res = await initSciChart()
       setSciChartSurface(res.SciChartSurface)
       subscriptionIdRef.current = subscribe(update)
-      // setIsPlaying(true)
+      if(changingRef.current == 'start'){setIsPlaying(true)}
       if(res){
         setLoading(false)
       }

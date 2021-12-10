@@ -94,6 +94,7 @@ export default {
   ChangePVloopItmes:"項目選択",
   AutoFit:"スケールの自動調整",
   LayoutSetting:"表示設定",
+  ecmo_speed:'ポンプ回転数',
   output_label: {
     AoP: "AoP",
     CO: "CO",
