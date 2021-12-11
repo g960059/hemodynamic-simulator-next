@@ -266,6 +266,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
       }
     })();
     return ()=>{
+      const playNow = isPlaying;
       setIsPlaying(false)
       unsubscribe(subscriptionIdRef.current)
       for(let i=0; dataRef.current.length;i++){
@@ -287,6 +288,9 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
       }
       usedColorsRef.current = [];
       sciChartSurfaceRef.current?.delete()
+      if(playNow){
+        setIsPlaying(true)
+      }
     }
   }, [dataTypes]);
 

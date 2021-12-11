@@ -65,6 +65,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
   const yMaxPrevRef = useRef({});
   const xMaxPrevRef = useRef({});
   const tcRef = useRef(0);
+  const [autoScale, setAutoScale] = useState(true);
   const autoScaleRef = useRef(true);
 
   const [anchorEl, setAnchorEl] = useState(null);
@@ -318,8 +319,8 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
             ))}
           </Menu>
           <Menu id="ts-menu2" anchorEl={anchorEl2} open={Boolean(anchorEl2)} onClose={()=>setAnchorEl2(null)} MenuListProps={{variant:'menu', dense:true}}>
-            <MenuItem onClick={()=>{autoScaleRef.current=!autoScaleRef.current}}>{
-                autoScaleRef.current ? 
+            <MenuItem onClick={()=>{setAutoScale(prev=>!prev);autoScaleRef.current=!autoScaleRef.current;}}>{
+                autoScale ? 
                   <><ListItemIcon><Check/></ListItemIcon>{t["AutoFit"]}</> :
                   <ListItemText inset >{t["AutoFit"]}</ListItemText>
               }

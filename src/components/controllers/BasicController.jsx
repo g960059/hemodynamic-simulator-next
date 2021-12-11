@@ -203,7 +203,7 @@ export const EcmoButton = React.memo(({hdps,setHdps}) => {
   return <>
     <Grid container justifyContent="space-between" alignItems="center" display='flex' sx={{mb:1,mt:1}}>
       <Grid item xs={12} justifyContent="space-between" alignItems="center" display='flex' sx={{mb:.5}}>
-        <Typography variant='h6'>ECMO</Typography>
+        <Typography variant='h6'>VA-ECMO</Typography>
       </Grid>
       <Grid itex xs={12}  justifyContent="space-between" alignItems="center" display='flex'>
         <ToggleButtonGroup
