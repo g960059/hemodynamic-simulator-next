@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, IconButton,MenuList,ListItemIcon, CircularProgress, Button} from '@mui/material'
+import { makeStyles } from '@mui/styles';
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { chartBuilder } from "scichart/Builder/chartBuilder";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
@@ -18,6 +19,21 @@ import { useTranslation } from '../hooks/useTranslation';
 const TIME_WINDOW = 6000
 const TIME_WINDOW_GAP = 300
 const pressureTypes = ['AoP','Pla','Plv','PAP','Pra','Prv']
+
+const useStyles = makeStyles((theme) =>({
+  neumoButton: {
+    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+    color: "rgb(69, 90, 100)",
+    boxShadow: "rgb(0 0 0 / 10%) 0px 2px 4px -2px",
+    backgroundColor: "white",
+    border: "1px solid rgba(92, 147, 187, 0.17)",
+    "&:hover":{
+      backgroundColor: "rgba(239, 246, 251, 0.6)",
+      borderColor: "rgb(207, 220, 230)"
+    }
+  }
+}),
+);
 
 const getTimeSeriesFn = ({ 
   Rcs,Rcp,Ras,Rvs,Rap,Rvp,Ras_prox,Rap_prox,Rmv,Rtv,Cas,Cvs,Cap,Cvp,Cas_prox,Cap_prox,
@@ -42,6 +58,7 @@ SciChartSurface.setRuntimeLicenseKey("nac2rMGjekVDJ0tcaayVGckXXaozKTVvSIfVhuk9yw
 
 const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes,setDataTypes}) =>{
   const t = useTranslation();
+  const classes = useStyles();
   const [loading, setLoading] = useState(true);
   const [sciChartSurface, setSciChartSurface] = useState();
   const dataRef = useRef({})
@@ -200,7 +217,7 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
             ))}
           </Grid>
           <Grid item xs={3} md={3} justifyContent='flex-end' display='flex'>
-            <Button size='small' variant='outlined' onClick={e=>setAnchorEl(e.currentTarget)} sx={{mr:1}}>
+            <Button className={classes.neumoButton} size='small' variant='outlined' onClick={e=>setAnchorEl(e.currentTarget)} sx={{mr:1}}>
               {t["ChangePVloopItmes"]}
             </Button>
           </Grid>

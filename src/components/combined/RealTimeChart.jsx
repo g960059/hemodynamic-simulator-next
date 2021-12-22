@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress, Button,MenuList,ListItemIcon} from '@mui/material'
+import { makeStyles } from '@mui/styles';
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
 import {FastLineRenderableSeries} from "scichart/Charting/Visuals/RenderableSeries/FastLineRenderableSeries";
@@ -37,11 +38,26 @@ const getTimeSeriesFn = ({
   return {LV,LA,RV,RA}
 }
 
+const useStyles = makeStyles((theme) =>({
+  neumoButton: {
+    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+    color: "rgb(69, 90, 100)",
+    boxShadow: "rgb(0 0 0 / 10%) 0px 2px 4px -2px",
+    backgroundColor: "white",
+    border: "1px solid rgba(92, 147, 187, 0.17)",
+    "&:hover":{
+      backgroundColor: "rgba(239, 246, 251, 0.6)",
+      borderColor: "rgb(207, 220, 230)"
+    }
+  }
+}),
+);
 
 SciChartSurface.setRuntimeLicenseKey("d43pRwbuC+g3GCeKGrhu4pXSxO/JnEJ5nCssQeh0UbK3PvWJXz4EnrsIzTwNOa9kQ181KofrgV8YDwQnbhp+55GY3rP4NLUsKTvg+fIQGSzN9UinWtSFfQpSRzXAUf9LhJEBl6REurL9XmCcXKB8QYh/Le2AoZU11S0lUx3elUQINhMkxAjxbxnPYJ8FG3HelNVTCvgyVinLU2qkMr2WjBvPQNEZHz61LxPQusqKJZoMmdWray4qRBWo+YlhkKrKrmiWbOyGTStFba+vFL+XLIEJBLKdYKE15Jrx4jtiSBFGt6UwP3616g8RmXwfm+6yb8hMC6SWslZmKyO+MuefIgjj8z5DcOWvUYmqqcza9ShIMAMwqes1wem2esmw/V+ZMMX1Gty8/PduRXvDLXeHpYOZ5Zvm+3DoCik65XQO20CVLPWqq7r7UD1LQioqKahsT4PToBaOokJZF1RxfbvUlAibDwAGF5VsNswX80dpOfdUdOOBgyFYNuj1P5GuTgpOEtcDvIV/vKV2SBwx6Aoay24dBOGPIdUtYYbW3QU4+Hr6clTAhs+2VwUK1YPtCNH2TRt0cH3SU9qOpn8hrn6hE0+v5MU7gdvyXyPoAEC3qW7AaR9JO9RaaDy1ZhgSwexUKbqAcg4wmrbrTzzVgS3D7GtQOD0x2d9fTbjezBAnH7eMo7xHZwj/FAdEk/hLlQhMo8g1RJMWVtRMtUBDfNtD4ZV/lGBCDbmH8csu5golavgE8Qc+WnrJ");
 
 const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes,setDataTypes}) =>{
   const t = useTranslation();
+  const classes = useStyles();
   const [loading, setLoading] = useState(true);
   const [sciChartSurface, setSciChartSurface] = useState();
   const dataRef = useRef({})
@@ -214,7 +230,7 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
       <Box width={1} style={{opacity: loading ? 0 : 1}}>
         <Grid container alignItems='center' justifyContent='flex-end'>
           <Grid item justifyContent='center' display='flex'>    
-            <Button size='small' variant='outlined' onClick={e=>setAnchorEl(e.currentTarget)} sx={{mr:1}}>
+            <Button className={classes.neumoButton} size='small' variant='outlined' onClick={e=>setAnchorEl(e.currentTarget)} sx={{mr:1,mt:-1,mb:1}}>
               {t["ChangePVloopItmes"]}
             </Button>
           </Grid>

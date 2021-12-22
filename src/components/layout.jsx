@@ -109,13 +109,27 @@ function Layout(props) {
                   {t['Title']}
                 </Typography>
               </Box>
-              <DialogContentText>
+              <DialogContentText variant="body2">
                 循環動態シミュレーターで様々な病態や治療法への理解を深めていきましょう。
               </DialogContentText>
-              <Box width={1} display='flex' justifyContent='center' alignItems='center'>
+              <Box width={1} display='flex' justifyContent='center' alignItems='center' 
+                sx={{"& .firebaseui-idp-button":{
+                  transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+                  boxShadow: "rgb(0 0 0 / 10%) 0px 2px 4px -2px",
+                  backgroundColor: "#EFF6FB99",
+                  border: "1px solid rgba(92, 147, 187, 0.17)",
+                  "&:hover":{
+                      backgroundColor: "rgba(239, 246, 251, 0.6)",
+                      borderColor: "rgb(207, 220, 230)"
+                  },
+                  "& .firebaseui-idp-text":{
+                    fontSize: "1rem",
+                    color:"black"
+                  }
+                }}}>
                 <StyledAuth/>
               </Box>
-              <DialogContentText sx={{mt:.5}}>
+              <DialogContentText sx={{mt:.5}} variant="body2">
                 利用規約、プライバシーポリシーに同意したうえでログインしてください。
               </DialogContentText>
             </DialogContent>

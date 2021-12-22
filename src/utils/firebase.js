@@ -26,7 +26,7 @@ const uiConfig = {
 };
 
 // Initialize Firebase
-const app = firebase.initializeApp(firebaseConfig);
+export const app = firebase.initializeApp(firebaseConfig);
 // export const analytics = getAnalytics(app);
 export const auth = getAuth(app);
 export const db = getFirestore(app);

@@ -12,12 +12,15 @@ import RealTimeChart from '../src/components/RealTimeChart'
 import OutputPanel from '../src/components/OutputPanel'
 import LogPlot from '../src/components/LogPlot'
 import BasicController from '../src/components/controllers/BasicController'
+import ControllerList from '../src/components/controllers/ControllerList'
 import CombinedChart from '../src/components/combined/CombinedChart'
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
-// import dynamic from 'next/dynamic'
-// const RealTimeChart =  dynamic(()=>import('../src/components/RealTimeChart'), { ssr: false })
-// Set this code once in application startup
-SciChartSurface.SetRuntimeLicenseKey("0ATw45qt6BVpvCyavHPzaUcDpv+HtlZVl7REZ4cvWgp8LuCrFHsv9X5Yf20HLDTTc29Sn8fZ/2dj1v85d/3ywcMWzg+HxhWHBPm4GF/kghx5jizx96Pj4EmF+y01dH/uIN4/sAV+Ms1xdGp27beyUC6MCERdiapYJYVnVxMCGQtXz4clMViXw4P3h7sgGsQgivOastt/WnAdoC99zpvm4iz59xMlftChHlcSKd25sZTSNmB4PYk9FsWLmLbRPKj561ABwBFhS0LKeo4YGnJn5L5Aduzi8FTpvJUK5yuY4wDhZKUMiXuLiJm6STO66VUunnqHVP23IVOB/kYbZbbFVooPJOlfZ2O370NIvn5aO+qOrfRJbAkV40x/KPSJruc/DpnQJ7DiGtW5XV4nf/4AC5wNL3jz4z7njwq8auBzHQ8UWfVEF4tgAfu5h8/V//M/oiVQdmgAjeaPoq6Cu4H5vTEGYOVvIKBM6DL6x+7a+BE2V35Oe0zMhVzIfvS+9dP/y7kHY/aNMYSr/+wFjczn0kTNPAPSG0GS8kdZW8ewyoEmxdvGek6ITz6mfeeSh+HnxXSel8/ovCszKrNYZPe8OEg04D3DUQGcFh3wJil4JQAXCPSgY39DXe5006oRPRnLhSk51FJ5J+OKBBBDmzZut8Tm6zUQiA4cnoYbk1B5KcC1lD8W8sZEwG8kgHUW3yMXk+Vdqr000PFuYmP3qWaYVncOAKHegobisoQ=");
+import {DEFAULT_DATA, DEFAULT_TIME, DEFAULT_HEMODYANMIC_PROPS} from "../src/utils/presets"
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useCollection } from 'react-firebase-hooks/firestore';
+import {auth, app} from '../src/utils/firebase'
+
+SciChartSurface.setRuntimeLicenseKey("Pg0TbvRAPpGfMzrDC0iQKQpxOlp9ork/xN14iUzKdAsbZU+YLjBflmdowVPoiDfLjxXQ/XmJfyHGPG6tz5OsBdHnWTSWPhN45G/TTCffEfIJo07oVPrQHOtPax+QUT0Ji8ElpC8hX/VVHtQwFBnzA3awgVlARsI7OboI2rdGKQNoRcji/viDtm3TnknTxpKB6KZ6ymkpIzxjCAjGcOvpgPbljumbfQ08LvPwKboXmB7GXAWOF81MKBCyPnWkmwskY4s2Qp/Caya/8kwHDqq8YMaW8bm6Kh2+AA2Km5kW0gSjDUZxlueiCz77FFq7leToxYzq/UGgnIOz691oqOXwmPnGLIPi3uJ81NA0jtKIWpcpM91oQtGR+swHZV6+Z2pJ0CYlZOyTl1J94lfnhsqeh5Kbi0tS9u3dN8Vv5Kc89xWScFPpg1Pe9jB4YfvQZPU8iaG1YR/K6NozxsQ3B0ZwxSgYq96bU2JPO6o3DLXb9fIqfbZv9rhb7yqQ8rqLPHvUx2NIQIjtZCAXal92Q/jGIesgOn9fzPH/MCbnSZ7Py+latRCqf28fSUdHBC3zMelE95lvcRrNJywUuyhXkHBp+Ge6+pOPw0mP1LqLaVlp84DEUCV0F1SXu1Cj+SS5KG5q7naJop+rRyPm8Lcp1fuu4typVCOI6rHcs1oEiWzsjrdb4mwgW4kkgsvzLfInmjuSNQk38I3wjmRCFntHtYB68NRQeZxuxmHa+Cs=");
 
 const useStyles = makeStyles((theme) =>(
   {
@@ -28,9 +31,6 @@ const useStyles = makeStyles((theme) =>(
       [theme.breakpoints.up('md')]: {
         height: `calc(100vh - 56px)`,
       },
-      // [theme.breakpoints.up('sm')]: {
-      //   height: `calc(100vh - 64px)`,
-      // },
     },
     subContainerBox: {
       overflow: 'hidden',
@@ -39,9 +39,6 @@ const useStyles = makeStyles((theme) =>(
       [theme.breakpoints.up('md')]: {
         maxHeight : `calc(100vh - 174px)`,
       },
-      // [theme.breakpoints.up('sm')]: {
-      //   maxHeight : `calc(100vh - 182px)`,
-      // },
     },    
   })
 );
@@ -56,16 +53,20 @@ const App = () => {
   const [pvDataTypes, setPvDataTypes] = useState(['LV', 'LA']);
   const [combinedData, setCombinedData] = useState(['RA']);
   const [outputDataTypes, setOutputDataTypes] = useState(['AoP','PAP','CVP','SV','CO','PCWP']);
+  const [mode, setMode] = useState("basic");
+  const [user, loading, error] = useAuthState(auth);
+
   return (
     <> 
     <Grid container justifyContent='center' spacing={[0,1]}>
       <Grid item xs={12} md={5} lg={4} justifyContent='center' sx={{order:[1,1,0]}}>
         <Box className={classes.containerBox} mx={[0,1]}>
           <Box className={classes.subContainerBox}>
-            <BasicController getHdps={getHdps} setHdps={setHdps}/>
+            <BasicController getHdps={getHdps} setHdps={setHdps} InitialHdps={DEFAULT_HEMODYANMIC_PROPS} mode={mode}/>
+            {/* <ControllerList getHdps={getHdps} setHdps={setHdps}/> */}
           </Box>
           <Box sx={{display: { xs: 'none', md: 'block' }, mt:2}}>
-            {tabValue != 3 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>}        
+            {tabValue != 3 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed} mode={mode} setMode={setMode}/>}        
           </Box>
         </Box>
         <Divider orientation="vertical" flexItem xs={{display: { xs: 'none', md: 'block' }}}/>
@@ -106,7 +107,7 @@ const App = () => {
           </SwipeableViews>
           <OutputPanel subscribe={subscribe} unsubscribe={unsubscribe} dataTypes={outputDataTypes}  getHdps = {getHdps} />
           <Box sx={{display: { xs: 'block', md: 'none' }}}>
-            {tabValue != 3 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed}/>}
+            {tabValue != 3 && <PlaySpeedButtons setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed} mode={mode} setMode={setMode}/>}
           </Box>
         </Box>
       </Grid>

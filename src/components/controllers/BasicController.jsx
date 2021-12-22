@@ -1,41 +1,65 @@
-import React,{useState} from 'react';
-import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, Slider,Tab, Button, ButtonGroup,ToggleButtonGroup,ToggleButton, Select} from '@mui/material'
+import React,{useState, useEffect} from 'react';
+import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, Slider,Tab, Button, ButtonGroup,ToggleButtonGroup,ToggleButton, Select,Dialog,DialogContent,DialogTitle,DialogActions} from '@mui/material'
 import {TabContext,TabList,TabPanel} from '@mui/lab';
+import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../hooks/useTranslation'
-import {InputRanges} from '../../constants/InputSettings'
-import {Refresh} from '@mui/icons-material';
-import {DEFAULT_HEMODYANMIC_PROPS} from '../../hooks/usePvLoop'
+import {InputRanges,VDOptions} from '../../constants/InputSettings'
+import {Refresh,ExpandLess,ExpandMore,DragIndicator,Delete,Edit,Check} from '@mui/icons-material';
+import {DEFAULT_HEMODYANMIC_PROPS} from '../../utils/presets'
+import ReactiveInput from "../ReactiveInput";
+import { DragDropContext,Droppable,Draggable} from 'react-beautiful-dnd';
 
-const BasicHdps = ['Volume','Ras','LV_Ees','LV_alpha','LV_tau','HR']
-const AdvancedHdps = ["Volume","HR","LV_Ees","LV_alpha" ,"LV_Tmax" ,"LV_tau" ,"LV_AV_delay" ,"RV_Ees","RV_alpha" ,"RV_Tmax" ,"RV_tau" ,"RV_AV_delay" ,"LA_Ees","LA_alpha" ,"LA_Tmax" ,"LA_tau" ,"RA_Ees","RA_alpha" ,"RA_Tmax" ,"RA_tau" ,"Ras" ,"Rap" ,"Rvs" ,"Rvp","Cas","Cap" ,"Cvs" ,"Cvp","Ravs","Ravr","Rmvr","Rmvs","Rpvr", "Rpvs", "Rtvr", "Rtvs"]
 
-const BasicController = React.memo(({getHdps,setHdps}) => {
+const Vessels = ["Ra","Rv","Ca","Cv","Rc"]
+const AdvancedVessels = ["Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp"]
+const CardiacFns = ["Ees","alpha" ,"Tmax" ,"tau" ,"AV_delay"]
+const Severity = ["Trivial","Mild","Moderate","Severe"]
+
+
+const useStyles = makeStyles((theme) =>({
+    neumoButton: {
+      transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+      color: "rgb(69, 90, 100)",
+      boxShadow: "rgb(0 0 0 / 10%) 0px 2px 4px -2px",
+      backgroundColor: "white",
+      border: "1px solid rgba(92, 147, 187, 0.17)",
+      "&:hover":{
+        backgroundColor: "rgba(239, 246, 251, 0.6)",
+        borderColor: "rgb(207, 220, 230)"
+      }
+    }
+  }),
+);
+
+const BasicController = React.memo(({getHdps,setHdps,InitialHdps, mode}) => {
   const [tabValue, setTabValue] = useState("1");
   const t = useTranslation();
   const hdps = getHdps()
   return ( 
     <Box width={1}>
       <TabContext value={tabValue}>
-        <TabList onChange={(e,v)=>{setTabValue(v)}} variant="fullWidth">
-          <Tab label={t["BasicController"]} value="1" />
-          <Tab label={t["AdvancedController"]} value="2" />
+        <TabList onChange={(e,v)=>{setTabValue(v)}} variant="scrollable" scrollButtons="auto">
+          <Tab label={t["Favorites"]} value="1" />
+          <Tab label={t["CardiacFn"]} value="2" />
+          <Tab label={t["Vessels"]} value="3"/>
+          <Tab label={t["Valves"]} value="4"/>
+          <Tab label={t["assisted_circulation"]} value="5"/>
         </TabList>
         <TabPanel value="1" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
-          <Stack justifyContent="center" alignItems="center" >
-            {BasicHdps.map(hdp=>(
-              <InputButtons hdp={hdp} hdps={hdps} setHdps={setHdps}/>
-            ))}
-          </Stack>          
+          <FavsPanel InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
         </TabPanel>
         <TabPanel value="2" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
-          <Stack justifyContent="center" alignItems="center" >
-            {AdvancedHdps.map(hdp=>(
-              <InputButtons hdp={hdp} hdps={hdps} setHdps={setHdps}/>
-            ))}
-            <Divider flexItem>{t["assisted_circulation"]}</Divider>
-            <ImpellaButton hdps={hdps} setHdps={setHdps}/>
-            <EcmoButton hdps={hdps} setHdps={setHdps}/>
-          </Stack>   
+          <CardiacFnsPanel InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
+        </TabPanel>
+        <TabPanel value="3" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
+          <VesselsPanel InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
+        </TabPanel>
+        <TabPanel value="4" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
+          <ValvesPanel InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
+        </TabPanel>
+        <TabPanel value="5" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
+          <EcmoButton hdps={hdps} setHdps={setHdps}/>
+          <ImpellaButton hdps={hdps} setHdps={setHdps}/>
         </TabPanel>
       </TabContext>      
     </Box>
@@ -44,76 +68,292 @@ const BasicController = React.memo(({getHdps,setHdps}) => {
 
 export default BasicController
 
-export const InputSlider = React.memo(({hdp, hdps,setHdps}) => {
+export const FavsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
   const t = useTranslation();
+  const classes = useStyles();
+  const [favorites, setFavorites] = useState(['Volume','Ras','LV_Ees','LV_alpha','LV_tau','HR']);
+  const [editFavs, setEditFavs] = useState(false);
+  if(editFavs){
+    return <FavEditor favorites={favorites} setFavorites={setFavorites} setEditFavs={setEditFavs}/>
+  }else{
+    return <Stack justifyContent="center" alignItems="center" sx={{width:"100%"}}>
+      {favorites.map(hdp=>{
+        if(hdp == "Impella") return <ImpellaButton hdps={hdps} setHdps={setHdps}/>;
+        if(hdp == "ECMO") return <Box sx={{mb:1,width:1}}><EcmoButton hdps={hdps} setHdps={setHdps}/></Box>;
+        if(["Ravs","Rmvs","Rtvs","Rpvs","Ravr","Rmvr","Rtvr","Rpvr"].includes(hdp)) return <Box sx={{mt:1,width:1}}><BasicToggleButtons hdp={hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/></Box>
+        if(mode == "basic"){
+          return <BasicInputs hdp={ hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/>
+        }else{
+          return <AdvancedInputs hdp={ hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/>
+        }      
+      })}
+      <Button className={classes.neumoButton} variant="outlined" onClick={()=>{setEditFavs(true)}} sx={{mt:3}}>
+          <Edit sx={{mr:.5}}/>
+          {t['FavoritesEdit']}
+      </Button>    
+    </Stack>
+  }
+})
+
+
+export const FavEditor = React.memo(({favorites, setFavorites,setEditFavs})=>{
+  const t = useTranslation();
+  const classes = useStyles();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const handleDragEnd = ({source,destination}) => {
+    if(!destination || source.index==destination.index) return;
+    setFavorites(prev => {
+      let vec = [...prev];
+      const [insertItem] = vec.splice(source.index,1)
+      vec.splice(destination.index,0,insertItem)
+      return vec;
+    })
+  }
+  const handleDelete = index => () => {
+    setFavorites(prev => {
+      let vec = [...prev];
+      vec.splice(index,1);
+      return vec
+    })
+  }
   return (
-    <Grid container justifyContent="center" alignItems="center">
-      <Grid item xs={5}>
-        <Typography variant='subtitle2'>{t[hdp]}</Typography>
-      </Grid>
-      <Grid item xs={7}>
-        <Slider 
-          defaultValue={hdps[hdp]} 
-          min={InputRanges[hdp].min} 
-          max={InputRanges[hdp].max} 
-          step={InputRanges[hdp].step} 
-          valueLabelDisplay="auto"
-          onChangeCommitted={(e,v)=>{setHdps(hdp,v)}}
-        />
-      </Grid>
-    </Grid>
+    <Stack justifyContent="center" alignItems="center" sx={{width:"100%"}}>
+      <DragDropContext onDragEnd={handleDragEnd} >
+        <Droppable droppableId="favorites-list">
+          {(provided) => (
+            <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
+              {favorites.map((item,index) => (
+                <Draggable key={item} draggableId={item} index={index}>
+                  {(provided) => (  
+                    <Stack className={classes.neumoButton} direction="horizontal" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} 
+                          sx={{justifyContent:"space-between",alignItems:"center", mb: "12px",padding: "3px 13px"}}>
+                      <Stack direction="horizontal">
+                        <DragIndicator/>
+                        <Typography variant="subtitle1" sx={{ml:.5}}>{t[item]}</Typography>
+                      </Stack>
+                      <IconButton size="small" onClick={handleDelete(index)}><Delete/></IconButton>
+                    </Stack>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </Box>
+          )}
+        </Droppable>
+      </DragDropContext>
+      <Stack direction="horizontal" justifyContent="flex-start" width={1}>
+        <Button variant="outlined" onClick={()=>{setDialogOpen(true)}} sx={{width:1,mt:1}}>
+          {t['AddControl']}
+        </Button>  
+      </Stack>
+      <Button variant="contained" onClick={()=>{setEditFavs(false)}} sx={{mt:3}}>
+          {t['EditComplete']}
+      </Button> 
+      <Dialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} maxWidth="md">
+        <DialogTitle sx={{fontWeight:"bold"}}>{t['FavEditorTitle']}</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={1}>
+            <Grid item xs={12} md={6}>
+              <Divider sx={{pr:{md:3}}}>{t["Basic"]}</Divider>
+              <Grid container>
+                {['Volume',"HR"].map(item=>{
+                  const flag = favorites.includes(item)
+                  return <Grid item xs={6} justifyContent="flex-start">
+                    <Button 
+                      startIcon={flag&&<Check/>} 
+                      sx={{color:!flag&&"gray"}} 
+                      onClick={()=>!flag ? setFavorites(prev=>([...prev,item])):setFavorites(prev=>prev.filter(x=>x!=item))}
+                    >{t[item]}</Button>
+                  </Grid>
+              })}
+              </Grid>
+              <Divider sx={{pr:{md:3},mt:2}}>{t["CardiacFn"]}</Divider>
+              <Grid container>
+                { ["LV","LA","RV","RA"].map(chamber=>
+                  CardiacFns.map(item=>{
+                    const itemKey = chamber+"_"+item;
+                    const flag = favorites.includes(itemKey);
+                    return (
+                      <Grid item xs={6} justifyContent="flex-start">
+                        <Button startIcon={flag&&<Check/>} sx={{color:!flag&&"gray"}} 
+                          onClick={()=>!flag ? setFavorites(prev=>([...prev,itemKey])):setFavorites(prev=>prev.filter(x=>x!=itemKey))}
+                        >{t[itemKey]}</Button>
+                      </Grid>
+                    )
+                  })
+                )}
+              </Grid>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Divider>{t["Vessels"]}</Divider>
+                <Grid container>
+                { AdvancedVessels.map(itemKey =>{
+                    const flag = favorites.includes(itemKey);
+                    return (
+                      <Grid item xs={6} justifyContent="flex-start">
+                        <Button startIcon={flag&&<Check/>} 
+                          sx={{color:!flag&&"gray"}} 
+                          onClick={()=>!flag ? setFavorites(prev=>([...prev,itemKey])):setFavorites(prev=>prev.filter(x=>x!=itemKey))}
+                        >{t[itemKey]}</Button>
+                      </Grid>
+                    )
+                  }
+                )}                
+                </Grid>
+              <Divider sx={{mt:2}}>{t["Valves"]}</Divider>
+                <Grid container>
+                {["av","mv","tv","pv"].map(valve=>['s','r'].map(d => {
+                  const itemKey = "R"+valve+d;
+                  const flag = favorites.includes(itemKey);
+                  return (
+                    <Grid item xs={6} justifyContent="flex-start">
+                      <Button startIcon={flag&&<Check/>} 
+                        sx={{color:!flag&&"gray"}} 
+                        onClick={()=>!flag ? setFavorites(prev=>([...prev,itemKey])):setFavorites(prev=>prev.filter(x=>x!=itemKey))}
+                      >{t[itemKey]}</Button>
+                    </Grid>
+                  )
+                }))}                  
+              </Grid>
+              <Divider sx={{mt:2}}>{t["assisted_circulation"]}</Divider>
+                <Grid container>
+                { ["ECMO","Impella"].map(item=>{
+                  const flag = favorites.includes(item);
+                  return <Grid item xs={6} justifyContent="flex-start">
+                      <Button startIcon={flag&&<Check/>} 
+                        sx={{color:!flag&&"gray"}} 
+                        onClick={()=>!flag ? setFavorites(prev=>([...prev,item])):setFavorites(prev=>prev.filter(x=>x!=item))}
+                      >{item}</Button>
+                    </Grid>
+                  }
+                )}                 
+              </Grid>              
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{justifyContent:"center",pb:2}}>
+          <Button variant="contained" onClick={()=>{setDialogOpen(false)}}>{t["EditComplete"]}</Button>
+        </DialogActions>
+      </Dialog> 
+    </Stack>
   )
 })
-export const InputButtons = React.memo(({hdp, hdps,setHdps}) => {
+
+export const BasicInputs = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
   const t = useTranslation();
-  const [value, setValue] = useState(100);
+  const [value, setValue] = useState(hdps[hdp]);
   const display = () => {
-    if(hdp == 'HR') return `${t[hdp]} (${Math.round(DEFAULT_HEMODYANMIC_PROPS[hdp]*value/100)} bpm)`
-    if(value == 100) return `${t[hdp]}`
-    if(hdp.includes('alpha') || hdp.includes('tau')) return `${t[hdp]} (${value-100>0 ? "-": "+"}${Math.abs((value-100))}%)`
-    return `${t[hdp]} (${value-100>0 ? "+": ""}${Math.round((value-100))}%)`
+    const ratio = value/InitialHdps[hdp] - 1
+    if(hdp == 'HR') return `${t[hdp]} (${Math.round(value)} bpm)`
+    if(value == InitialHdps[hdp]) return `${t[hdp]}`
+    if(hdp.includes('alpha') || hdp.includes('tau')) return `${t[hdp]} (${ratio>0 ? "-": "+"}${Math.abs((ratio*100))}%)`
+    return `${t[hdp]} (${ratio>0 ? "+": ""}${Math.round(ratio*100)}%)`
   }
   const onHandle = (changeValue)=>()=>{
     if(hdp.includes('alpha') || hdp.includes('tau')){changeValue = -changeValue}
     if(changeValue == 0){
-      setValue(100);
-      setHdps(hdp, DEFAULT_HEMODYANMIC_PROPS[hdp])
+      setValue(InitialHdps[hdp]);
+      setHdps(hdp, InitialHdps[hdp])
     }else if(hdp === 'HR'){
       setValue(prev=> { 
-        setHdps(hdp,Math.round(DEFAULT_HEMODYANMIC_PROPS[hdp]*(prev+changeValue)/100));
-        return Math.round(prev+changeValue)
+        setHdps(hdp, Math.round(prev + InitialHdps[hdp]*changeValue/100));
+        return Math.round(prev + InitialHdps[hdp]*changeValue/100)
       })
     }else{
       setValue(prev=> { 
-        setHdps(hdp,DEFAULT_HEMODYANMIC_PROPS[hdp]*(prev+changeValue)/100);
-        return Math.round(prev+changeValue)
+        setHdps(hdp, prev + InitialHdps[hdp]*changeValue/100);
+        return Math.round(prev + InitialHdps[hdp]*changeValue/100)
       })
     }
   }
-  return (
+  useEffect(() => {
+    setValue(hdps[hdp])
+  }, [hdps,hdp]);
+  return <>
     <Grid container justifyContent="center" alignItems="center" display='flex' sx={{mb:1}}>
       <Grid item xs={6}>
         <Typography variant='subtitle1'>{display()}</Typography>
       </Grid>
-      <Grid item xs={6} justifyContent="center" alignItems="center" display='flex'>
-
-        {hdp.includes('vr') ? (
-          <ButtonGroup variant="outlined" size="small">
-            <Button onClick={value<20 ? onHandle(-0.5): onHandle(-10)} disabled={value<=0.5}>{value<20 ? "-0.5%" : "-10%"}</Button>
+      <Grid item xs={6} justifyContent="flex-end" alignItems="center" display='flex'>
+        {hdp?.includes('vr') ? (
+          <ButtonGroup variant="outlined" size="small" >
+            <Button onClick={value/InitialHdps[hdp]<0.2 ? onHandle(-2): onHandle(-10)} disabled={value/InitialHdps[hdp]<=0.5}>{value/InitialHdps[hdp]<20 ? "-0.5%" : "-10%"}</Button>
             <Button onClick={onHandle(0)}><Refresh/></Button>
             <Button onClick={onHandle(10)}>+10%</Button>
           </ButtonGroup>
         ) : (
           <ButtonGroup variant="outlined" size="small">
-            <Button onClick={onHandle(-10)} disabled={value<=30}>-10%</Button>
+            <Button onClick={onHandle(-10)} disabled={value/InitialHdps[hdp]<=0.3}>-10%</Button>
             <Button onClick={onHandle(0)}><Refresh/></Button>
             <Button onClick={onHandle(10)}>+10%</Button>
           </ButtonGroup>
         )}
       </Grid>
     </Grid>
-  )
+  </>
 })
+
+export const AdvancedInputs = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
+  const t = useTranslation();
+  const [value, setValue] = useState(hdps[hdp]);
+  useEffect(() => {
+    setValue(hdps[hdp])
+  }, [hdps,hdp]);
+  return <>
+    <Grid container justifyContent="center" alignItems="center" display='flex' >
+      <Grid item xs={7}>
+        <Typography variant='subtitle1'>{t[hdp]}</Typography>
+      </Grid>
+      <Grid item xs={5} justifyContent="flex-end" alignItems="center" display='flex'>
+        <ReactiveInput variant="standard" value={value} updateValue={v=>{setValue(v);setHdps(hdp,v)}} unit={InputRanges[hdp].unit}/>
+      </Grid>
+    </Grid>
+    <Grid container justifyContent="center" alignItems="center" display='flex' sx={{mb:1}}>
+      <Grid item xs={1.5} justifyContent="flex-start" alignItems="center" display='flex' >
+        <Typography variant="caption" color="gray">x0.25</Typography>
+      </Grid>
+      <Grid item xs={9.2} justifyContent="center" alignItems="center" display='flex' >
+        <Slider 
+          value={Math.log2(value)}
+          min={Math.log2(InitialHdps[hdp]/4)} 
+          max={Math.log2(InitialHdps[hdp]*4)} 
+          step={(Math.log2(InitialHdps[hdp])/100)} 
+          valueLabelDisplay="auto"
+          valueLabelFormat={v => 2**v>100 ? (2**v).toFixed() : (2**v).toPrecision(3)}
+          onChange = {(e,v)=> {const fv =2**v>100 ? (2**v).toFixed() : (2**v).toPrecision(3);  setValue(fv);}}
+          onChangeCommitted={(e,v)=>{const fv =2**v>100 ? (2**v).toFixed() : (2**v).toPrecision(3);  setValue(fv);setHdps(hdp,fv)}}
+          sx={{
+            '& .MuiSlider-thumb': {
+              height: 24,
+              width: 24,
+              backgroundColor: '#fff',
+              border: '2px solid currentColor',
+              '&:focus, &:hover, &.Mui-active, &.Mui-focusVisible': {
+                boxShadow: 'inherit',
+              },
+              '&:before': {
+                display: 'none',
+              }
+            },
+            '& .MuiSlider-track': {
+              height: 4,
+              backgroundColor: "#f382a8c7",
+              border:'none'
+            },
+            '& .MuiSlider-rail': {
+              color: '#d8d8d8',
+              height: 3,
+            },
+          }}
+        />   
+      </Grid>
+      <Grid item xs={1.3} justifyContent="flex-end" alignItems="center" display='flex' >
+        <Typography variant="caption" color="gray">x4.0</Typography>
+      </Grid>
+    </Grid>
+  </>
+})
+
 export const ImpellaButton = React.memo(({hdps,setHdps}) => {
   const t = useTranslation();
   const [type, setType] = useState(hdps["impella_type"]);
@@ -136,9 +376,9 @@ export const ImpellaButton = React.memo(({hdps,setHdps}) => {
   }
 
   return <>
-    <Grid container justifyContent="space-between" alignItems="center" display='flex' sx={{mb:1,mt:1}}>
+    <Grid container justifyContent="space-between" alignItems="center" display='flex' sx={{mb:1}}>
       <Grid item xs={12} justifyContent="space-between" alignItems="center" display='flex' sx={{mb:.5}}>
-        <Typography variant='h6'>Impella</Typography>
+        <Typography variant='subtitle1'>Impella</Typography>
       </Grid>
       <Grid itex xs={12}  justifyContent="space-between" alignItems="center" display='flex'>
         <ToggleButtonGroup
@@ -147,6 +387,7 @@ export const ImpellaButton = React.memo(({hdps,setHdps}) => {
           exclusive
           onChange={handleChange}
           size="small"
+          sx={{"& .MuiToggleButton-root": { padding:"3px 14px 2px"}}}
         >
           <ToggleButton value="None">Off</ToggleButton>
           <ToggleButton value="2.5">2.5</ToggleButton>
@@ -162,6 +403,7 @@ export const ImpellaButton = React.memo(({hdps,setHdps}) => {
               value={level}
               onChange={handleLevel}
               size="small"
+              sx={{"& .MuiSelect-outlined":{padding: "5px 14px"}}}
             >
               {
                 [...Array(9).keys()].map(i => 
@@ -201,9 +443,9 @@ export const EcmoButton = React.memo(({hdps,setHdps}) => {
   }
 
   return <>
-    <Grid container justifyContent="space-between" alignItems="center" display='flex' sx={{mb:1,mt:1}}>
+    <Grid container justifyContent="space-between" alignItems="center" display='flex' sx={{mb:1}}>
       <Grid item xs={12} justifyContent="space-between" alignItems="center" display='flex' sx={{mb:.5}}>
-        <Typography variant='h6'>VA-ECMO</Typography>
+        <Typography variant='subtitle1'>VA-ECMO</Typography>
       </Grid>
       <Grid itex xs={12}  justifyContent="space-between" alignItems="center" display='flex'>
         <ToggleButtonGroup
@@ -212,6 +454,7 @@ export const EcmoButton = React.memo(({hdps,setHdps}) => {
           exclusive
           onChange={handleChange}
           size="small"
+          sx={{"& .MuiToggleButton-root": { padding:"3px 14px 2px"}}}
         >
           <ToggleButton value={false}>Off</ToggleButton>
           <ToggleButton value={true}>On</ToggleButton>
@@ -225,10 +468,11 @@ export const EcmoButton = React.memo(({hdps,setHdps}) => {
               value={ecmoSpeed}
               onChange={handleSpeed}
               size="small"
+              sx={{"& .MuiSelect-outlined":{padding: "5px 14px"}}}
             >
               {
                 [...Array(7).keys()].map(i => 
-                  <MenuItem value={(i+1)*1000}>{(i+1)*1000}rpm</MenuItem> 
+                  <MenuItem value={(i+1)*1000}>{(i+1)*1000} rpm</MenuItem> 
                 )
               }
             </Select>
@@ -236,5 +480,118 @@ export const EcmoButton = React.memo(({hdps,setHdps}) => {
         }              
       </Grid>
     </Grid>
+  </>
+})
+
+export const CardiacFnsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
+  const t = useTranslation();
+  const [chamber, setChamber] = useState('LV');
+  const handleChamber = e => {setChamber(e.target.value);}
+  return (
+    <>
+      <ToggleButtonGroup
+        color="primary"
+        value={chamber}
+        exclusive
+        onChange={handleChamber}
+        size="small"
+        sx ={{width:1,'& .MuiToggleButton-root':{pb:'2px',pt:'3px',flexGrow:1}, mb:2}}
+      >
+        <ToggleButton value="LV">{t["LV"]}</ToggleButton>
+        <ToggleButton value="LA">{t["LA"]}</ToggleButton>
+        <ToggleButton value="RV">{t["RV"]}</ToggleButton>
+        <ToggleButton value="RA">{t["RA"]}</ToggleButton>
+      </ToggleButtonGroup>  
+      <Stack justifyContent="center" alignItems="center" sx={{width:"100%"}}>
+        {CardiacFns.filter(hdp => chamber=="LA"||chamber=="RA" ? hdp!="AV_delay" : true).map(hdp=>(
+          mode == "basic" ? 
+            <BasicInputs hdp={chamber + "_" + hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/> :
+            <AdvancedInputs hdp={chamber + "_" + hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/> 
+        ))}
+      </Stack>
+    </>
+  )
+})
+
+export const VesselsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
+  const t = useTranslation();
+  const [chamber, setChamber] = useState('s');
+  const handleChamber = e => {setChamber(e.target.value);}
+  return (
+    <>
+      <ToggleButtonGroup
+        color="primary"
+        value={chamber}
+        exclusive
+        onChange={handleChamber}
+        size="small"
+        sx ={{width:1,'& .MuiToggleButton-root':{pb:'2px',pt:'3px',flexGrow:1}, mb:2}}
+      >
+        <ToggleButton value="s">{t["Systemic"]}</ToggleButton>
+        <ToggleButton value="p">{t["Pulmonary"]}</ToggleButton>
+      </ToggleButtonGroup>  
+      <Stack justifyContent="center" alignItems="center" sx={{width:"100%"}}>
+        { Vessels.map(hdp=>( 
+            mode == "basic" ? 
+              <BasicInputs hdp={hdp+chamber} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/>:
+              <AdvancedInputs hdp={hdp+chamber} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/>            
+        ))}
+      </Stack>
+    </>
+  )
+})
+
+export const ValvesPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
+  const t = useTranslation();
+  // const [valve, setValve] = useState('av');
+  // const handleValve = e => {setValve(e.target.value);}
+  return (
+    <>
+      {/* <ToggleButtonGroup
+        color="primary"
+        value={valve}
+        exclusive
+        onChange={handleValve}
+        size="small"
+        sx ={{width:1,'& .MuiToggleButton-root':{pb:'2px',pt:'3px',flexGrow:1}, mb:2}}
+      >
+        <ToggleButton value="av">{t["AorticValve"]}</ToggleButton>
+        <ToggleButton value="mv">{t["MitralValve"]}</ToggleButton>
+        <ToggleButton value="tv">{t["TricuspidValve"]}</ToggleButton>
+        <ToggleButton value="pv">{t["PulmonaryValve"]}</ToggleButton>
+      </ToggleButtonGroup>   */}
+      <Stack justifyContent="center" alignItems="center" sx={{width:"100%"}}>
+        {["av","mv","tv","pv"].map(valve=>['s','r'].map(d => (
+            <BasicToggleButtons hdp={"R"+valve+d} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/> 
+        )))}
+      </Stack>
+    </>
+  )
+})
+
+export const BasicToggleButtons = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
+  const t = useTranslation();
+  const [value, setValue] = useState(hdps[hdp]);
+  useEffect(() => {
+    setValue(hdps[hdp])
+  }, [hdps,hdp]);
+  
+  return <>
+    <Box sx={{mb:2, display:'flex', justifyContent:"space-between", alignItems:"center", width:1}} >
+      <Typography variant='subtitle1'>{t[hdp]}</Typography>
+      <ToggleButtonGroup
+        color="primary"
+        value={value}
+        exclusive
+        onChange={(e,v)=>{setValue(v);setHdps(hdp,v);}}
+        size="small"
+        sx ={{'& .MuiToggleButton-root':{pb:'2px',pt:'3px',px:1}}}
+      > {
+        VDOptions[hdp.slice(1)].map((option,i) => (
+          <ToggleButton value={option}>{t[Severity[i]]}</ToggleButton>
+        ))
+      }
+      </ToggleButtonGroup> 
+    </Box>
   </>
 })

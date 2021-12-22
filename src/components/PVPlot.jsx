@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Grid, Typography, Stack,MenuItem,MenuList,ListItemIcon,Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, CircularProgress,Button,Radio,RadioGroup,FormControlLabel} from '@mui/material'
+import { makeStyles } from '@mui/styles';
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
 import {FastLineRenderableSeries} from "scichart/Charting/Visuals/RenderableSeries/FastLineRenderableSeries";
@@ -31,12 +32,25 @@ const getHdProps = {
   RV: x=>({Ees: x["RV_Ees"],V0:x["RV_V0"],alpha:x["RV_alpha"],beta:x["RV_beta"]}),
   RA: x=>({Ees: x["RA_Ees"],V0:x["RA_V0"],alpha:x["RA_alpha"],beta:x["RA_beta"]}),
 }
-
+const useStyles = makeStyles((theme) =>({
+  neumoButton: {
+    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+    color: "rgb(69, 90, 100)",
+    boxShadow: "rgb(0 0 0 / 10%) 0px 2px 4px -2px",
+    backgroundColor: "white",
+    border: "1px solid rgba(92, 147, 187, 0.17)",
+    "&:hover":{
+      backgroundColor: "rgba(239, 246, 251, 0.6)",
+      borderColor: "rgb(207, 220, 230)"
+    }
+  }
+}));
 
 SciChartSurface.setRuntimeLicenseKey("nac2rMGjekVDJ0tcaayVGckXXaozKTVvSIfVhuk9ywdbBc7oiXADBXZCkajSv4FzWFHCNM81JrsbXRh3k8Z4sBxRn5pVsAD6WK88b26kWQhwzdEhGwl5QgcLwSLGgGbz/EENeIEB4hA6H58o49zmciynUP+46AeDzbW3lI0sFqFygtr3NZ2WPk/d1wiTPX8QYDvczs71ywybTo3eSpMsBrq1jNv+VZ+C9y0Mbg2/svmB3jIx0t5MJKcJock7T6dcRgKJuL9iq3dQTchtO3/UNxwHPvAUa48Lfmlq3bksy0YDRfaIdqWs2lL8liEApipL9OW+lQXdvK1Pj3qT0mIOjWO3ysJRa5SCL7iT+Vq1tT9S8GCvzh6UeBctJAQ1iKtd3GeSE7lsN3jYpilkyLYj83aawtsspyiniAl8uQI2whJLHikoyCUkaDQMuCfRLSsZ0ZyFqEJyK5Uft5ia3ISpUC9jJi/07Vubwai6FAonxiZyUFIFKRWt/hIX4n4ExQ2SfYTgsV1M9CbvuZ3S4IuATSOJXR9jbU7VOuHswfrakcASDuECPs74kBgZ5WR8Gg2rz4/aMo0MBFkP0LPCrB9daGCizpg0uozv0TGc0karwwhgRmNpbY6RJoy0hviQbSyVGoovB7SuhjaKMaHdNIhJmAFf6gAlmQ0M/rsBFVK13J/7RlqofsGfAr66Ez6pxUlEezibkyx9tdH2D/fLhiuDgRRaQmPXsUEn4jzFq6hpch5h2rq+DLaF");
 
 const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes, setDataTypes}) =>{
   const t = useTranslation();
+  const classes = useStyles();
   const [loading, setLoading] = useState(true);
 
   const dataRef = useRef({})
@@ -304,10 +318,10 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
             ))}
           </Grid>
           <Grid item xs={5} md={4} justifyContent='flex-end' display='flex'>
-            <Button size='small' variant='outlined' onClick={e=>setAnchorEl(e.currentTarget)} sx={{mr:1}}>
+            <Button className={classes.neumoButton} size='small' variant='outlined' onClick={e=>setAnchorEl(e.currentTarget)} sx={{mr:1}}>
               {t["ChangePVloopItmes"]}
             </Button>
-            <Button size='small' variant='outlined' onClick={e=>setAnchorEl2(e.currentTarget)}>
+            <Button className={classes.neumoButton} size='small' variant='outlined' onClick={e=>setAnchorEl2(e.currentTarget)}>
               {t["LayoutSetting"]}
             </Button>
           </Grid>

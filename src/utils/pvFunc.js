@@ -39,16 +39,30 @@ export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_p
 
     let Ias = (Qas/Cas-Qvs/Cvs)/Ras
     let Ics = (Qas_prox/Cas_prox-Qas/Cas)/Rcs  
-    let Imv = (Pla-Plv) > 0 ? (Pla-Plv)/(Rmv+Rmvs) : (Pla-Plv)/(Rmv+Rmvr)
+    
     let Ivp = (Qvp/Cvp-Pla)/Rvp
     let Iap = (Qap/Cap-Qvp/Cvp)/Rap
     let Icp = (Qap_prox/Cap_prox-Qap/Cap)/Rcp
-    let Itv = (Pra-Prv)>0 ? (Pra-Prv)/(Rtv+Rtvs) : (Pra-Prv)/(Rtv+Rtvr)
+    
     let Ivs = (Qvs/Cvs-Pra)/Rvs
-    let deltaAvp = Plv-Qas_prox/Cas_prox
-    let Iasp = deltaAvp > 0 ? (deltaAvp)/(Ras_prox+Ravs) : (deltaAvp)/(Ras_prox+Ravr)
-    let Iimp = implella[impella_type][impella_aux_level](-deltaAvp)/30
-    let Iapp =(Prv-Qap_prox/Cap_prox) > 0 ? (Prv-Qap_prox/Cap_prox)/(Rap_prox+Rpvs) : (Prv-Qap_prox/Cap_prox)/(Rap_prox+Rpvr) 
+    const gradTV = Pra-Prv;
+    const Itv = gradTV > 0 ?
+      (Rtvs === 0 ? gradTV/Rtv : (-Rtv+Math.sqrt(Rtv**2+4*Rtvs*gradTV))/2/Rtvs) :
+      (Rtvr === 100000 ? gradTV/(Rtv+Rtvr) : (-Rtv-Math.sqrt(Rtv**2-4*Rtvr*gradTV))/2/Rtvr)
+    const gradMV = Pla - Plv;
+    const Imv = gradMV > 0 ? 
+      (Rmvs === 0 ? gradMV/Rmv : (-Rmv+Math.sqrt(Rmv**2+4*Rmvs*gradMV))/2/Rmvs) :
+      (Rmvr === 100000 ? gradMV/(Rmv+Rmvr) : (-Rmv-Math.sqrt(Rmv**2-4*Rmvr*gradMV))/2/Rmvr)
+    const gradAV = Plv-Qas_prox/Cas_prox
+    const Iasp = gradAV > 0 ?
+      (Ravs === 0 ? gradAV/Ras_prox : (-Ras_prox+Math.sqrt(Ras_prox**2+4*Ravs*gradAV))/2/Ravs):
+      (Ravr === 100000 ? gradAV/(Ras_prox+Ravr) : (-Ras_prox-Math.sqrt(Ras_prox**2-4*Ravr*gradAV))/2/Ravr)
+    const gradPV = Prv-Qap_prox/Cap_prox;
+    const Iapp =gradPV > 0 ? 
+      (Rpvs === 0 ? gradPV/Rap_prox : (-Rap_prox+Math.sqrt(Rap_prox**2+4*Rpvs*gradPV))/2/Rpvs):
+      (Rpvr === 100000 ? gradPV/(Rap_prox+Rpvr) : (-Rap_prox-Math.sqrt(Rap_prox**2-4*Rpvr*gradPV))/2/Rpvr)
+
+    const Iimp = implella[impella_type][impella_aux_level](-gradAV)/30
     const deltaP = Qtube/Ctube-Qvs/Cvs
     const Ip = ecmo_speed ==0 ? 0 : (2.43*10**(-5)*ecmo_speed*deltaP + 2.86*10**(-2)*ecmo_speed - 0.153*deltaP-15.7)/1000;
     const Itube= ecmo_speed ==0 ? 0 : (Qtube/Ctube - Qas_prox/Cas_prox)/Rtube;
