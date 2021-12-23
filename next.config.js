@@ -15,9 +15,12 @@ module.exports = {
         config.resolve.fallback = {
             ...config.resolve.fallback, 
             fs: false, 
-          };        
-
-        // Important: return the modified config
+        };   
+        config.module.rules.push({
+            test: /\.md$/,
+            use: "raw-loader",
+        })
+         // Important: return the modified config
         return config
     },
     i18n: {

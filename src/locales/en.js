@@ -120,6 +120,13 @@ export default {
   FavEditorTitle:"Edit Favorite Items",
   ECMO:"ECMO",
   Impella:"Impella",
+  Terms:"Terms of service",
+  Contact:"Contact us",
+  Abount:"About",
+  Roadmap: "Roadmap",
+  ChangeLog: "Changelog",
+  PrivaryPolicy:"PrivaryPolicy",
+  HowToUse: "How to use",
   output_label: {
     AoP: "AoP",
     CO: "CO",

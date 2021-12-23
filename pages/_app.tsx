@@ -41,10 +41,10 @@ export default function MyApp(props: AppProps) {
         title={t['Title']}
         description={t["Description"]}
         og={{
-          title: t['Title'], 
-          url: 'https://www.hemodynamic-simulator.com/',
+          title: "CircleHeart", 
+          url: 'https://www.circleheart.dev/',
           type: 'website',
-          siteName: t['Title'],
+          siteName: "CircleHeart",
         }}
       />
       <GoogleAnalytics />

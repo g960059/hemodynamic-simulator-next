@@ -1,6 +1,6 @@
 export default {
   Title:'CircleHeart',
-  Description: "インタラクティブに循環動態を学ぶ",
+  Description: "インタラクティブな循環動態シミュレーター",
   LpDescription: "CircleHeartは循環動態シミュレーターです。自分の循環動態に対する理解を深めたり、誰かのために洞察や知見を共有しましょう。",
   BasicController: "基本",
   AdvancedController: "詳細",
@@ -120,6 +120,13 @@ export default {
   FavEditorTitle:"お気に入りを追加・削除する",
   ECMO:"ECMO",
   Impella:"Impella",
+  Terms:"利用規約",
+  Contact:"お問い合わせ",
+  Abount:"CircleHeartについて",
+  Roadmap: "開発ロードマップ",
+  ChangeLog: "Changelog",
+  PrivaryPolicy:"プライバシーポリシー",
+  HowToUse: "使い方",
   output_label: {
     AoP: "AoP",
     CO: "CO",
