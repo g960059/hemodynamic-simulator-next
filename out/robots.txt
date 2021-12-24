@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://www.circleheart.dev/
+
+# Sitemaps
+Sitemap: https://www.circleheart.dev/sitemap.xml
