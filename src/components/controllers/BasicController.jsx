@@ -299,7 +299,7 @@ export const BasicInputs = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
     const ratio = value/InitialHdps[hdp] - 1
     if(hdp == 'HR') return `${t[hdp]} (${Math.round(value)} bpm)`
     if(value == InitialHdps[hdp]) return `${t[hdp]}`
-    if(hdp.includes('alpha') || hdp.includes('tau')) return `${t[hdp]} (${ratio>0 ? "-": "+"}${Math.abs((ratio*100))}%)`
+    if(hdp.includes('alpha') || hdp.includes('tau')) return `${t[hdp]} (${ratio>0 ? "-": "+"}${Math.round(Math.abs((ratio*100)))}%)`
     return `${t[hdp]} (${ratio>0 ? "+": ""}${Math.round(ratio*100)}%)`
   }
   const onHandle = (changeValue)=>()=>{
@@ -315,7 +315,7 @@ export const BasicInputs = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
     }else{
       setValue(prev=> { 
         setHdps(hdp, prev + InitialHdps[hdp]*changeValue/100);
-        return Math.round(prev + InitialHdps[hdp]*changeValue/100)
+        return prev + InitialHdps[hdp]*changeValue/100
       })
     }
   }
@@ -328,19 +328,11 @@ export const BasicInputs = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
         <Typography variant='subtitle1'>{display()}</Typography>
       </Grid>
       <Grid item xs={6} justifyContent="flex-end" alignItems="center" display='flex'>
-        {hdp?.includes('vr') ? (
-          <ButtonGroup variant="outlined" size="small" >
-            <Button onClick={value/InitialHdps[hdp]<0.2 ? onHandle(-2): onHandle(-10)} disabled={value/InitialHdps[hdp]<=0.5}>{value/InitialHdps[hdp]<20 ? "-0.5%" : "-10%"}</Button>
-            <Button onClick={onHandle(0)}><Refresh/></Button>
-            <Button onClick={onHandle(10)}>+10%</Button>
-          </ButtonGroup>
-        ) : (
-          <ButtonGroup variant="outlined" size="small">
-            <Button onClick={onHandle(-10)} disabled={value/InitialHdps[hdp]<=0.3}>-10%</Button>
-            <Button onClick={onHandle(0)}><Refresh/></Button>
-            <Button onClick={onHandle(10)}>+10%</Button>
-          </ButtonGroup>
-        )}
+        <ButtonGroup variant="outlined" size="small">
+          <Button onClick={onHandle(-10)}>-10%</Button>
+          <Button onClick={onHandle(0)}><Refresh/></Button>
+          <Button onClick={onHandle(10)}>+10%</Button>
+        </ButtonGroup>
       </Grid>
     </Grid>
   </>
