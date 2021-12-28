@@ -11,7 +11,7 @@ const Footer = () => {
     <Grid container spacing={3} px={3} my={1}>
       <Grid item xs={12} md={3} sx={{justifyContent:"flex-start",display:"flex"}}>
         <Box sx={{p:2}} >
-          <Stack direction="horizontal" sx={{mb:1}}>
+          <Stack direction="row" sx={{mb:1}}>
             <Box sx={{display:'block', mb:'-6px'}}><Image src="/HeaderIcon.png" width={30} height={30}/></Box>
             <Typography variant="h5" noWrap component="div" sx={{fontFamily: "GT Haptik Regular" ,flexGrow: 1,fontWeight: 'bold'}}>
               {t['Title']}

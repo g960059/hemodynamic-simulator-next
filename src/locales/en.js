@@ -118,6 +118,7 @@ export default {
   EditComplete: "Save",
   AddControl:"Add",
   FavEditorTitle:"Edit Favorite Items",
+  LoginToEditFavs: "login to edit",
   ECMO:"ECMO",
   Impella:"Impella",
   Terms:"Terms of service",

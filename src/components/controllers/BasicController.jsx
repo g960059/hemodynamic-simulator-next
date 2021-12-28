@@ -1,20 +1,29 @@
 import React,{useState, useEffect} from 'react';
-import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, Slider,Tab, Button, ButtonGroup,ToggleButtonGroup,ToggleButton, Select,Dialog,DialogContent,DialogTitle,DialogActions} from '@mui/material'
+import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, Slider,Tab, Button, ButtonGroup,ToggleButtonGroup,ToggleButton, Select,Dialog,DialogContent,DialogContentText,DialogTitle,DialogActions} from '@mui/material'
 import {TabContext,TabList,TabPanel} from '@mui/lab';
 import { makeStyles } from '@mui/styles';
+import Image from 'next/image'
+
 import {useTranslation} from '../../hooks/useTranslation'
 import {InputRanges,VDOptions} from '../../constants/InputSettings'
 import {Refresh,ExpandLess,ExpandMore,DragIndicator,Delete,Edit,Check} from '@mui/icons-material';
 import {DEFAULT_HEMODYANMIC_PROPS} from '../../utils/presets'
 import ReactiveInput from "../ReactiveInput";
 import { DragDropContext,Droppable,Draggable} from 'react-beautiful-dnd';
-
+import { authState} from 'rxfire/auth';
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { collectionData, docData,collection as collectionRef } from 'rxfire/firestore';
+import {collection,doc,query,where,setDoc,addDoc,updateDoc } from 'firebase/firestore';
+import {auth,db,StyledAuth} from "../../utils/firebase"
+import {useObservableState, useObservable} from "observable-hooks"
+import { concatMap,map, defaultIfEmpty, filter} from "rxjs/operators";
+import { of} from 'rxjs';
 
 const Vessels = ["Ra","Rv","Ca","Cv","Rc"]
 const AdvancedVessels = ["Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp"]
 const CardiacFns = ["Ees","alpha" ,"Tmax" ,"tau" ,"AV_delay"]
 const Severity = ["Trivial","Mild","Moderate","Severe"]
-
+const DefaultInputs = ['Volume','Ras','LV_Ees','LV_alpha','LV_tau','HR']
 
 const useStyles = makeStyles((theme) =>({
     neumoButton: {
@@ -68,29 +77,73 @@ const BasicController = React.memo(({getHdps,setHdps,InitialHdps, mode}) => {
 
 export default BasicController
 
+const user$ = authState(auth);
+const controllers$ = user$.pipe(
+  concatMap(user =>collectionData(collection(db, 'users',user?.uid,'controllers'),{idField: 'id'})),
+)
+const favs$ = controllers$.pipe(
+  map(controllers => controllers.filter(x=>x?.name=="Favorites")[0]),
+)
+
+
 export const FavsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
   const t = useTranslation();
   const classes = useStyles();
-  const [favorites, setFavorites] = useState(['Volume','Ras','LV_Ees','LV_alpha','LV_tau','HR']);
   const [editFavs, setEditFavs] = useState(false);
+
+  const user = useObservableState(user$, null)
+  const controllers = useObservableState(controllers$, null);
+  const favs = useObservableState(favs$, {items:DefaultInputs});
+
+  const setFavorites = setter => {
+    const ref = doc(db,"users",user?.uid,"controllers",favs?.id)
+    updateDoc(ref,{items:setter(favs.items)})
+  }
+  useEffect(() => {
+    if(user&&controllers){
+      if(controllers.filter(x=>x.name=="Favorites").length==0){
+        addDoc(collection(db,"users",user?.uid,"controllers"),{name:"Favorites",items:DefaultInputs})
+      }
+    }
+  }, [user,controllers]);
+  useEffect(() => {
+    // Favoritesは存在するが、itemsがない場合
+    if(user&&favs&&favs.id){
+      const ref = doc(db,"users",user?.uid,"controllers",favs?.id)
+      if(!favs.hasOwnProperty("items")){
+        updateDoc(ref,{items:DefaultInputs})
+      }
+    }
+  }, [user,favs]);
+
   if(editFavs){
-    return <FavEditor favorites={favorites} setFavorites={setFavorites} setEditFavs={setEditFavs}/>
+    return <FavEditor favorites={user ? favs.items: DefaultInput} setFavorites={setFavorites} setEditFavs={setEditFavs}/>
   }else{
     return <Stack justifyContent="center" alignItems="center" sx={{width:"100%"}}>
-      {favorites.map(hdp=>{
-        if(hdp == "Impella") return <ImpellaButton hdps={hdps} setHdps={setHdps}/>;
-        if(hdp == "ECMO") return <Box sx={{mb:1,width:1}}><EcmoButton hdps={hdps} setHdps={setHdps}/></Box>;
-        if(["Ravs","Rmvs","Rtvs","Rpvs","Ravr","Rmvr","Rtvr","Rpvr"].includes(hdp)) return <Box sx={{mt:1,width:1}}><BasicToggleButtons hdp={hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/></Box>
+      {(user ? favs?.items : DefaultInputs)?.map(hdp=>{
+        if(hdp == "Impella") return <ImpellaButton hdps={hdps} setHdps={setHdps} key={hdp}/>;
+        if(hdp == "ECMO") return <Box sx={{mb:1,width:1}} key={hdp}><EcmoButton hdps={hdps} setHdps={setHdps} /></Box>;
+        if(["Ravs","Rmvs","Rtvs","Rpvs","Ravr","Rmvr","Rtvr","Rpvr"].includes(hdp)) return <Box sx={{mt:1,width:1}} key={hdp}><BasicToggleButtons hdp={hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/></Box>
         if(mode == "basic"){
-          return <BasicInputs hdp={ hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/>
+          return <BasicInputs hdp={ hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} key={hdp}/>
         }else{
-          return <AdvancedInputs hdp={ hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/>
+          return <AdvancedInputs hdp={ hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} key={hdp}/>
         }      
       })}
-      <Button className={classes.neumoButton} variant="outlined" onClick={()=>{setEditFavs(true)}} sx={{mt:3}}>
+      {user ?      
+        <Button className={classes.neumoButton} variant="outlined" onClick={()=>{setEditFavs(true)}} sx={{mt:3}}>
           <Edit sx={{mr:.5}}/>
           {t['FavoritesEdit']}
-      </Button>    
+        </Button> :
+        <>
+          <Button className={classes.neumoButton} variant="outlined" onClick={()=>{signInWithPopup(auth,new GoogleAuthProvider())}} sx={{mt:3}}>
+            <Edit sx={{mr:.5}}/>
+            {t["LoginToEditFavs"]}
+          </Button>
+
+        </>
+      }
+
     </Stack>
   }
 })
@@ -125,9 +178,9 @@ export const FavEditor = React.memo(({favorites, setFavorites,setEditFavs})=>{
               {favorites.map((item,index) => (
                 <Draggable key={item} draggableId={item} index={index}>
                   {(provided) => (  
-                    <Stack className={classes.neumoButton} direction="horizontal" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} 
+                    <Stack className={classes.neumoButton} direction="row" ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} 
                           sx={{justifyContent:"space-between",alignItems:"center", mb: "12px",padding: "3px 13px"}}>
-                      <Stack direction="horizontal">
+                      <Stack direction="row">
                         <DragIndicator/>
                         <Typography variant="subtitle1" sx={{ml:.5}}>{t[item]}</Typography>
                       </Stack>
@@ -141,7 +194,7 @@ export const FavEditor = React.memo(({favorites, setFavorites,setEditFavs})=>{
           )}
         </Droppable>
       </DragDropContext>
-      <Stack direction="horizontal" justifyContent="flex-start" width={1}>
+      <Stack direction="row" justifyContent="flex-start" width={1}>
         <Button variant="outlined" onClick={()=>{setDialogOpen(true)}} sx={{width:1,mt:1}}>
           {t['AddControl']}
         </Button>  
@@ -157,7 +210,7 @@ export const FavEditor = React.memo(({favorites, setFavorites,setEditFavs})=>{
               <Divider sx={{pr:{md:3}}}>{t["Basic"]}</Divider>
               <Grid container>
                 {['Volume',"HR"].map(item=>{
-                  const flag = favorites.includes(item)
+                  const flag = favorites?.includes(item)
                   return <Grid item xs={6} justifyContent="flex-start">
                     <Button 
                       startIcon={flag&&<Check/>} 
@@ -172,7 +225,7 @@ export const FavEditor = React.memo(({favorites, setFavorites,setEditFavs})=>{
                 { ["LV","LA","RV","RA"].map(chamber=>
                   CardiacFns.map(item=>{
                     const itemKey = chamber+"_"+item;
-                    const flag = favorites.includes(itemKey);
+                    const flag = favorites?.includes(itemKey);
                     return (
                       <Grid item xs={6} justifyContent="flex-start">
                         <Button startIcon={flag&&<Check/>} sx={{color:!flag&&"gray"}} 
@@ -188,7 +241,7 @@ export const FavEditor = React.memo(({favorites, setFavorites,setEditFavs})=>{
               <Divider>{t["Vessels"]}</Divider>
                 <Grid container>
                 { AdvancedVessels.map(itemKey =>{
-                    const flag = favorites.includes(itemKey);
+                    const flag = favorites?.includes(itemKey);
                     return (
                       <Grid item xs={6} justifyContent="flex-start">
                         <Button startIcon={flag&&<Check/>} 
@@ -204,7 +257,7 @@ export const FavEditor = React.memo(({favorites, setFavorites,setEditFavs})=>{
                 <Grid container>
                 {["av","mv","tv","pv"].map(valve=>['s','r'].map(d => {
                   const itemKey = "R"+valve+d;
-                  const flag = favorites.includes(itemKey);
+                  const flag = favorites?.includes(itemKey);
                   return (
                     <Grid item xs={6} justifyContent="flex-start">
                       <Button startIcon={flag&&<Check/>} 
@@ -218,7 +271,7 @@ export const FavEditor = React.memo(({favorites, setFavorites,setEditFavs})=>{
               <Divider sx={{mt:2}}>{t["assisted_circulation"]}</Divider>
                 <Grid container>
                 { ["ECMO","Impella"].map(item=>{
-                  const flag = favorites.includes(item);
+                  const flag = favorites?.includes(item);
                   return <Grid item xs={6} justifyContent="flex-start">
                       <Button startIcon={flag&&<Check/>} 
                         sx={{color:!flag&&"gray"}} 

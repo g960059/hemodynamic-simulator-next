@@ -10,6 +10,7 @@ import {XyDataSeries} from "scichart/Charting/Model/XyDataSeries";
 import {EAxisAlignment} from "scichart/types/AxisAlignment";
 import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
+import { ELineDrawMode } from "scichart/Charting/Drawing/WebGlRenderContext2D";
 import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore,Check} from "@mui/icons-material"
 import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS} from '../styles/chartConstants'
 import {useTranslation} from '../hooks/useTranslation'
@@ -94,17 +95,20 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
     const fastLineSeries = new FastLineRenderableSeries(wasmContextRef.current, { 
       stroke: ALPHA_COLORS[colorIndex],
       strokeThickness: 3,
-      dataSeries: dataRef.current[dataType]
+      dataSeries: dataRef.current[dataType],
+      drawNaNAs:ELineDrawMode.PolyLine
     })
     const espvrSeries = new FastLineRenderableSeries(wasmContextRef.current, { 
       stroke: "#9c9c9c",
       strokeThickness: 2,
-      dataSeries: espvrDataRef.current[dataType]
+      dataSeries: espvrDataRef.current[dataType],
+      drawNaNAs:ELineDrawMode.PolyLine
     })
     const edpvrSeries = new FastLineRenderableSeries(wasmContextRef.current, { 
       stroke: "#9c9c9c",
       strokeThickness: 2,
-      dataSeries: edpvrDataRef.current[dataType]
+      dataSeries: edpvrDataRef.current[dataType],
+      drawNaNAs:ELineDrawMode.PolyLine
     })        
     const leadingSeries = new XyScatterRenderableSeries(wasmContextRef.current, {
         pointMarker: new EllipsePointMarker(wasmContextRef.current, {

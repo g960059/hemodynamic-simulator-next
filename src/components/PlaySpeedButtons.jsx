@@ -12,7 +12,7 @@ const PlaySpeedButtons = ({isPlaying, setIsPlaying, setSpeed, mode, setMode}) =>
   const t = locale==='en' ? en : ja
 
   return (
-    <Stack direction='horizontal' justifyContent='center' alignItems='center' sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
+    <Stack direction='row' justifyContent='center' alignItems='center' sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
       <IconButton onClick={()=>{setIsPlaying(prev=>!prev)}}>{isPlaying ? (
         <Stack justifyContent='center' alignItems='center'>
           <Pause/>
@@ -38,7 +38,7 @@ const PlaySpeedButtons = ({isPlaying, setIsPlaying, setSpeed, mode, setMode}) =>
         }}
       >
         {[0.25, 0.5, 0.75,1,2,5].map(s=>(
-          <MenuItem onClick={()=>{setSpeed(s);setSpeedDisplayed(s); setAnchorEl(null);}}>{s==1 ? t['NormalSpeed']: s + t['SpeedRatio']}</MenuItem>
+          <MenuItem onClick={()=>{setSpeed(s);setSpeedDisplayed(s); setAnchorEl(null);}} key={s}>{s==1 ? t['NormalSpeed']: s + t['SpeedRatio']}</MenuItem>
         ))}
       </Menu>    
       <Button sx={{color:'gray'}} onClick={()=>{setMode(prev => prev=="basic" ? 'advanced': 'basic')}}>

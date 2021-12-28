@@ -8,6 +8,7 @@ import {StyledAuth,app} from '../utils/firebase'
 import {getAuth,onAuthStateChanged,signOut} from "firebase/auth";
 import { useRouter } from 'next/router'
 
+
 const drawerWidth = 0;
 
 const useStyles = makeStyles((theme) =>({

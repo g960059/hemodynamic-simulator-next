@@ -11,6 +11,7 @@ import { EAxisType } from "scichart/types/AxisType";
 import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
 import {NumericLabelProvider} from "scichart/Charting/Visuals/Axis/LabelProvider/NumericLabelProvider";
+import { ELineDrawMode } from "scichart/Charting/Drawing/WebGlRenderContext2D";
 import {FiberManualRecord,MoreVert,Check} from "@mui/icons-material"
 import {LightTheme, COLORS, ALPHA_COLORS} from '../styles/chartConstants'
 import { useTranslation } from '../hooks/useTranslation';
@@ -76,7 +77,8 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
       const fastLineSeries = new FastLineRenderableSeries(wasmContextRef.current, { 
         stroke: COLORS[colorIndex],
         strokeThickness: 3,
-        dataSeries: dataRef.current[dataType][j]
+        dataSeries: dataRef.current[dataType][j],
+        drawNaNAs:ELineDrawMode.PolyLine
       })
       fastLineSeriesRef.current[dataType] = fastLineSeriesRef.current[dataType] ? [...fastLineSeriesRef.current[dataType], fastLineSeries] : [fastLineSeries]
       sciChartSurfaceRef.current.renderableSeries.add(fastLineSeries)

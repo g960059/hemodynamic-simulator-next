@@ -266,7 +266,7 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
             </Grid>
           </Grid>
           <Box display='flex'justifyContent="center" alignItems="center" mb={1}>
-            <Stack direction='horizontal'>
+            <Stack direction='row'>
               <ToggleButtonGroup
                 color="primary"
                 value={recordSpeed}

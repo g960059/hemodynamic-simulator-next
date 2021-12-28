@@ -118,6 +118,7 @@ export default {
   EditComplete: "完了する",
   AddControl:"追加する",
   FavEditorTitle:"お気に入りを追加・削除する",
+  LoginToEditFavs: "ログインして、編集する",
   ECMO:"ECMO",
   Impella:"Impella",
   Terms:"利用規約",

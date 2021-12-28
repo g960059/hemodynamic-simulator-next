@@ -75,12 +75,14 @@ export const usePvLoop = (initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,init
       const new_logger = {}
       let flag = 0
       while (delta > 0 ){
-        let dt = delta >= 2 ? 2 : delta
+        let dt = delta >= 1 ? 1 : delta
         dataRef.current = flag % 3==0 ? rk4(pvFunc,hemodynamicPropsRef.current,new_logger)(dataRef.current,tRef.current,dt): rk4(pvFunc,hemodynamicPropsRef.current,null)(dataRef.current,tRef.current,dt)
         tRef.current += dt
         delta -= dt
         flag ++;
       }
+      console.log(new_logger.Plv)
+
       for(let update of Object.values(subscriptionsRef.current)){
         update(new_logger, tRef.current, hemodynamicPropsRef.current)
       }
