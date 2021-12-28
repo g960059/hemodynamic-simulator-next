@@ -30,6 +30,7 @@ export default class MyDocument extends Document {
           <link rel="manifest" href="/favicons/site.webmanifest"/>
           <link rel="mask-icon" href="/favicons/safari-pinned-tab.svg" color="#5bbad5"/>
           <meta name="msapplication-TileColor" content="#da532c"/>
+          <meta name="google-site-verification" content="SzBIz_Loe5i-JB3a5HoVwH9yjOdFw0u19apoC54k_Nc" />
         </Head>
         <body>
           <Main />
