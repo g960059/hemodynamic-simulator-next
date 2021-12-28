@@ -19,9 +19,10 @@ const Changelog = () => {
   const t = useTranslation();
   const classes = useStyles();
   const timelines = [
-    {time: "2021.12.10",content:"EcmoとImpellaを使用できるようになりました。"},
-    {time: "2021.12.15",content:"弁膜症の重症度を選択できるようにしました。"},
-    {time: "2021.12.23",content:"お気に入りの編集機能を追加しました。"},
+    {time:"2021.12.10",content:"EcmoとImpellaを使用できるようになりました。"},
+    {time:"2021.12.15",content:"弁膜症の重症度を選択できるようにしました。"},
+    {time:"2021.12.23",content:"お気に入りの編集機能を追加しました。"},
+    {time:"2021.12.28",content: "基本操作・グラフ描画のバグを修正しました。"}
   ]
   
   return <>

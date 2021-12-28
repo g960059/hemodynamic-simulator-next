@@ -14,6 +14,7 @@ import LogPlot from '../src/components/LogPlot'
 import BasicController from '../src/components/controllers/BasicController'
 import ControllerList from '../src/components/controllers/ControllerList'
 import CombinedChart from '../src/components/combined/CombinedChart'
+import Footer from "../src/components/Footer"
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import {DEFAULT_DATA, DEFAULT_TIME, DEFAULT_HEMODYANMIC_PROPS} from "../src/utils/presets"
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -81,7 +82,7 @@ const App = () => {
             <Tab label={t["PressurePlot"]} {...a11yProps(0)} />
             <Tab label={t["PVPlot"]} {...a11yProps(1)} />
             <Tab label={t["CombinedPlot"]} {...a11yProps(2)} />
-            <Tab label={t["LogPlot"]} {...a11yProps(3)} />
+            {/* <Tab label={t["LogPlot"]} {...a11yProps(3)} /> */}
           </Tabs>
           <SwipeableViews index={tabValue} onChangeIndex={index=>{setTabValue(index)}}>
             <TabPanel value={tabValue} index={0} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
@@ -99,11 +100,11 @@ const App = () => {
                 <CombinedChart subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} dataTypes={combinedData} setDataTypes={setCombinedData}/>
               </Box>
             </TabPanel>            
-            <TabPanel value={tabValue} index={3} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
+            {/* <TabPanel value={tabValue} index={3} sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
               <Box sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300', p:[1,2], pt:2}}>
                 <LogPlot subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} setSpeed={setSpeed} setHdps={setHdps} getHdps ={getHdps}/>
               </Box>
-            </TabPanel>
+            </TabPanel> */}
           </SwipeableViews>
           <OutputPanel subscribe={subscribe} unsubscribe={unsubscribe} dataTypes={outputDataTypes}  getHdps = {getHdps} />
           <Box sx={{display: { xs: 'block', md: 'none' }}}>
@@ -112,6 +113,7 @@ const App = () => {
         </Box>
       </Grid>
     </Grid>
+    <Footer/>
   </>
   )
 }
