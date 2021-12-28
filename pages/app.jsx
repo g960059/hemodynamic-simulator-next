@@ -50,7 +50,7 @@ const App = () => {
   const [combinedData, setCombinedData] = useState(['RA']);
   const [outputDataTypes, setOutputDataTypes] = useState(['AoP','PAP','CVP','SV','CO','PCWP']);
   const [mode, setMode] = useState("basic");
-
+  console.log(process.env.NEXT_PUBLIC_LICENSE_KEY)
   return (
     <> 
     <Grid container justifyContent='center' spacing={[0,1]}>
