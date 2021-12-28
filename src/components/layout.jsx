@@ -95,12 +95,13 @@ function Layout(props) {
       <CssBaseline />
       <AppBar position="static" elevation={0} className={classes.appBar} classes={{root:classes.appBarRoot}}>
         <Toolbar>
-          <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,flexGrow: 1,fontWeight: 'bold',display:"flex"}}>
+          <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex"}}>
             <Box sx={{display:{xs:'none',sm:'block'}, mb:'-6px'}}><Image src="/HeaderIcon.png" width={30} height={30}/></Box>
             <Typography variant="h5" noWrap component="div" >
               {t['Title']}
             </Typography>
           </Box>
+          <div style={{flexGrow:1}}></div>
           {
             user && <IconButton size="small" id="profile-button" aria-controls="profile-menu" aria-haspopup="true" aria-expanded={profileOpen ? 'true' : undefined} onClick={e=>setAnchorEl(e.currentTarget)}><Avatar src={user?.photoURL} sx={{border:'1px solid lightgray'}}>{user?.displayName[0]}</Avatar></IconButton> 
           }{
