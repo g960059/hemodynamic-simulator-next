@@ -14,7 +14,6 @@ import LogPlot from '../src/components/LogPlot'
 import BasicController from '../src/components/controllers/BasicController'
 import ControllerList from '../src/components/controllers/ControllerList'
 import CombinedChart from '../src/components/combined/CombinedChart'
-import Footer from "../src/components/Footer"
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import {DEFAULT_DATA, DEFAULT_TIME, DEFAULT_HEMODYANMIC_PROPS} from "../src/utils/presets"
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -113,7 +112,6 @@ const App = () => {
         </Box>
       </Grid>
     </Grid>
-    <Footer/>
   </>
   )
 }
