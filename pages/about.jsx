@@ -6,6 +6,10 @@ import Image from 'next/image'
 import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
 import Footer from "../src/components/Footer"
+import { authState} from 'rxfire/auth';
+import {auth,db} from '../src/utils/firebase'
+import {useObservableState} from "observable-hooks"
+
 
 const useStyles = makeStyles((theme) =>({
   background: {
@@ -33,11 +37,20 @@ const useStyles = makeStyles((theme) =>({
 }),
 );
 
+const user$ = authState(auth);
+
 const About = () => {
   const el = useRef(null);
   const t = useTranslation();
   const classes = useStyles();
   const router = useRouter()
+  const user = useObservableState(user$, null)
+
+  useEffect(() => {
+    if(user.uid){
+      router.push("/app")
+    }
+  }, [user]);
 
   useEffect(() => {
     const typed = new Typed(el.current, {

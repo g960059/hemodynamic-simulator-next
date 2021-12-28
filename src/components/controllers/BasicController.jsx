@@ -2,22 +2,19 @@ import React,{useState, useEffect} from 'react';
 import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, Slider,Tab, Button, ButtonGroup,ToggleButtonGroup,ToggleButton, Select,Dialog,DialogContent,DialogContentText,DialogTitle,DialogActions} from '@mui/material'
 import {TabContext,TabList,TabPanel} from '@mui/lab';
 import { makeStyles } from '@mui/styles';
-import Image from 'next/image'
 
 import {useTranslation} from '../../hooks/useTranslation'
 import {InputRanges,VDOptions} from '../../constants/InputSettings'
 import {Refresh,ExpandLess,ExpandMore,DragIndicator,Delete,Edit,Check} from '@mui/icons-material';
-import {DEFAULT_HEMODYANMIC_PROPS} from '../../utils/presets'
 import ReactiveInput from "../ReactiveInput";
 import { DragDropContext,Droppable,Draggable} from 'react-beautiful-dnd';
 import { authState} from 'rxfire/auth';
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { collectionData, docData,collection as collectionRef } from 'rxfire/firestore';
 import {collection,doc,query,where,setDoc,addDoc,updateDoc } from 'firebase/firestore';
-import {auth,db,StyledAuth} from "../../utils/firebase"
-import {useObservableState, useObservable} from "observable-hooks"
-import { concatMap,map, defaultIfEmpty, filter} from "rxjs/operators";
-import { of} from 'rxjs';
+import {auth,db} from "../../utils/firebase"
+import {useObservableState} from "observable-hooks"
+import { concatMap,map,} from "rxjs/operators";
 
 const Vessels = ["Ra","Rv","Ca","Cv","Rc"]
 const AdvancedVessels = ["Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp"]
