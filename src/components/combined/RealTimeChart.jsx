@@ -54,7 +54,6 @@ const useStyles = makeStyles((theme) =>({
 }),
 );
 
-SciChartSurface.setRuntimeLicenseKey("d43pRwbuC+g3GCeKGrhu4pXSxO/JnEJ5nCssQeh0UbK3PvWJXz4EnrsIzTwNOa9kQ181KofrgV8YDwQnbhp+55GY3rP4NLUsKTvg+fIQGSzN9UinWtSFfQpSRzXAUf9LhJEBl6REurL9XmCcXKB8QYh/Le2AoZU11S0lUx3elUQINhMkxAjxbxnPYJ8FG3HelNVTCvgyVinLU2qkMr2WjBvPQNEZHz61LxPQusqKJZoMmdWray4qRBWo+YlhkKrKrmiWbOyGTStFba+vFL+XLIEJBLKdYKE15Jrx4jtiSBFGt6UwP3616g8RmXwfm+6yb8hMC6SWslZmKyO+MuefIgjj8z5DcOWvUYmqqcza9ShIMAMwqes1wem2esmw/V+ZMMX1Gty8/PduRXvDLXeHpYOZ5Zvm+3DoCik65XQO20CVLPWqq7r7UD1LQioqKahsT4PToBaOokJZF1RxfbvUlAibDwAGF5VsNswX80dpOfdUdOOBgyFYNuj1P5GuTgpOEtcDvIV/vKV2SBwx6Aoay24dBOGPIdUtYYbW3QU4+Hr6clTAhs+2VwUK1YPtCNH2TRt0cH3SU9qOpn8hrn6hE0+v5MU7gdvyXyPoAEC3qW7AaR9JO9RaaDy1ZhgSwexUKbqAcg4wmrbrTzzVgS3D7GtQOD0x2d9fTbjezBAnH7eMo7xHZwj/FAdEk/hLlQhMo8g1RJMWVtRMtUBDfNtD4ZV/lGBCDbmH8csu5golavgE8Qc+WnrJ");
 
 const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes,setDataTypes}) =>{
   const t = useTranslation();
