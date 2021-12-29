@@ -49,22 +49,19 @@ const About = () => {
   const t = useTranslation();
   const classes = useStyles();
   const router = useRouter()
-  const user = useObservableState(user$, "loading")
+  const user = useObservableState(user$, null)
 
   useEffect(() => {
-    let typed
-    if(user!="loading"){
-      typed = new Typed(el.current, {
-        strings: ["Deepen","Discuss", "Share",], 
-        startDelay: 300,
-        typeSpeed: 100,
-        backSpeed: 50,
-        backDelay: 1000,
-        smartBackspace: true,
-        loop: true,
-        showCursor: true,
-      });
-    }
+    let typed= new Typed(el.current, {
+      strings: ["Deepen","Discuss", "Share",], 
+      startDelay: 300,
+      typeSpeed: 100,
+      backSpeed: 50,
+      backDelay: 1000,
+      smartBackspace: true,
+      loop: true,
+      showCursor: true,
+    });
     return () => {
       typed?.destroy();
     };
@@ -79,10 +76,12 @@ const About = () => {
               <Typography variant="h3" color="primary" sx={{fontWeight:"bold"}}><span ref={el}></span></Typography>
               <Typography variant="h3" sx={{fontWeight:"bold"}}>Your Insight</Typography>
               <Typography variant="subtitle1" sx={{lineHeight:1.8,color:"#4c4c4c",mt:2}}>{t["LpDescription"]}</Typography>
-              <Button variant="contained" sx={{mt:3}} onClick={()=>{router.push("/app")}}>今すぐはじめる</Button>
+              <Box sx={{width:1,display:"flex", justifyContent:{xs:"center",md:"flex-start"}}}>
+                <Button variant="contained" size="large" sx={{mt:3}} onClick={()=>{router.push("/app")}}>今すぐはじめる</Button>
+              </Box>
             </Box>
           </Grid>
-          <Grid item xs={11} md={6} sx={{display:"flex",justifyContent:"center",alignItems:"center", height: {xs:"330px", md:"440px"}}}>
+          <Grid item xs={11} md={6} sx={{display:"flex",justifyContent:"center", height: {xs:"330px", md:"440px"}}}>
             <Lottie loop animationData={MedicalFrontliners} play style={{ objectFit:"contain" }} />
           </Grid>
         </Grid>
@@ -127,3 +126,4 @@ const About = () => {
 }
 
 export default About;
+
