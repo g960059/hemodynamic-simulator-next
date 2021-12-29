@@ -114,6 +114,7 @@ export default {
   Moderate:"Moderate",
   Severe:"Severe",
   Save:"Save",
+  Load:"Load",
   FavoritesEdit:"Edit Favorites Panel",
   EditComplete: "Save",
   AddControl:"Add",

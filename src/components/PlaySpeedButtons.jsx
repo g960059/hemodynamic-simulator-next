@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {Box, Button, IconButton, Stack, Typography, Menu, MenuItem,Dialog,DialogTitle,DialogContent,DialogActions, List, ListItem,ListItemText,ListItemIcon} from '@mui/material'
-import {PlayArrow,Pause} from "@mui/icons-material";
+import {PlayArrow,Pause,SaveAlt,Publish} from "@mui/icons-material";
 import { useRouter } from 'next/router'
 import en from '../locales/en'
 import ja from '../locales/ja'
@@ -46,7 +46,19 @@ const PlaySpeedButtons = ({isPlaying, setIsPlaying, setSpeed, mode, setMode}) =>
           <Typography variant="subtitle2" sx={{color:"#525151"}}>{mode == 'basic' ? t['Basic'] : t['Advanced']}</Typography>
           <Typography variant='caption'>{t['ControllerMode']}</Typography>
         </Stack>
-      </Button>    
+      </Button> 
+      {/* <Button sx={{color:'gray'}}>
+        <Stack justifyContent='center' alignItems='center'>
+          <SaveAlt/>
+          <Typography variant='caption'>{t['Save']}</Typography>
+        </Stack> 
+      </Button>
+      <Button sx={{color:'gray'}}>
+        <Stack justifyContent='center' alignItems='center'>
+          <Publish/>
+          <Typography variant='caption'>{t['Load']}</Typography>
+        </Stack>      
+      </Button> */}
     </Stack>
   )
 }

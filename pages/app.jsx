@@ -10,11 +10,11 @@ import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../src/hooks/useTranslation'
 import RealTimeChart from '../src/components/RealTimeChart'
 import OutputPanel from '../src/components/OutputPanel'
-import LogPlot from '../src/components/LogPlot'
+// import LogPlot from '../src/components/LogPlot'
 import BasicController from '../src/components/controllers/BasicController'
 import CombinedChart from '../src/components/combined/CombinedChart'
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
-import {DEFAULT_DATA, DEFAULT_TIME, DEFAULT_HEMODYANMIC_PROPS} from "../src/utils/presets"
+import { DEFAULT_HEMODYANMIC_PROPS} from "../src/utils/presets"
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 
@@ -50,7 +50,6 @@ const App = () => {
   const [combinedData, setCombinedData] = useState(['RA']);
   const [outputDataTypes, setOutputDataTypes] = useState(['AoP','PAP','CVP','SV','CO','PCWP']);
   const [mode, setMode] = useState("basic");
-  console.log(process.env.NEXT_PUBLIC_LICENSE_KEY)
   return (
     <> 
     <Grid container justifyContent='center' spacing={[0,1]}>
