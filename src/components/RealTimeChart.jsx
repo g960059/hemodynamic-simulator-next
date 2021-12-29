@@ -197,10 +197,13 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
     })();
     return ()=>{
       unsubscribe(subscriptionIdRef.current)
-      Object.values(dataRef.current).forEach(d=>{
-        d[0].delete();
-        d[1].delete();
-      })
+      for(let j=0 ; j<dataTypes.length; j++){
+        const dataType = dataTypes[j];
+        [0,1].forEach(i=>{dataRef.current[dataType][i].delete()});
+        delete dataRef.current[dataType];
+        [0,1].forEach(i=>{sciChartSurfaceRef.current.renderableSeries.remove(fastLineSeriesRef.current[dataType][i])});
+        delete fastLineSeriesRef.current[dataType];
+      }
       sciChartSurface?.delete()
     }
   }, []);
