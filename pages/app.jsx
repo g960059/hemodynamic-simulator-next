@@ -17,9 +17,9 @@ import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { DEFAULT_HEMODYANMIC_PROPS} from "../src/utils/presets"
 import dynamic from 'next/dynamic'
 
-const RealTimeChart = dynamic(()=>import('../src/components/RealTimeChart'));
-const PVPlot = dynamic(()=>import('../src/components/PVPlot'));
-const CombinedChart = dynamic(()=>import('../src/components/combined/CombinedChart'));
+const RealTimeChart = dynamic(()=>import('../src/components/RealTimeChart'), {ssr: false});
+const PVPlot = dynamic(()=>import('../src/components/PVPlot'), {ssr: false,});
+const CombinedChart = dynamic(()=>import('../src/components/combined/CombinedChart'), {ssr: false,});
 
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
