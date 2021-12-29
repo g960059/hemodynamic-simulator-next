@@ -14,7 +14,7 @@ import { collectionData, docData,collection as collectionRef } from 'rxfire/fire
 import {collection,doc,query,where,setDoc,addDoc,updateDoc } from 'firebase/firestore';
 import {auth,db} from "../../utils/firebase"
 import {useObservableState} from "observable-hooks"
-import { concatMap,map,} from "rxjs/operators";
+import { concatMap,map,tap} from "rxjs/operators";
 
 const Vessels = ["Ra","Rv","Ca","Cv","Rc"]
 const AdvancedVessels = ["Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp"]
@@ -76,6 +76,7 @@ export default BasicController
 
 const user$ = authState(auth);
 const controllers$ = user$.pipe(
+  tap(user=>{console.log(user)}),
   concatMap(user =>collectionData(collection(db, 'users',user?.uid,'controllers'),{idField: 'id'})),
 )
 const favs$ = controllers$.pipe(
@@ -91,7 +92,7 @@ export const FavsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
   const user = useObservableState(user$, null)
   const controllers = useObservableState(controllers$, null);
   const favs = useObservableState(favs$, {items:DefaultInputs});
-
+  console.log(user,controllers)
   const setFavorites = setter => {
     const ref = doc(db,"users",user?.uid,"controllers",favs?.id)
     updateDoc(ref,{items:setter(favs.items)})

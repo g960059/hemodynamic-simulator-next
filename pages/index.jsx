@@ -46,7 +46,6 @@ const About = () => {
   const router = useRouter()
   const user = useObservableState(user$, "loading")
 
-  useEffect(()=>{router.prefetch("/app")})
   useEffect(() => {
     console.log(window.history.state)
     if(user?.uid){

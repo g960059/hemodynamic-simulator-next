@@ -47,7 +47,7 @@ const PlaySpeedButtons = ({isPlaying, setIsPlaying, setSpeed, mode, setMode}) =>
           <Typography variant='caption'>{t['ControllerMode']}</Typography>
         </Stack>
       </Button> 
-      {/* <Button sx={{color:'gray'}}>
+      <Button sx={{color:'gray'}}>
         <Stack justifyContent='center' alignItems='center'>
           <SaveAlt/>
           <Typography variant='caption'>{t['Save']}</Typography>
@@ -58,7 +58,7 @@ const PlaySpeedButtons = ({isPlaying, setIsPlaying, setSpeed, mode, setMode}) =>
           <Publish/>
           <Typography variant='caption'>{t['Load']}</Typography>
         </Stack>      
-      </Button> */}
+      </Button>
     </Stack>
   )
 }
