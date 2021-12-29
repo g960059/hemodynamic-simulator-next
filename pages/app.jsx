@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect,} from 'react'
-import {Box, NoSsr, Grid, Typography, Tab,Tabs, Divider} from '@mui/material'
+import {Box, NoSsr, Grid, Tab,Tabs, Divider} from '@mui/material'
 import SwipeableViews from 'react-swipeable-views';
 import {usePvLoop} from '../src/hooks/usePvLoop'
 

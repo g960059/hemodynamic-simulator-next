@@ -124,7 +124,7 @@ export default {
   Impella:"Impella",
   Terms:"Terms of service",
   Contact:"Contact us",
-  Abount:"About",
+  About:"About",
   Roadmap: "Roadmap",
   ChangeLog: "Changelog",
   PrivaryPolicy:"PrivaryPolicy",
