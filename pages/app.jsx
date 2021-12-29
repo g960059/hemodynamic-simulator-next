@@ -3,18 +3,24 @@ import {Box, NoSsr, Grid, Tab,Tabs, Divider} from '@mui/material'
 import SwipeableViews from 'react-swipeable-views';
 import {usePvLoop} from '../src/hooks/usePvLoop'
 
-import PVPlot from '../src/components/PVPlot'
+// import PVPlot from '../src/components/PVPlot'
 import PlaySpeedButtons from '../src/components/PlaySpeedButtons'
 import {a11yProps, TabPanel} from '../src/components/TabUtils'
 import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../src/hooks/useTranslation'
-import RealTimeChart from '../src/components/RealTimeChart'
+// import RealTimeChart from '../src/components/RealTimeChart'
 import OutputPanel from '../src/components/OutputPanel'
 // import LogPlot from '../src/components/LogPlot'
 import BasicController from '../src/components/controllers/BasicController'
-import CombinedChart from '../src/components/combined/CombinedChart'
+// import CombinedChart from '../src/components/combined/CombinedChart'
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { DEFAULT_HEMODYANMIC_PROPS} from "../src/utils/presets"
+import dynamic from 'next/dynamic'
+
+const RealTimeChart = dynamic(()=>import('../src/components/RealTimeChart'));
+const PVPlot = dynamic(()=>import('../src/components/PVPlot'));
+const CombinedChart = dynamic(()=>import('../src/components/combined/CombinedChart'));
+
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 
