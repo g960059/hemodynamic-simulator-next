@@ -76,7 +76,6 @@ export default BasicController
 
 const user$ = authState(auth);
 const controllers$ = user$.pipe(
-  tap(user=>{console.log(user)}),
   concatMap(user =>collectionData(collection(db, 'users',user?.uid,'controllers'),{idField: 'id'})),
 )
 const favs$ = controllers$.pipe(

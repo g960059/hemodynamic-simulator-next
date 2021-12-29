@@ -8,8 +8,8 @@ const Footer = () => {
   const t = useTranslation();
   const router = useRouter()
   return <>
-    <Grid container spacing={3} px={3} my={1}>
-      <Grid item xs={12} md={3} sx={{justifyContent:"flex-start",display:"flex"}}>
+    <Grid container spacing={3} px={{xs:3,md:5,lg:8}} my={1}>
+      <Grid item xs={12} md={3} sx={{justifyContent:"center",display:"flex"}}>
         <Box sx={{p:2}} >
           <Stack direction="row" sx={{mb:1}}>
             <Box sx={{display:'block', mb:'-6px'}}><Image src="/HeaderIcon.png" width={30} height={30}/></Box>
@@ -20,7 +20,7 @@ const Footer = () => {
           <Typography variant="subtitle1" color="gray">{t["Description"]}</Typography>
         </Box>
       </Grid>
-      <Grid item xs={12} md={3} sx={{justifyContent:"flex-start",display:"flex"}}>
+      <Grid item xs={12} md={3} sx={{justifyContent:"center",display:"flex"}}>
         <Box sx={{p:2,pt:{xs:0,md:2}}} >
           <Typography variant="h5" fontWeight="bold">About</Typography>
           <Stack sx={{pt:2}}>
@@ -31,7 +31,7 @@ const Footer = () => {
           </Stack>
         </Box>
       </Grid>  
-      <Grid item xs={12} md={3}  sx={{justifyContent:"flex-start",display:"flex"}} >
+      <Grid item xs={12} md={3}  sx={{justifyContent:"center",display:"flex"}} >
         <Box sx={{p:2,pt:{xs:0,md:2}}} >
           <Typography variant="h5" fontWeight="bold">Legal</Typography>
           <Stack sx={{pt:2}}>
@@ -41,7 +41,7 @@ const Footer = () => {
           </Stack>
         </Box>
       </Grid>
-      <Grid item xs={12} md={3}  sx={{justifyContent:"flex-start",display:"flex"}} >
+      <Grid item xs={12} md={3}  sx={{justifyContent:"center",display:"flex"}} >
         <Box sx={{p:2,pt:{xs:0,md:2}}} >
           <Typography variant="h5" fontWeight="bold">Links</Typography>
           <Stack sx={{pt:2}}>

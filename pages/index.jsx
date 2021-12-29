@@ -47,13 +47,6 @@ const About = () => {
   const user = useObservableState(user$, "loading")
 
   useEffect(() => {
-    console.log(window.history.state)
-    if(user?.uid){
-      router.push("/app")
-    }
-  }, [user]);
-
-  useEffect(() => {
     let typed
     if(user!="loading"){
       typed = new Typed(el.current, {
