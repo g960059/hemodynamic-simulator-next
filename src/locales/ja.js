@@ -124,7 +124,7 @@ export default {
   Impella:"Impella",
   Terms:"利用規約",
   Contact:"お問い合わせ",
-  Abount:"CircleHeartについて",
+  About:"CircleHeartについて",
   Roadmap: "開発ロードマップ",
   ChangeLog: "Changelog",
   PrivaryPolicy:"プライバシーポリシー",
