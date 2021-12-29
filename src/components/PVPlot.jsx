@@ -282,7 +282,7 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
   }
 
   useEffect(() => {
-    if(dataTypes.length >0 && changingRef.current != null){
+    if(dataTypes.length >=0 && changingRef.current != null){
       unsubscribe(subscriptionIdRef.current)
       subscriptionIdRef.current = subscribe(update)
       if(changingRef.current == 'start'){setIsPlaying(true)}
