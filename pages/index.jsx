@@ -9,6 +9,11 @@ import Footer from "../src/components/Footer"
 import { authState} from 'rxfire/auth';
 import {auth,db} from '../src/utils/firebase'
 import {useObservableState} from "observable-hooks"
+import Lottie from 'react-lottie-player' 
+import MedicalFrontliners from "../src/lotties/MedicalFrontliners.json"
+import LearningConcept from "../src/lotties/LearningConcept.json"
+import Discussion from "../src/lotties/Discussion.json"
+import Teaching from "../src/lotties/Teaching.json"
 
 
 const useStyles = makeStyles((theme) =>({
@@ -77,8 +82,8 @@ const About = () => {
               <Button variant="contained" sx={{mt:3}} onClick={()=>{router.push("/app")}}>今すぐはじめる</Button>
             </Box>
           </Grid>
-          <Grid item xs={11} md={6} sx={{position:"relative", height: {xs:"330px", md:"440px"}}}>
-            <Image src="/LpImage.gif" layout={'fill'} objectFit={'contain'} />
+          <Grid item xs={11} md={6} sx={{display:"flex",justifyContent:"center",alignItems:"center", height: {xs:"330px", md:"440px"}}}>
+            <Lottie loop animationData={MedicalFrontliners} play style={{ objectFit:"contain" }} />
           </Grid>
         </Grid>
         <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
@@ -89,21 +94,27 @@ const About = () => {
           <Grid item xs={12} md={4}>
             <Box sx={{p:2}} className={classes.featuredBox}>
               <Typography variant="h6" sx={{mb:2, fontWeight:"bold",textAlign:"center"}}>循環をより深く理解しよう</Typography>
-              <Box sx={{position:"relative",width:1,height:"200px"}}><Image src="/Learning.gif" layout={'fill'} objectFit={'contain'}/></Box>
+              <Box sx={{display:"flex",justifyContent:"center",width:1,height:"200px"}}>
+                <Lottie loop animationData={LearningConcept} play style={{ objectFit:"contain" }} />
+              </Box>
               <Typography variant="body1">強固な数理モデルを使っているので、複雑な循環動態を再現性・透明性を持って理解することができます。</Typography>
             </Box>
           </Grid>
           <Grid item xs={12} md={4}>
             <Box sx={{p:2}} className={classes.featuredBox}>
               <Typography variant="h6" sx={{mb:2, fontWeight:"bold",textAlign:"center"}}>症例を振り返ろう</Typography>
-              <Box sx={{position:"relative",width:1,height:"200px"}}><Image src="/disscussion.gif" layout={'fill'} objectFit={'contain'}/></Box>
+              <Box sx={{display:"flex",justifyContent:"center",width:1,height:"200px"}}>
+                <Lottie loop animationData={Discussion} play style={{ objectFit:"contain" }} />
+              </Box>
               <Typography variant="body1">心不全や弁膜症など様々な病態のシミュレーションが可能です。検討した症例は周りにも共有しよう。</Typography>
             </Box>    
           </Grid>
           <Grid item xs={12} md={4}>
           <Box sx={{p:2}} className={classes.featuredBox}>
             <Typography variant="h6" sx={{mb:2, fontWeight:"bold",textAlign:"center"}}>分かりやすく伝えよう</Typography>
-            <Box sx={{position:"relative",width:1,height:"200px"}}><Image src="/teaching.gif" layout={'fill'} objectFit={'contain'}/></Box>
+            <Box sx={{display:"flex",justifyContent:"center",width:1,height:"200px"}}>
+              <Lottie loop animationData={Teaching} play style={{ objectFit:"contain" }} />
+            </Box>
             <Typography variant="body1">可視化することで、医療者それぞれの経験に基づいた治療をわかりやすく、周りに伝えることができます。</Typography>
             </Box>
           </Grid>            

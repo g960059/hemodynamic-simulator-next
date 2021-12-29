@@ -26,6 +26,7 @@
     "react-dom": "latest",
     "react-firebase-hooks": "^4.0.1",
     "react-firebaseui": "^6.0.0",
+    "react-lottie-player": "^1.4.1",
     "react-swipeable-views": "^0.14.0",
     "rxfire": "^6.0.3",
     "rxjs": "^7.4.0",
