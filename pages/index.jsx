@@ -184,9 +184,9 @@ const About = () => {
               <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
             </Box>
           </Grid>           
-        </Grid>
+        </Grid> */}
         <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
-        <Footer/> */}
+        <Footer/>
       </Box>
       <div className={classes.background}></div>
   </>
