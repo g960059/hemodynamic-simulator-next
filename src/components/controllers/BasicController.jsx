@@ -13,8 +13,9 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { collectionData, docData,collection as collectionRef } from 'rxfire/firestore';
 import {collection,doc,query,where,setDoc,addDoc,updateDoc } from 'firebase/firestore';
 import {auth,db} from "../../utils/firebase"
-import {useObservableState} from "observable-hooks"
-import { concatMap,map,tap} from "rxjs/operators";
+import { concatMap,map,tap,switchMap,filter} from "rxjs/operators";
+import {pipe} from "rxjs"
+import {useObservable} from "reactfire"
 
 const Vessels = ["Ra","Rv","Ca","Cv","Rc"]
 const AdvancedVessels = ["Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp"]
@@ -76,6 +77,7 @@ export default BasicController
 
 const user$ = authState(auth);
 const controllers$ = user$.pipe(
+  filter(user=>!!user),
   concatMap(user =>collectionData(collection(db, 'users',user?.uid,'controllers'),{idField: 'id'})),
 )
 const favs$ = controllers$.pipe(
@@ -88,10 +90,9 @@ export const FavsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
   const classes = useStyles();
   const [editFavs, setEditFavs] = useState(false);
 
-  const user = useObservableState(user$, null)
-  const controllers = useObservableState(controllers$, null);
-  const favs = useObservableState(favs$, {items:DefaultInputs});
-  console.log(user,controllers)
+  const {data: user} = useObservable("user",user$,{initialData:null})
+  const {data: controllers} = useObservable("controllers",controllers$, {initialData:null});
+  const {data: favs} = useObservable("favs",favs$, {initialData:DefaultInputs})
   const setFavorites = setter => {
     const ref = doc(db,"users",user?.uid,"controllers",favs?.id)
     updateDoc(ref,{items:setter(favs.items)})

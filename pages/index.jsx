@@ -6,9 +6,7 @@ import Image from 'next/image'
 import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
 import Footer from "../src/components/Footer"
-import { authState} from 'rxfire/auth';
 import {auth,db} from '../src/utils/firebase'
-import {useObservableState} from "observable-hooks"
 import Lottie from 'react-lottie-player' 
 import MedicalFrontliners from "../src/lotties/MedicalFrontliners.json"
 import LearningConcept from "../src/lotties/LearningConcept.json"
@@ -42,14 +40,12 @@ const useStyles = makeStyles((theme) =>({
 }),
 );
 
-const user$ = authState(auth);
 
 const About = () => {
   const el = useRef(null);
   const t = useTranslation();
   const classes = useStyles();
   const router = useRouter()
-  const user = useObservableState(user$, null)
 
   useEffect(() => {
     let typed= new Typed(el.current, {
