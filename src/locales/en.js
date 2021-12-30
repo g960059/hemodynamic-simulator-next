@@ -125,6 +125,7 @@ export default {
   Terms:"Terms of service",
   Contact:"Contact us",
   About:"About",
+  Simulator:"Simulator",
   Roadmap: "Roadmap",
   ChangeLog: "Changelog",
   PrivaryPolicy:"PrivaryPolicy",

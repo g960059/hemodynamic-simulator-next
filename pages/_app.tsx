@@ -8,7 +8,7 @@ import createCache from '@emotion/cache';
 import Layout from '../src/components/layout'
 import GoogleAnalytics from '../src/components/GoogleAnalytics'
 import {useTranslation} from '../src/hooks/useTranslation'
-import NextHeadSeo from 'next-head-seo';
+import { DefaultSeo } from 'next-seo';
 
 const theme = createTheme({
   palette: {
@@ -37,14 +37,17 @@ export default function MyApp(props: AppProps) {
 
   return (
     <CacheProvider value={cache}>
-      <NextHeadSeo
-        title={t['Title']}
+      <DefaultSeo
+        defaultTitle="CircleHeart"
+        title="CircleHeart"
+        titleTemplate="CircleHeart"
+        canonical="https://www.circleheart.dev/"
         description={t["Description"]}
-        og={{
-          title: "CircleHeart", 
-          url: 'https://www.circleheart.dev/',
+        openGraph={{
           type: 'website',
-          siteName: "CircleHeart",
+          title: "CircleHeart", 
+          site_name: "CircleHeart",
+          url: 'https://www.circleheart.dev/',
         }}
       />
       <GoogleAnalytics />

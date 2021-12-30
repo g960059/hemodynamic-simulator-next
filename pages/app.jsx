@@ -16,6 +16,7 @@ import BasicController from '../src/components/controllers/BasicController'
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { DEFAULT_HEMODYANMIC_PROPS} from "../src/utils/presets"
 import dynamic from 'next/dynamic'
+import { NextSeo } from 'next-seo';
 
 const RealTimeChart = dynamic(()=>import('../src/components/RealTimeChart'), {ssr: false});
 const PVPlot = dynamic(()=>import('../src/components/PVPlot'), {ssr: false,});
@@ -58,6 +59,7 @@ const App = () => {
 
   return (
     <NoSsr> 
+      <NextSeo title={t["Simulator"]}/>
       <Grid container justifyContent='center' spacing={[0,1]}>
         <Grid item xs={12} md={5} lg={4} justifyContent='center' sx={{order:[1,1,0]}}>
           <Box className={classes.containerBox} mx={[0,1]}>

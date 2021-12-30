@@ -115,6 +115,10 @@ const About = () => {
           </Grid>            
         </Grid>
         <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
+        <Box display="flex" justifyContent="center" mt={4}>
+          <Typography variant="h3">Sponsors</Typography>
+        </Box>
+        <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
         <Footer/>
       </Box>
       <div className={classes.background}></div>

@@ -125,6 +125,7 @@ export default {
   Terms:"利用規約",
   Contact:"お問い合わせ",
   About:"CircleHeartについて",
+  Simulator:"シミュレーター",
   Roadmap: "開発ロードマップ",
   ChangeLog: "Changelog",
   PrivaryPolicy:"プライバシーポリシー",
