@@ -115,7 +115,7 @@ const About = () => {
           </Grid>            
         </Grid>
         <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
-        {/* <Box display="flex" justifyContent="center" mt={4}>
+        <Box display="flex" justifyContent="center" mt={4}>
           <Typography variant="h3">Supporter Plans</Typography>
         </Box>
         <Grid container spacing={3} px={4} mt={1} mb={6}>
@@ -184,7 +184,7 @@ const About = () => {
               <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
             </Box>
           </Grid>           
-        </Grid> */}
+        </Grid>
         <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
         <Footer/>
       </Box>
