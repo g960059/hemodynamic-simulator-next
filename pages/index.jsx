@@ -83,7 +83,7 @@ const About = () => {
         </Grid>
         <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
         <Box display="flex" justifyContent="center" mt={4}>
-          <Typography variant="h3">How it works</Typography>
+          <Typography variant="h4" fontWeight="bold">How it works</Typography>
         </Box>
         <Grid container spacing={3} px={4} mt={1} mb={6}>
           <Grid item xs={12} md={4}>
@@ -114,18 +114,38 @@ const About = () => {
             </Box>
           </Grid>            
         </Grid>
-        <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
-        <Box display="flex" justifyContent="center" mt={4}>
-          <Typography variant="h3">Supporter Plans</Typography>
+        {/* <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/> */}
+        <Box display="flex" justifyContent="center" mt={5}>
+          <Typography variant="h4" fontWeight="bold">Supporter Plans</Typography>
         </Box>
         <Grid container spacing={3} px={4} mt={1} mb={6}>
+          {/* <Grid item xs={12} md={3}>
+            <Box sx={{p:3}} className={classes.featuredBox}>
+              <Grid container justifyContent="space-between" sx={{mb:3}}>
+                <Grid item xs={12}>
+                  <Typography variant="h5" sx={{my:2, fontWeight:"bold",textAlign:"center"}}>✨ Supporter</Typography>
+                </Grid>
+                <Grid item xs={12} justifyContent="center" sx={{pl:2}}>
+                  <Stack direction="row" alignItems="center" justifyContent="center"><Typography variant="h4" color="primary">無料</Typography><Typography variant="subtitle2" color="primary" sx={{mt:.5,ml:.5}}>/月</Typography></Stack>                    
+                </Grid>
+              </Grid>
+              <Stack justifyContent="center" alignItems="center">
+                <Typography variant="body1">使っていただき、感謝です。</Typography>
+                <Typography variant="body1">ぜひ循環を好きになってください。</Typography>
+              </Stack>
+              <Stack mt={3} justifyContent="center" alignItems="center" spacing={1}>
+                <Typography variant="subtitle1">✔ほぼ全ての機能を使えます</Typography>
+              </Stack>              
+              <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
+            </Box>
+          </Grid>           */}
           <Grid item xs={12} md={4}>
             <Box sx={{p:3}} className={classes.featuredBox}>
               <Grid container justifyContent="space-between" sx={{mb:3}}>
-                <Grid item xs={12} md={7}>
+                <Grid item xs={12}>
                   <Typography variant="h5" sx={{my:2, fontWeight:"bold",textAlign:"center"}}>☕ Coffee Supporter</Typography>
                 </Grid>
-                <Grid item xs={12} md={5} justifyContent="center">
+                <Grid item xs={12} justifyContent="center" sx={{pl:2}}>
                   <Stack direction="row" alignItems="center" justifyContent="center"><Typography variant="h4" color="primary">¥500</Typography><Typography variant="subtitle2" color="primary" sx={{mt:.5,ml:.5}}>/月</Typography></Stack>                    
                 </Grid>
               </Grid>
@@ -142,10 +162,10 @@ const About = () => {
           <Grid item xs={12} md={4}>
             <Box sx={{p:3}} className={classes.featuredBox}>
               <Grid container justifyContent="space-between" sx={{mb:3}}>
-                <Grid item xs={12} md={7}>
+                <Grid item xs={12}>
                   <Typography variant="h5" sx={{my:2, fontWeight:"bold",textAlign:"center"}}>📖 Book Supporter</Typography>
                 </Grid>
-                <Grid item xs={12} md={5} justifyContent="center">
+                <Grid item xs={12} justifyContent="center" sx={{pl:2}}>
                   <Stack direction="row" alignItems="center" justifyContent="center"><Typography variant="h4" color="primary">¥3000</Typography><Typography variant="subtitle2" color="primary" sx={{mt:.5,ml:.5}}>/月</Typography></Stack>                   
                 </Grid>
               </Grid>
@@ -153,9 +173,11 @@ const About = () => {
                 <Typography variant="body1">毎月、新しい論文や本を読んでいます。</Typography>
                 <Typography variant="body1">あなたのサポートで、新機能を開発できます。</Typography>
               </Stack>
-              <Stack mt={3} justifyContent="center" alignItems="center" spacing={1}>
-                <Typography variant="subtitle1">✔特別な患者プリセットのロード</Typography>
-                <Typography variant="subtitle1">✔トップページにロゴを表示</Typography>
+              <Stack mt={3} justifyContent="center" alignItems="center">
+                <Stack justifyContent="flex-start" spacing={1}>
+                  <Typography variant="subtitle1">✔特別な患者プリセットのロード</Typography>
+                  <Typography variant="subtitle1">✔スポンサーページにロゴを表示</Typography>
+                </Stack>  
               </Stack>
               <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
             </Box>
@@ -163,23 +185,25 @@ const About = () => {
           <Grid item xs={12} md={4}>
             <Box sx={{p:3}} className={classes.featuredBox}>
               <Grid container justifyContent="space-between" sx={{mb:3}}>
-                <Grid item xs={12} md={7}>
+                <Grid item xs={12} >
                   <Typography variant="h5" sx={{my:2, fontWeight:"bold",textAlign:"center"}}>🦄 Unicorn Supporter</Typography>
                 </Grid>
-                <Grid item xs={12} md={5} justifyContent="center">
-                  <Stack direction="row" alignItems="center" justifyContent="center"><Typography variant="h4" color="primary">¥50000~</Typography><Typography variant="subtitle2" color="primary" sx={{mt:.5,ml:.5}}>/月</Typography></Stack>                   
+                <Grid item xs={12} justifyContent="center" sx={{pl:2}}>
+                  <Stack direction="row" alignItems="center" justifyContent="center"><Typography variant="h4" color="primary">¥50000</Typography><Typography variant="subtitle2" color="primary" sx={{mt:.5,ml:.5}}>/月</Typography></Stack>                   
                 </Grid>
               </Grid>
               <Stack justifyContent="center" alignItems="center">
                 <Typography variant="body1">大きな支援を心より感謝します。</Typography>
                 <Typography variant="body1">今後も開発・研究を継続できます。</Typography>
               </Stack>
-              <Stack mt={3} justifyContent="center" alignItems="center" spacing={1}>
-                <Typography variant="subtitle1">✔特別な患者プリセットのロード</Typography>
-                <Typography variant="subtitle1">✔トップページにロゴを表示</Typography>
-                <Typography variant="subtitle1">✔記事や学会発表時にロゴを表示</Typography>
-                <Typography variant="subtitle1">✔Twitterでスポンサーシップをツイート</Typography>
-                <Typography variant="subtitle1">✔新機能リクエストに優先的に対応</Typography>
+              <Stack mt={3} justifyContent="center" alignItems="center">
+                <Stack justifyContent="flex-start" spacing={1}>
+                  <Typography variant="subtitle1">✔特別な患者プリセットのロード</Typography>
+                  <Typography variant="subtitle1">✔スポンサーページにロゴを表示</Typography>
+                  <Typography variant="subtitle1">✔記事や学会発表時にロゴを表示</Typography>
+                  <Typography variant="subtitle1">✔Twitterでスポンサーシップをツイート</Typography>
+                  <Typography variant="subtitle1">✔新機能リクエストに優先的に対応</Typography>
+                </Stack>
               </Stack>
               <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
             </Box>

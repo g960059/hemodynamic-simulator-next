@@ -39,7 +39,7 @@ export default function MyApp(props: AppProps) {
     <CacheProvider value={cache}>
       <DefaultSeo
         defaultTitle="CircleHeart"
-        title="CircleHeart"
+        title={"CircleHeart"+" | "+t["Description"]}
         titleTemplate="CircleHeart"
         canonical="https://www.circleheart.dev/"
         description={t["Description"]}
