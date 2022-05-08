@@ -1,9 +1,8 @@
-import {Button, ButtonProps, IconButton, IconButtonProps, InputProps} from '@mui/material'
+import {Button, ButtonProps, IconButton, IconButtonProps} from '@mui/material'
 import { LoadingButton, LoadingButtonProps } from '@mui/lab';
 import {styled } from '@mui/material/styles';
-import { useState } from 'react';
 
-export const NeumoButton =  styled(Button)<ButtonProps>(({theme}) => ({
+export const NeumoButton =  styled(Button)<ButtonProps>(() => ({
   transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
   color: "rgb(69, 90, 100)",
   boxShadow: "0 2px 4px -2px #21253840",
@@ -16,7 +15,7 @@ export const NeumoButton =  styled(Button)<ButtonProps>(({theme}) => ({
   }
 }))
 
-export const NerumoIconButton = styled(IconButton)<IconButtonProps>(({theme}) => ({
+export const NerumoIconButton = styled(IconButton)<IconButtonProps>(() => ({
   color:"#93a5b1",
   boxShadow:"0 0 2px #4b57a926, 0 10px 12px -4px #0009651a",
   width:"44px",
@@ -33,7 +32,7 @@ export const NerumoIconButton = styled(IconButton)<IconButtonProps>(({theme}) =>
 }))
   
 
-export const NeumoLoadingButton =  styled(LoadingButton)<LoadingButtonProps>(({theme}) => ({
+export const NeumoLoadingButton =  styled(LoadingButton)<LoadingButtonProps>(() => ({
   transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
   color: "rgb(69, 90, 100)",
   boxShadow: "0 2px 4px -2px #21253840",
@@ -46,7 +45,7 @@ export const NeumoLoadingButton =  styled(LoadingButton)<LoadingButtonProps>(({t
   }
 }))
 
-export const FaintNeumoIconButton = styled(IconButton)<IconButtonProps>(({theme}) => ({
+export const FaintNeumoIconButton = styled(IconButton)<IconButtonProps>(() => ({
   transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
   color: "#b3b3b3",
   backgroundColor: "#f1f4f9",

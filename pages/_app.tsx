@@ -4,7 +4,6 @@ import { AppProps } from 'next/app';
 import { ThemeProvider, createTheme ,responsiveFontSizes, StyledEngineProvider} from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
 import {CssBaseline} from '@mui/material';
-import {pink, blue, blueGrey} from '@mui/material/colors'
 import createCache from '@emotion/cache';
 import GoogleAnalytics from '../src/components/GoogleAnalytics'
 import {useTranslation} from '../src/hooks/useTranslation'

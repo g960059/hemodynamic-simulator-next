@@ -1,11 +1,10 @@
-import React,{ ReactElement, useEffect, useRef }  from 'react'
-import {Box, Grid, Typography, Divider,Button,Stack,Link, CircularProgress} from '@mui/material'
+import React,{ ReactElement, ReactNode, useEffect, useRef }  from 'react'
+import {Box, Grid, Typography, Divider,Button,Stack} from '@mui/material'
 import Typed from "typed.js";
 import {useTranslation} from "../src/hooks/useTranslation"
 import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
 import Footer from "../src/components/Footer"
-import {auth,db} from '../src/utils/firebase'
 import Lottie from 'react-lottie-player' 
 import MedicalFrontliners from "../src/lotties/MedicalFrontliners.json"
 import LearningConcept from "../src/lotties/LearningConcept.json"

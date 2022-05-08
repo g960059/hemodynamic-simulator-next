@@ -1,12 +1,12 @@
-import React, { useState, useEffect, FormEvent } from 'react';
+import React, { useState,  FormEvent } from 'react';
 import { NextPage } from 'next';
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { httpsCallable, HttpsCallableResult, } from 'firebase/functions'
-import {functions, auth} from "../utils/firebase";
-import { PaymentMethod, PaymentMethodResult, SetupIntent } from '@stripe/stripe-js';
+import {functions} from "../utils/firebase";
+import { SetupIntent } from '@stripe/stripe-js';
 import toast, { Toaster } from 'react-hot-toast';
 import {useWallet} from "../hooks"
-import { Button, CircularProgress, Stack, Typography } from '@mui/material';
+import { CircularProgress, Typography } from '@mui/material';
 import { Check} from '@mui/icons-material';
 import {LoadingButton} from '@mui/lab'
 import { Box } from '@mui/system';
@@ -38,7 +38,7 @@ const Billing: NextPage = () => {
     const createSetupIntent = httpsCallable(functions, "setupIntent")
     const cardElement = elements.getElement(CardElement);
     const {data: si} = await createSetupIntent() as HttpsCallableResult<SetupIntent>
-    const {setupIntent: updatedSetupIntent,error} = await stripe.confirmCardSetup(si.client_secret!,{
+    const {error} = await stripe.confirmCardSetup(si.client_secret!,{
       payment_method: {
         card: cardElement!,
       }
