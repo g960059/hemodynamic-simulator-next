@@ -1,31 +1,41 @@
 import * as React from 'react';
+import type { ReactElement, ReactNode } from 'react'
 import { AppProps } from 'next/app';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider, createTheme ,responsiveFontSizes, StyledEngineProvider} from '@mui/material/styles';
 import { CacheProvider } from '@emotion/react';
 import {CssBaseline} from '@mui/material';
-import {pink,teal} from '@mui/material/colors'
+import {pink, blue, blueGrey} from '@mui/material/colors'
 import createCache from '@emotion/cache';
-import Layout from '../src/components/layout'
 import GoogleAnalytics from '../src/components/GoogleAnalytics'
 import {useTranslation} from '../src/hooks/useTranslation'
 import { DefaultSeo } from 'next-seo';
+import "../src/styles/globals.css"
+import { NextPage } from 'next';
 
-const theme = createTheme({
+let theme = createTheme({
   palette: {
     primary: {
-      main: pink[400]
+      main: "#3ea8ff"
     },
     secondary:{
-      main: teal[500]
+      main: "#64748b"
     },
   },
 });
+theme = responsiveFontSizes(theme);
 
+type NextPageWithLayout = NextPage & {
+  getLayout?: (page: ReactElement) => ReactNode
+}
+
+type AppPropsWithLayout = AppProps & {
+  Component: NextPageWithLayout
+}
 export const cache = createCache({ key: 'css', prepend: true });
 
-export default function MyApp(props: AppProps) {
-  const { Component, pageProps } = props;
+export default function MyApp({Component, pageProps }: AppPropsWithLayout) {
   const t = useTranslation();
+  const getLayout = Component.getLayout ?? ((page) => page)
 
   React.useEffect(() => {
     // Remove the server-side injected CSS.
@@ -36,28 +46,28 @@ export default function MyApp(props: AppProps) {
   }, []);
 
   return (
-    <CacheProvider value={cache}>
-      <DefaultSeo
-        defaultTitle="CircleHeart"
-        title={"CircleHeart"+" | "+t["Description"]}
-        titleTemplate="CircleHeart"
-        canonical="https://www.circleheart.dev/"
-        description={t["Description"]}
-        openGraph={{
-          type: 'website',
-          title: "CircleHeart", 
-          site_name: "CircleHeart",
-          url: 'https://www.circleheart.dev/',
-        }}
-      />
-      <GoogleAnalytics />
-      <ThemeProvider theme={theme}>
-        {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-        <CssBaseline />
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-      </ThemeProvider>
-    </CacheProvider>
+    <StyledEngineProvider injectFirst>
+      <CacheProvider value={cache}>
+        <DefaultSeo
+          defaultTitle="CircleHeart"
+          title={"CircleHeart"+" | "+t["Description"]}
+          titleTemplate="CircleHeart"
+          canonical="https://www.circleheart.dev/"
+          description={t["Description"]}
+          openGraph={{
+            type: 'website',
+            title: "CircleHeart", 
+            site_name: "CircleHeart",
+            url: 'https://www.circleheart.dev/',
+          }}
+        />
+        <GoogleAnalytics />
+        <ThemeProvider theme={theme}>
+          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+          <CssBaseline />
+          {getLayout(<Component {...pageProps} />)}
+        </ThemeProvider>
+      </CacheProvider>
+    </StyledEngineProvider>
   );
 }

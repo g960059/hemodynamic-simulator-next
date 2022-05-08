@@ -55,7 +55,8 @@ const getTimeSeriesFn = ({
   return {Plv, Pla, Prv, Pra, Iasp,Iapp, AoP, PAP}
 }
 
-const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes,setDataTypes}) =>{
+const RealTimeChart = React.memo(({patient, dataTypes,setDataTypes}) =>{
+  const {subscribe,unsubscribe, setIsPlaying,isPlaying} = patient
   const t = useTranslation();
   const classes = useStyles();
   const [loading, setLoading] = useState(true);

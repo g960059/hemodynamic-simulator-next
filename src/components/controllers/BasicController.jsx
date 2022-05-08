@@ -14,14 +14,13 @@ import { collectionData, docData,collection as collectionRef } from 'rxfire/fire
 import {collection,doc,query,where,setDoc,addDoc,updateDoc } from 'firebase/firestore';
 import {auth,db} from "../../utils/firebase"
 import { concatMap,map,tap,switchMap,filter} from "rxjs/operators";
-import {pipe} from "rxjs"
 import {useObservable} from "reactfire"
 
 const Vessels = ["Ra","Rv","Ca","Cv","Rc"]
 const AdvancedVessels = ["Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp"]
 const CardiacFns = ["Ees","alpha" ,"Tmax" ,"tau" ,"AV_delay"]
 const Severity = ["Trivial","Mild","Moderate","Severe"]
-const DefaultInputs = ['Volume','Ras','LV_Ees','LV_alpha','LV_tau','HR']
+const DefaultInputs = ['Volume','HR','Ras','LV_Ees','LV_alpha','LV_tau']
 
 const useStyles = makeStyles((theme) =>({
     neumoButton: {
@@ -38,7 +37,8 @@ const useStyles = makeStyles((theme) =>({
   }),
 );
 
-const BasicController = React.memo(({getHdps,setHdps,InitialHdps, mode}) => {
+const BasicController = React.memo(({patient, mode}) => {
+  const {getHdps,setHdps,initialHdps} = patient
   const [tabValue, setTabValue] = useState("1");
   const t = useTranslation();
   const hdps = getHdps()
@@ -53,16 +53,16 @@ const BasicController = React.memo(({getHdps,setHdps,InitialHdps, mode}) => {
           <Tab label={t["assisted_circulation"]} value="5"/>
         </TabList>
         <TabPanel value="1" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
-          <FavsPanel InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
+          <FavsPanel initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
         </TabPanel>
         <TabPanel value="2" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
-          <CardiacFnsPanel InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
+          <CardiacFnsPanel initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
         </TabPanel>
         <TabPanel value="3" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
-          <VesselsPanel InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
+          <VesselsPanel initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
         </TabPanel>
         <TabPanel value="4" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
-          <ValvesPanel InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
+          <ValvesPanel initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} mode={mode}/>
         </TabPanel>
         <TabPanel value="5" sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
           <EcmoButton hdps={hdps} setHdps={setHdps}/>
@@ -85,7 +85,7 @@ const favs$ = controllers$.pipe(
 )
 
 
-export const FavsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
+export const FavsPanel =  React.memo(({hdps,setHdps,initialHdps, mode}) => {
   const t = useTranslation();
   const classes = useStyles();
   const [editFavs, setEditFavs] = useState(false);
@@ -121,11 +121,11 @@ export const FavsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
       {(user ? favs?.items : DefaultInputs)?.map(hdp=>{
         if(hdp == "Impella") return <ImpellaButton hdps={hdps} setHdps={setHdps} key={hdp}/>;
         if(hdp == "ECMO") return <Box sx={{mb:1,width:1}} key={hdp}><EcmoButton hdps={hdps} setHdps={setHdps} /></Box>;
-        if(["Ravs","Rmvs","Rtvs","Rpvs","Ravr","Rmvr","Rtvr","Rpvr"].includes(hdp)) return <Box sx={{mt:1,width:1}} key={hdp}><BasicToggleButtons hdp={hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/></Box>
+        if(["Ravs","Rmvs","Rtvs","Rpvs","Ravr","Rmvr","Rtvr","Rpvr"].includes(hdp)) return <Box sx={{mt:1,width:1}} key={hdp}><BasicToggleButtons hdp={hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps}/></Box>
         if(mode == "basic"){
-          return <BasicInputs hdp={ hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} key={hdp}/>
+          return <BasicInputs hdp={hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} key={hdp}/>
         }else{
-          return <AdvancedInputs hdp={ hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps} key={hdp}/>
+          return <AdvancedInputs hdp={hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} key={hdp}/>
         }      
       })}
       {user ?      
@@ -290,30 +290,31 @@ export const FavEditor = React.memo(({favorites, setFavorites,setEditFavs})=>{
   )
 })
 
-export const BasicInputs = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
+export const BasicInputs = React.memo(({hdp,initialHdps, hdps,setHdps}) => {
   const t = useTranslation();
+  console.log(hdp, hdps[hdp])
   const [value, setValue] = useState(hdps[hdp]);
   const display = () => {
-    const ratio = value/InitialHdps[hdp] - 1
+    const ratio = value/initialHdps[hdp] - 1
     if(hdp == 'HR') return `${t[hdp]} (${Math.round(value)} bpm)`
-    if(value == InitialHdps[hdp]) return `${t[hdp]}`
+    if(value == initialHdps[hdp]) return `${t[hdp]}`
     if(hdp.includes('alpha') || hdp.includes('tau')) return `${t[hdp]} (${ratio>0 ? "-": "+"}${Math.round(Math.abs((ratio*100)))}%)`
     return `${t[hdp]} (${ratio>0 ? "+": ""}${Math.round(ratio*100)}%)`
   }
   const onHandle = (changeValue)=>()=>{
     if(hdp.includes('alpha') || hdp.includes('tau')){changeValue = -changeValue}
     if(changeValue == 0){
-      setValue(InitialHdps[hdp]);
-      setHdps(hdp, InitialHdps[hdp])
+      setValue(initialHdps[hdp]);
+      setHdps(hdp, initialHdps[hdp])
     }else if(hdp === 'HR'){
       setValue(prev=> { 
-        setHdps(hdp, Math.round(prev + InitialHdps[hdp]*changeValue/100));
-        return Math.round(prev + InitialHdps[hdp]*changeValue/100)
+        setHdps(hdp, Math.round(prev + initialHdps[hdp]*changeValue/100));
+        return Math.round(prev + initialHdps[hdp]*changeValue/100)
       })
     }else{
       setValue(prev=> { 
-        setHdps(hdp, prev + InitialHdps[hdp]*changeValue/100);
-        return prev + InitialHdps[hdp]*changeValue/100
+        setHdps(hdp, prev + initialHdps[hdp]*changeValue/100);
+        return prev + initialHdps[hdp]*changeValue/100
       })
     }
   }
@@ -336,7 +337,7 @@ export const BasicInputs = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
   </>
 })
 
-export const AdvancedInputs = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
+export const AdvancedInputs = React.memo(({hdp,initialHdps, hdps,setHdps}) => {
   const t = useTranslation();
   const [value, setValue] = useState(hdps[hdp]);
   useEffect(() => {
@@ -358,9 +359,9 @@ export const AdvancedInputs = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
       <Grid item xs={9.2} justifyContent="center" alignItems="center" display='flex' >
         <Slider 
           value={Math.log2(value)}
-          min={Math.log2(InitialHdps[hdp]/4)} 
-          max={Math.log2(InitialHdps[hdp]*4)} 
-          step={(Math.log2(InitialHdps[hdp])/100)} 
+          min={Math.log2(initialHdps[hdp]/4)} 
+          max={Math.log2(initialHdps[hdp]*4)} 
+          step={(Math.log2(initialHdps[hdp])/100)} 
           valueLabelDisplay="auto"
           valueLabelFormat={v => 2**v>100 ? (2**v).toFixed() : (2**v).toPrecision(3)}
           onChange = {(e,v)=> {const fv =2**v>100 ? (2**v).toFixed() : (2**v).toPrecision(3);  setValue(fv);}}
@@ -380,7 +381,7 @@ export const AdvancedInputs = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
             },
             '& .MuiSlider-track': {
               height: 4,
-              backgroundColor: "#f382a8c7",
+              backgroundColor: "#3ea8ff",
               border:'none'
             },
             '& .MuiSlider-rail': {
@@ -526,7 +527,7 @@ export const EcmoButton = React.memo(({hdps,setHdps}) => {
   </>
 })
 
-export const CardiacFnsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
+export const CardiacFnsPanel =  React.memo(({hdps,setHdps,initialHdps, mode}) => {
   const t = useTranslation();
   const [chamber, setChamber] = useState('LV');
   const handleChamber = e => {setChamber(e.target.value);}
@@ -548,15 +549,15 @@ export const CardiacFnsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) =>
       <Stack justifyContent="center" alignItems="center" sx={{width:"100%"}}>
         {CardiacFns.filter(hdp => chamber=="LA"||chamber=="RA" ? hdp!="AV_delay" : true).map(hdp=>(
           mode == "basic" ? 
-            <BasicInputs hdp={chamber + "_" + hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/> :
-            <AdvancedInputs hdp={chamber + "_" + hdp} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/> 
+            <BasicInputs hdp={chamber + "_" + hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps}/> :
+            <AdvancedInputs hdp={chamber + "_" + hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps}/> 
         ))}
       </Stack>
     </>
   )
 })
 
-export const VesselsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
+export const VesselsPanel =  React.memo(({hdps,setHdps,initialHdps, mode}) => {
   const t = useTranslation();
   const [chamber, setChamber] = useState('s');
   const handleChamber = e => {setChamber(e.target.value);}
@@ -576,15 +577,15 @@ export const VesselsPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
       <Stack justifyContent="center" alignItems="center" sx={{width:"100%"}}>
         { Vessels.map(hdp=>( 
             mode == "basic" ? 
-              <BasicInputs hdp={hdp+chamber} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/>:
-              <AdvancedInputs hdp={hdp+chamber} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/>            
+              <BasicInputs hdp={hdp+chamber} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps}/>:
+              <AdvancedInputs hdp={hdp+chamber} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps}/>            
         ))}
       </Stack>
     </>
   )
 })
 
-export const ValvesPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
+export const ValvesPanel =  React.memo(({hdps,setHdps,initialHdps, mode}) => {
   const t = useTranslation();
   // const [valve, setValve] = useState('av');
   // const handleValve = e => {setValve(e.target.value);}
@@ -605,14 +606,14 @@ export const ValvesPanel =  React.memo(({hdps,setHdps,InitialHdps, mode}) => {
       </ToggleButtonGroup>   */}
       <Stack justifyContent="center" alignItems="center" sx={{width:"100%"}}>
         {["av","mv","tv","pv"].map(valve=>['s','r'].map(d => (
-            <BasicToggleButtons hdp={"R"+valve+d} InitialHdps={InitialHdps} hdps={hdps} setHdps={setHdps}/> 
+            <BasicToggleButtons hdp={"R"+valve+d} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps}/> 
         )))}
       </Stack>
     </>
   )
 })
 
-export const BasicToggleButtons = React.memo(({hdp,InitialHdps, hdps,setHdps}) => {
+export const BasicToggleButtons = React.memo(({hdp,initialHdps, hdps,setHdps}) => {
   const t = useTranslation();
   const [value, setValue] = useState(hdps[hdp]);
   useEffect(() => {

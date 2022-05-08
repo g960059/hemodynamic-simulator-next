@@ -17,11 +17,11 @@ export const Input = withStyles((theme) => ({
   },
   "& p.MuiTypography-root":{
     fontSize: "0.7rem"
-  }
+  },
 }))(MuiInputBase);
 
 
-const ReactiveInput = ({value, updateValue, unit=null, type ='number',variant='outlined', ...args}) => {
+const ReactiveInput = ({value, updateValue, unit=null, type ='number',variant='outlined',invertColor=false,allowEmpty=false,width="auto", ...args}) => {
   const [tmpValue, setTmpValue] = useState();
   useEffect(() => {
     setTmpValue(value)
@@ -34,7 +34,7 @@ const ReactiveInput = ({value, updateValue, unit=null, type ='number',variant='o
         onChange={e=>{
           if(e.target.value==''){
             if(type === 'number'){
-              setTmpValue(NaN)
+              setTmpValue(0)
             }else{
               setTmpValue('')
             }
@@ -46,16 +46,17 @@ const ReactiveInput = ({value, updateValue, unit=null, type ='number',variant='o
             }
           }
         }}
-        onBlur = {e => {if(tmpValue!=0 && e.target.value != '') updateValue(tmpValue)}}
+        onBlur = {e => {if(tmpValue!=0 && e.target.value != '' || allowEmpty) updateValue(tmpValue)}}
         onKeyDown={e => {
-          if (e.key == 'Enter' && tmpValue!=0 && e.currentTarget.value != '') {
+          if (e.key == 'Enter' && (tmpValue!=0 && e.currentTarget.value != '' || allowEmpty)) {
             updateValue(tmpValue);
             e.currentTarget.blur();
           }
         }}
         InputProps = {unit && {endAdornment: <InputAdornment position="end">{unit}</InputAdornment> }}
-        inputProps ={{type: "text", inputmode:"numeric", pattern: "\d*" ,min:0, style: {textAlign: 'right'}}}
+        inputProps ={ type=="number" && {type: "text", inputmode:"numeric", pattern: "\d*" ,min:0, style: {textAlign: 'right'}}}
         sx={{"& .MuiInputBase-root":{
+          width,
           backgroundColor: '#f1f5f9',
           borderRadius: '4px', 
           border: '1px solid #5c93bb2b',
@@ -65,7 +66,12 @@ const ReactiveInput = ({value, updateValue, unit=null, type ='number',variant='o
           "& input": {border: 'none',padding: '8px 0 8px 16px'},
           "& p.MuiTypography-root":{
             fontSize: "0.7rem"
-          }
+          },
+          "& .MuiOutlinedInput-notchedOutline":{border:"none"},
+          "& .Mui-focused .MuiOutlinedInput-notchedOutline":{ border: '1px solid #3ea8ff !important'},
+          ...(invertColor && {"& .MuiOutlinedInput-root.MuiInputBase-root": {
+            backgroundColor:"#ffffff !important"
+          }})          
         }}
         {...args}
       />  
@@ -74,7 +80,7 @@ const ReactiveInput = ({value, updateValue, unit=null, type ='number',variant='o
     if(variant == 'standard'){
       return (
         <Input
-          value={tmpValue}
+          value={tmpValue || 0}
           type = {type}
           onChange={e=>{
             if(e.target.value==''){
@@ -91,9 +97,9 @@ const ReactiveInput = ({value, updateValue, unit=null, type ='number',variant='o
               }
             }
           }}
-          onBlur = {e => {if(tmpValue!=0 && e.target.value != '') updateValue(tmpValue)}}
+          onBlur = {e => {if(tmpValue!=0 && e.target.value != '' || allowEmpty) updateValue(tmpValue)}}
           onKeyDown={e => {
-            if (e.key == 'Enter' && tmpValue!=0 && e.currentTarget.value != '') {
+            if (e.key == 'Enter' && (tmpValue!=0 && e.currentTarget.value != '' || allowEmpty)) {
               updateValue(tmpValue);
               e.currentTarget.blur();
             }
@@ -107,7 +113,10 @@ const ReactiveInput = ({value, updateValue, unit=null, type ='number',variant='o
             "& .MuiInputAdornment-root.MuiInputAdornment-positionEnd": {
               paddingRight: "6px",
               paddingTop:"6px",
-            }
+            },
+            ...(invertColor && {"& .MuiOutlinedInput-root.MuiInputBase-root": {
+              backgroundColor:"#ffffff !important"
+            }})
           }}
           {...args}
         />  

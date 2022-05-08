@@ -31,6 +31,10 @@ export const COLORS = [
   CHART_COLORS.grey,
 ];
 
+export const getRandomColor = () =>{
+  return COLORS[Math.floor(Math.random()*COLORS.length)]
+}
+
 export const ALPHA_COLORS = [
   alpha(CHART_COLORS.red,0.4),
   alpha(CHART_COLORS.blue,0.4),

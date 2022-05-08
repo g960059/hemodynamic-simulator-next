@@ -1,217 +1,219 @@
-export const get_pressure = (times,series,y_index=null,x_index=null) => {
-  const x = x_index === null ? times:get_column(series,x_index)
-  const y = get_column(series, y_index)
-  return zip_series(x,y)
-}
+import {useEffect} from 'react';
+import {differenceInDays,differenceInHours,differenceInMinutes,differenceInMonths,differenceInYears} from 'date-fns'
+import { customAlphabet } from 'nanoid';
+import Router from 'next/router';
+import { useBeforeUnload } from 'react-use';
 
-export const get_pressure_volue = (times,series)=>{
-  const Vs = get_column(series, 4)
-  const Ps = u_P(Vs,times, 0.029,  0.34, 5,2.21,  300,  25,  160, 60)
-  return zip_series(Vs,Ps)
-}
-
-export const get_column = (matrix, col_index)=>{
-  const ml = matrix.length
-  const col = new Array(ml)
-  for(let i=0; i<ml; i++){
-    col[i] = matrix[i][col_index]
-  }
-  return col
-}
-
-export const zip_cols = (matrix, [x_index,y_index])=>{
-  const ml = matrix.length
-  const res = new Array(ml)
-  for(let i=0; i<ml; i++){
-    res[i] = {x: matrix[i][x_index], y: matrix[i][y_index]}
-  }
-  return res
-}
-
-export const extract_track = (matrix, [x_index,y_index])=>{
-  const ml = matrix.length
-  const res = new Array(ml)
-  for(let i=0; i<ml; i++){
-    res[i] = [matrix[i][x_index],matrix[i][y_index]]
-  }
-  return res
-}
-
-
-export const get_col_chamber = col_index => matrix=>{
-  const ml = matrix.length
-  const col = new Array(ml)
-  for(let i=0; i<ml; i++){
-    col[i] = matrix[i][col_index]
-  }
-  return col
-}
-
-export const zip_series = (x,y) =>{
-  const len =  x.length
-  const res = new Array(len)
-  for(let i=0; i<len; i++){
-    res[i] = [x[i],y[i]]
-  }
-  return res
-}
-
-export const zip_series_with_label = (x,y) =>{
-  const len =  x.length
-  const res = new Array(len)
-  for(let i=0; i<len; i++){
-    res[i] = {x:x[i],y:y[i]}
-  }
-  return res
-}
-
-export const getMax = (data) => {
-  let i = data.length;
-  let max = [0,0];
-  while (i--) {
-    if (data[i].x > max[0]) { max[0] = data[i].x }
-    if (data[i].y > max[1]) { max[1] = data[i].y }
-  }
-  return max
-}
-
-export const getMinMaxY = (data) => {
-  let i = data.length;
-  let yMin = 0;
-  let yMax = 0
-  while (i--) {
-    if (data[i].y > yMax) {yMax = data[i].y }
-    if (data[i].y < yMin) {yMin = data[i].y }
-  }
-  return [yMin,yMax]
-}
-
-export const extractTimeSereis = (matrix,y_index,  last_log_time, acc_time, strokeTime)=>{
-  const ml = matrix.length
-  const res = new Array(ml)
-  for(let i=0; i<ml; i++){
-    if(matrix[i]['t'] - last_log_time > 0){
-      res[i] = {
-        x: matrix[i]['t'] - last_log_time + acc_time,
-        y: matrix[i][y_index]
-      }
-    }else{
-      res[i] = {
-        x: matrix[i]['t'] - last_log_time + acc_time + strokeTime,
-        y: matrix[i][y_index]
-      }      
-    }
-  }
-  return res
-}
-export const extractTimeSereisDivider = (matrix,y_index, divider,last_log_time, acc_time, strokeTime)=>{
-  const ml = matrix.length
-  const res = new Array(ml)
-  for(let i=0; i<ml; i++){
-    if(matrix[i]['t'] - last_log_time > 0){
-      res[i] = {
-        x: matrix[i]['t'] - last_log_time + acc_time,
-        y: matrix[i][y_index] / divider
-      }
-    }else{
-      res[i] = {
-        x: matrix[i]['t'] - last_log_time + acc_time + strokeTime,
-        y: matrix[i][y_index] / divider
-      }      
-    }
-  }
-  return res
-}
-
-const get_series = (times,series,y_index=null,x_index=null) => {
-  const x = x_index === null ? times:get_column(series,x_index)
-  const y = get_column(series, y_index)
-  return zip_series(x,y)
-}
-
-const PV_Loop = (chamber) =>{
-  const model_props = useContext(ModelPropertyContext);
-  const chamber_volume_mapping = {"LV":4, "LA":5, "RV":6, "RA":7}
-  const [c_Ees,c_V0,c_alpha, c_beta, c_Tmax, c_tau, c_AV_delay] = ['Ees','V0','alpha', 'beta', 'Tmax', 'tau', 'AV_delay'].map(x=>chamber+'_'+x)
-  const [Ees,V0,alpha, beta, Tmax, tau, AV_delay] = [model_props[c_Ees],model_props[c_V0],model_props[c_alpha], model_props[c_beta], model_props[c_Tmax], model_props[c_tau], model_props[c_AV_delay]] 
-  const HR = model_props['HR']
-  return  (times,series)=>{
-      const Vs = get_column(series, chamber_volume_mapping[chamber])
-      const Ps = u_P(Vs,times, Ees,V0,alpha, beta, Tmax, tau, AV_delay, HR)
-      return zip_series(Vs,Ps)
-    }
-} 
-
-export const downSampling = (data, threshold) => {
-  var data_length = data.length;
-  if (threshold >= data_length || threshold === 0) {
-      return data; // Nothing to do
-  }
-
-  var sampled = [],
-      sampled_index = 0;
-
-  // Bucket size. Leave room for start and end data points
-  var every = (data_length - 2) / (threshold - 2);
-
-  var a = 0,  // Initially a is the first point in the triangle
-      max_area_point,
-      max_area,
-      area,
-      next_a;
-
-  sampled[ sampled_index++ ] = data[ a ]; // Always add the first point
-
-  for (var i = 0; i < threshold - 2; i++) {
-
-      // Calculate point average for next bucket (containing c)
-      var avg_x = 0,
-          avg_y = 0,
-          avg_range_start  = Math.floor( ( i + 1 ) * every ) + 1,
-          avg_range_end    = Math.floor( ( i + 2 ) * every ) + 1;
-      avg_range_end = avg_range_end < data_length ? avg_range_end : data_length;
-
-      var avg_range_length = avg_range_end - avg_range_start;
-
-      for ( ; avg_range_start<avg_range_end; avg_range_start++ ) {
-        avg_x += data[ avg_range_start ][ 0 ] * 1; // * 1 enforces Number (value may be Date)
-        avg_y += data[ avg_range_start ][ 1 ] * 1;
-      }
-      avg_x /= avg_range_length;
-      avg_y /= avg_range_length;
-
-      // Get the range for this bucket
-      var range_offs = Math.floor( (i + 0) * every ) + 1,
-          range_to   = Math.floor( (i + 1) * every ) + 1;
-
-      // Point a
-      var point_a_x = data[ a ][ 0 ] * 1, // Enforce Number (value may be Date)
-          point_a_y = data[ a ][ 1 ] * 1;
-
-      max_area = area = -1;
-
-      for ( ; range_offs < range_to; range_offs++ ) {
-          // Calculate triangle area over three buckets
-          area = Math.abs( ( point_a_x - avg_x ) * ( data[ range_offs ][ 1 ] - point_a_y ) -
-                      ( point_a_x - data[ range_offs ][ 0 ] ) * ( avg_y - point_a_y )
-                    ) * 0.5;
-          if ( area > max_area ) {
-              max_area = area;
-              max_area_point = data[ range_offs ];
-              next_a = range_offs; // Next a is this b
-          }
-      }
-
-      sampled[ sampled_index++ ] = max_area_point; // Pick this point from the bucket
-      a = next_a; // This a is the next a (chosen b)
-  }
-
-  sampled[ sampled_index++ ] = data[ data_length - 1 ]; // Always add last
-
-  return sampled;
-}
-
+const alphabet = '123456789abcdef';
+export const nanoid = customAlphabet(alphabet, 14);
 
 export const shallowCompare = (obj1, obj2) =>
-Object.keys(obj1).length === Object.keys(obj2).length &&
-Object.keys(obj1).every(key => obj1[key] === obj2[key]);
+  Object.keys(obj1).length === Object.keys(obj2).length &&
+  Object.keys(obj1).every(key => obj1[key] === obj2[key]);
+
+const initalEmojiList = ["🤖","📚","👻","🔥","🐧","🧑","👌","🐥"]
+
+export const getRandomEmoji = () =>{
+  return initalEmojiList[Math.floor(Math.random()*initalEmojiList.length)]
+}
+
+export const objectWithoutKey = (object, key) => {
+  const {[key]: deletedKey, ...otherKeys} = object;
+  return otherKeys;
+}
+export const objectWithoutKeys = (object, keys) => {
+  const {...otherKeys} = object;
+  for(let key of keys){
+    otherKeys = objectWithoutKey(otherKeys, key);
+  }
+  return otherKeys;
+}
+
+export const formatDateDiff = (date1,date2) => {
+  const years = differenceInYears(date1,date2);
+  if(years>0){
+    return `${years}年前`
+  }
+  const months = differenceInMonths(date1,date2);
+  if(months>0){
+    return `${months}ヶ月前`
+  }
+  const days = differenceInDays(date1,date2);
+  if(days>0){
+    return `${days}日前`
+  }
+  const hours = differenceInHours(date1,date2);
+  if(hours>0){
+    return `${hours}時間前`
+  }
+  const minutes = differenceInMinutes(date1,date2);
+  if(minutes>0){
+    return `${minutes}分前`
+  }
+  return "1分前"
+}
+
+
+export const useLeavePageConfirmation = (
+  showAlert,
+  message = '保存せずに終了しますか？',
+) => {
+  useBeforeUnload(showAlert, message);
+
+  useEffect(() => {
+    const handler = () => {
+      console.log(showAlert)
+      if (showAlert) {
+        if(!window.confirm(message)){
+          throw 'キャンセル';
+        }
+      }
+    };
+    Router.events.on('routeChangeStart', handler);
+
+    return () => {
+      Router.events.off('routeChangeStart', handler);
+    };
+  }, [showAlert, message]);
+};
+
+export const getFileExtension = (fileName) => {
+  return fileName.split('.').pop();
+}
+export const getFileName = (fileName) => {
+  return fileName.split('.').slice(0,-1).join('.');
+}
+
+export const createImage = (url) =>
+  new Promise((resolve, reject) => {
+    const image = new Image()
+    image.addEventListener('load', () => resolve(image))
+    image.addEventListener('error', (error) => reject(error))
+    image.setAttribute('crossOrigin', 'anonymous') // needed to avoid cross-origin issues on CodeSandbox
+    image.src = url
+  })
+
+export function getRadianAngle(degreeValue) {
+  return (degreeValue * Math.PI) / 180
+}
+
+
+export function rotateSize(width, height, rotation) {
+  const rotRad = getRadianAngle(rotation)
+
+  return {
+    width:
+      Math.abs(Math.cos(rotRad) * width) + Math.abs(Math.sin(rotRad) * height),
+    height:
+      Math.abs(Math.sin(rotRad) * width) + Math.abs(Math.cos(rotRad) * height),
+  }
+}
+
+
+export async function getCroppedImg(
+  imageSrc,
+  pixelCrop,
+  rotation = 0,
+  flip = { horizontal: false, vertical: false }
+) {
+  console.log(imageSrc,pixelCrop,rotation,flip)
+  const image = await createImage(imageSrc)
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+
+  if (!ctx) {
+    return null
+  }
+
+  const rotRad = getRadianAngle(rotation)
+
+  // calculate bounding box of the rotated image
+  const { width: bBoxWidth, height: bBoxHeight } = rotateSize(
+    image.width,
+    image.height,
+    rotation
+  )
+
+  // set canvas size to match the bounding box
+  canvas.width = bBoxWidth
+  canvas.height = bBoxHeight
+
+  // translate canvas context to a central location to allow rotating and flipping around the center
+  ctx.translate(bBoxWidth / 2, bBoxHeight / 2)
+  ctx.rotate(rotRad)
+  ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1)
+  ctx.translate(-image.width / 2, -image.height / 2)
+
+  // draw rotated image
+  ctx.drawImage(image, 0, 0)
+
+  // croppedAreaPixels values are bounding box relative
+  // extract the cropped image using these values
+  const data = ctx.getImageData(
+    pixelCrop.x,
+    pixelCrop.y,
+    pixelCrop.width,
+    pixelCrop.height
+  )
+
+  // set canvas width to final desired crop size - this will clear existing context
+  canvas.width = pixelCrop.width
+  canvas.height = pixelCrop.height
+
+  // paste generated rotate image at the top left corner
+  ctx.putImageData(data, 0, 0)
+
+  // As Base64 string
+  return canvas.toDataURL('image/jpeg');
+    // console.log(canvas.toDataURL('image/jpeg'))
+  // As a blob
+  // return new Promise((resolve, reject) => {
+  //   canvas.toBlob((file) => {
+  //     resolve(URL.createObjectURL(file))
+  //   }, 'image/jpeg')
+  // })
+}
+
+export function readFile(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.addEventListener('load', () => resolve(reader.result), false)
+    reader.readAsDataURL(file)
+  })
+}
+
+
+const HALF_KATA = [
+  'ｧ','ｱ','ｨ','ｲ','ｩ','ｳ','ｪ','ｴ','ｫ','ｵ',
+  'ｶ','ｶﾞ','ｷ','ｷﾞ','ｸ','ｸﾞ','ｹ','ｹﾞ','ｺ','ｺﾞ',
+  'ｻ','ｻﾞ','ｼ','ｼﾞ','ｽ','ｽﾞ','ｾ','ｾﾞ','ｿ','ｿﾞ',
+  'ﾀ','ﾀﾞ','ﾁ','ﾁﾞ','ｯ','ﾂ','ﾂﾞ','ﾃ','ﾃﾞ','ﾄ','ﾄﾞ',
+  'ﾅ','ﾆ','ﾇ','ﾈ','ﾉ',
+  'ﾊ','ﾊﾞ','ﾊﾟ','ﾋ','ﾋﾞ','ﾋﾟ','ﾌ','ﾌﾞ','ﾌﾟ','ﾍ','ﾍﾞ','ﾍﾟ','ﾎ','ﾎﾞ','ﾎﾟ',
+  'ﾏ','ﾐ','ﾑ','ﾒ','ﾓ',
+  'ｬ','ﾔ','ｭ','ﾕ','ｮ','ﾖ',
+  'ﾗ','ﾘ','ﾙ','ﾚ','ﾛ',
+  'ヮ','ﾜ','ヰ','ヱ','ｦ','ﾝ','ｳﾞ','ヵ','ヶ','ﾜﾞ','ｲﾞ','ｴﾞ','ｦﾞ'
+]
+
+const halfKataToWide = (text, hira=false) => {
+  const firstCharCode = hira === true ? 12353 : 12449
+  return text.replace(/[ﾜｲｴｦ]ﾞ/g, m => 
+          'ヷヸヹヺ'.charAt('ﾜﾞｲﾞｴﾞｦﾞ'.indexOf(m) / 2)
+      ).replace(/([ｦ-ｯｱｲｴｵﾅ-ﾉﾏ-ﾝ]|[ｳｶ-ﾄ]ﾞ?|[ﾊ-ﾎ][ﾞﾟ]?)/g, m => 
+          String.fromCharCode(HALF_KATA.indexOf(m) + firstCharCode)
+      ).replace(/[ﾞﾟｰ｡｢｣､･]/g, m => 
+          '゛゜ー。「」、・'.charAt('ﾞﾟｰ｡｢｣､･'.indexOf(m))
+      )
+}
+
+export const toHira = (text) => 
+  halfKataToWide(text, true).replace(/[ァ-ヶ]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60))
+
+const toWideKata = (text) => 
+  halfKataToWide(text).replace(/[ぁ-ゖ]/g, m => String.fromCharCode(m.charCodeAt(0) + 0x60))
+
+const toHalfKata = (text) => 
+  text.replace(/[ァ-ヺ]/g, m => HALF_KATA[m.charCodeAt(0) - 12449])
+      .replace(/[ぁ-ゖ]/g, m => HALF_KATA[m.charCodeAt(0) - 12353])
+      .replace(/[゛゜ー。「」、・]/g, m => 'ﾞﾟｰ｡｢｣､･'.charAt('゛゜ー。「」、・'.indexOf(m)))

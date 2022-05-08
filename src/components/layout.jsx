@@ -1,51 +1,47 @@
 import React,{useState,useEffect} from 'react';
-import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline, Button,Dialog, DialogContent,Avatar,DialogContentText, Menu, MenuItem,Divider} from '@mui/material';
+import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline, Button,Dialog, DialogContent,Avatar,DialogContentText, Menu, MenuItem,Divider,alpha} from '@mui/material';
+import {Logout,SettingsOutlined, FavoriteBorder,FeedOutlined,EventNoteOutlined,Feed,EventNote,Edit, MenuBookOutlined, StoreOutlined, PaidOutlined } from '@mui/icons-material';
 import { makeStyles} from '@mui/styles';
 import {useTranslation} from '../hooks/useTranslation'
 import Image from 'next/image'
-
-import {StyledAuth,app} from '../utils/firebase'
-import {getAuth,onAuthStateChanged,signOut} from "firebase/auth";
+import {user$,} from '../hooks/usePvLoop'
+import {useObservable} from "reactfire"
+import {StyledAuth,app,auth,db} from '../utils/firebase'
+import {signOut} from "firebase/auth";
 import { useRouter } from 'next/router'
+import {nanoid} from '../utils/utils'
 
+import {Elements} from '@stripe/react-stripe-js';
+import {loadStripe} from '@stripe/stripe-js';
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
-const drawerWidth = 0;
 
 const useStyles = makeStyles((theme) =>({
     root: {
       display: 'flex',
     },
-    drawer: {
-      [theme.breakpoints.up('sm')]: {
-        width: drawerWidth,
-        flexShrink: 0,
-      },
-    },
-    appBar: {
-      [theme.breakpoints.up('sm')]: {
-        width: `calc(100% - ${drawerWidth}px)`,
-        marginLeft: drawerWidth,
-        backgroundColor: 'transparent',
-        color: 'inherit'
-      },
-    },
-    appBarRoot: {
-      [theme.breakpoints.up('sm')]: {
-        backgroundColor: 'transparent',
-        color: 'inherit'
-      }
+    appBar: { 
+      width: "100%",
+      backgroundColor: 'transparent',
+      color: 'inherit'
     },
     menuButton: {
       marginRight: theme.spacing(2),
-      [theme.breakpoints.up('sm')]: {
+      [theme.breakpoints.up('xs')]: {
         display: 'none',
       },
     },
-    toolbar: theme.mixins.toolbar,
-    drawerPaper: {
-      boxSizing: 'border-box',
-      width: drawerWidth,
+    responsiveIcon:{
+      [theme.breakpoints.up('xs')]: {
+        width: "34px",
+        height: "34px",
+      },
+      [theme.breakpoints.up('md')]: {
+        width: "40px",
+        height: "40px",
+      }
     },
+    toolbar: theme.mixins.toolbar,
     content: {
       flexGrow: 1,
       // padding: theme.spacing(3),
@@ -59,7 +55,7 @@ const useStyles = makeStyles((theme) =>({
       overflow: "hidden",
       transform: "translate3d(0px, 0px, 0px)",
       height: "-webkit-fill-available",
-      background: "radial-gradient(50% 50% at 50% 50%, rgb(255, 0, 122) 0%, rgb(247, 248, 250) 100%)",
+      // background: "radial-gradient(50% 50% at 50% 50%, rgb(62 168 255) 0%, rgb(247, 248, 250) 100%)",
       opacity: 0.15,
       userSelect: "none",
       pointerEvents: "none"
@@ -67,6 +63,24 @@ const useStyles = makeStyles((theme) =>({
     headerIcon:{
       width: '32px',
       height: '32px'
+    },
+    menuList: {
+      '& .MuiMenu-list': {
+        padding: '0',
+      },
+      '& .MuiMenuItem-root': {
+        '& .MuiSvgIcon-root': {
+          fontSize: 18,
+          color: theme.palette.text.secondary,
+          marginRight: theme.spacing(1.5),
+        },
+        '&:active': {
+          backgroundColor: alpha(
+            theme.palette.primary.main,
+            theme.palette.action.selectedOpacity,
+          ),
+        },
+      },
     }
   }),
 );
@@ -75,37 +89,54 @@ function Layout(props) {
   const t = useTranslation();
   const classes = useStyles();
   const router = useRouter()
-  const [user, setUser] = useState(null);
+  const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+
   const [anchorEl, setAnchorEl] = useState(null);
-  const auth = getAuth(app)
+  const [newItemAnchorEl, setNewItemAnchorEl] = useState(null);
+
+  const createNewCase =  async () => {
+    const caseId = nanoid()
+    router.push({pathname:`/cases/${caseId}`,query:{newItem:true}})
+    setNewItemAnchorEl(null)
+  }
+  const createNewArticle =  async () => {
+    const articleId = nanoid()
+    router.push({pathname:`/articles/${articleId}`,query:{newItem:true}})
+    setNewItemAnchorEl(null)
+  }
+  const createNewBook =  async () => {
+    const bookId = nanoid()
+    router.push({pathname:`/books/${bookId}`,query:{newItem:true}})
+    setNewItemAnchorEl(null)
+  }
+
   useEffect(() => {
-    onAuthStateChanged(auth,currentUser => {
-      if(currentUser){
-        setUser(currentUser);
-        setDialogOpen(false);
-      }else{
-        setUser(null);
-      }
-    })
-  }, []);
+    if(user){
+      setDialogOpen(false)
+    }
+  }, [user]);
+
   return (
     <>
       <CssBaseline />
-      <AppBar position="static" elevation={0} className={classes.appBar} classes={{root:classes.appBarRoot}}>
-        <Toolbar>
-          <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex"}}>
-            <Box sx={{display:{xs:'none',sm:'block'}, mb:'-6px'}}><Image src="/HeaderIcon.png" width={30} height={30}/></Box>
-            <Typography variant="h5" noWrap component="div" >
+      <AppBar position="static" elevation={0} className={classes.appBar} >
+        <Toolbar className="py-1">
+          <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex", alignItems:"center"}}>
+            <Image src="/HeaderIcon.png" width={32} height={32}/>
+            <Typography variant="h5" noWrap component="div" fontWeight="bold" sx={{fontFamily: "'Josefin Sans', sans-serif", mb:-1}}>
               {t['Title']}
             </Typography>
           </Box>
           <div style={{flexGrow:1}}></div>
           {
-            user && <IconButton size="small" id="profile-button" aria-controls="profile-menu" aria-haspopup="true" aria-expanded={profileOpen ? 'true' : undefined} onClick={e=>setAnchorEl(e.currentTarget)}><Avatar src={user?.photoURL} sx={{border:'1px solid lightgray'}}>{user?.displayName[0]}</Avatar></IconButton> 
+            user && <>
+              <IconButton size="small" id="profile-button" aria-controls="profile-menu" aria-haspopup="true"  onClick={e=>setAnchorEl(e.currentTarget)}><Avatar src={user?.photoURL} sx={{border:'1px solid lightgray'}} className={classes.responsiveIcon}>{user?.displayName[0]}</Avatar></IconButton> 
+              <Button disableElevation variant='contained' className="text-white font-bold ml-4 hidden md:inline-flex" onClick={e=>setNewItemAnchorEl(e.currentTarget)} startIcon={<Edit/>}>投稿</Button>
+              <Button disableElevation size="small" variant='contained' className="text-white" onClick={e=>setNewItemAnchorEl(e.currentTarget)} sx={{ml:1.2,display:{xs:"inherit",md:"none"},minWidth:"34px", padding:"4px 0"}}><Edit fontSize='small'/></Button>
+            </>
           }{
-            !user && <Button variant='contained' onClick={()=>{setDialogOpen(true)}} disableElevation>Log in</Button>
+            !user && <Button variant='contained' onClick={()=>{setDialogOpen(true)}} disableElevation className="font-bold text-white">Log in</Button>
           }
           <Dialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} sx={{'& .firebaseui-idp-button':{borderRadius: "0.45em"}, '& .MuiDialog-paper':{borderRadius: '9px'},'& .MuiDialogContent-root':{maxWidth:"400px"}, '& .MuiBackdrop-root':{background:"rgba(0, 0, 0, 0.2)"}}}>
             <DialogContent>
@@ -148,17 +179,40 @@ function Layout(props) {
             MenuListProps={{
               'aria-labelledby': 'profile-button',
             }}
+            className={classes.menuList}
           >
-            <MenuItem onClick={()=>{}}>{user?.displayName}</MenuItem>
-            <Divider />
-            <MenuItem onClick={()=>{signOut(auth).then(()=>{setAnchorEl(null);})}}>Log out</MenuItem>
-          </Menu>          
+            <MenuItem onClick={()=>{router.push("/" + user?.userId);setAnchorEl(null)}} disableRipple sx={{fontWeight:"bold",height:"50px"}}>{user?.displayName}</MenuItem>
+            <hr className='border-solid border-0 border-b border-slate-200 my-0'/>
+            <MenuItem onClick={()=>{router.push("/dashboard/cases");setAnchorEl(null)}} disableRipple ><EventNoteOutlined/>症例の管理</MenuItem>
+            <MenuItem onClick={()=>{router.push("/dashboard/articles");setAnchorEl(null)}} disableRipple ><FeedOutlined/>記事の管理</MenuItem>
+            <MenuItem onClick={()=>{router.push("/dashboard/books");setAnchorEl(null)}} disableRipple ><MenuBookOutlined/>本の管理</MenuItem>
+            <hr className='border-solid border-0 border-b border-slate-200 my-0'/>
+            <MenuItem onClick={()=>{router.push("/dashboard/purchases");setAnchorEl(null)}} disableRipple ><StoreOutlined/>購入した本</MenuItem>
+            <MenuItem onClick={()=>{router.push("/dashboard/favorites");setAnchorEl(null)}} disableRipple ><FavoriteBorder/>いいねした投稿</MenuItem>
+            <MenuItem onClick={()=>{router.push("/dashboard/sales");setAnchorEl(null)}} disableRipple ><PaidOutlined/>収益の管理</MenuItem>
+            <MenuItem onClick={()=>{router.push("/settings/profile");setAnchorEl(null)}} disableRipple ><SettingsOutlined/>アカウント設定</MenuItem>
+            <hr className='border-solid border-0 border-b border-slate-200 my-0'/>
+            <MenuItem onClick={()=>{signOut(auth).then(()=>{setAnchorEl(null);})}} disableRipple ><Logout/>ログアウト</MenuItem>
+          </Menu>
+          <Menu
+            id="newItem-menu"
+            anchorEl={newItemAnchorEl}
+            open={Boolean(newItemAnchorEl)}
+            onClose={()=>{setNewItemAnchorEl(null);}}
+            MenuListProps={{
+              'aria-labelledby': 'newItem-button',
+            }}
+          >
+            <MenuItem onClick={createNewCase} disableRipple sx={{pr:3}}><Feed sx={{mr:1.5,my:1, color:"#6e7b85"}}/>症例を作成</MenuItem>
+            <MenuItem onClick={createNewArticle} disableRipple sx={{pr:3}}><EventNote sx={{mr:1.5, my:1,color:"#6e7b85"}}/>記事を作成</MenuItem>
+            <MenuItem onClick={createNewBook} disableRipple sx={{pr:3}}><MenuBookOutlined sx={{mr:1.5, my:1,color:"#6e7b85"}}/>本を作成</MenuItem>
+          </Menu>                      
         </Toolbar>
       </AppBar>
       <Box className={classes.background}></Box>
-      <Box>
+      <Elements stripe={stripePromise} >
         {props.children}
-      </Box>      
+      </Elements>
     </>
   );
 }

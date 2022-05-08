@@ -63,6 +63,7 @@ export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_p
       (Rpvr === 100000 ? gradPV/(Rap_prox+Rpvr) : (-Rap_prox-Math.sqrt(Rap_prox**2-4*Rpvr*gradPV))/2/Rpvr)
 
     const Iimp = implella[impella_type][impella_aux_level](-gradAV)/30
+
     const deltaP = Qtube/Ctube-Qvs/Cvs
     const Ip = ecmo_speed ==0 ? 0 : (2.43*10**(-5)*ecmo_speed*deltaP + 2.86*10**(-2)*ecmo_speed - 0.153*deltaP-15.7)/1000;
     const Itube= ecmo_speed ==0 ? 0 : (Qtube/Ctube - Qas_prox/Cas_prox)/Rtube;

@@ -55,7 +55,8 @@ const useStyles = makeStyles((theme) =>({
 );
 
 
-const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes,setDataTypes}) =>{
+const RealTimeChart = React.memo(({patient, dataTypes,setDataTypes}) =>{
+  const {subscribe,unsubscribe, setIsPlaying,isPlaying} = patient
   const t = useTranslation();
   const classes = useStyles();
   const [loading, setLoading] = useState(true);
@@ -72,7 +73,6 @@ const RealTimeChart = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying
   const changingRef = useRef(null);
   const usedColorsRef = useRef([]);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [pressureMenuOpen, setPressureMenuOpen] = useState(dataTypes.some(x=> pressureTypes.includes(x)));
 
   const addDataSeries = (dataType)=>{
     const colorIndex = [...COLORS.keys()].find(i=>!usedColorsRef.current.includes(i))

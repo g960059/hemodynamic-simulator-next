@@ -14,7 +14,7 @@ import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@mui/icons-mate
 import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS} from '../../styles/chartConstants'
 import {useTranslation} from '../../hooks/useTranslation'
 import { Thickness } from 'scichart/Core/Thickness';
-
+import { useRouter } from 'next/router';
 
 const PV_COUNT = 500
 const EDPVR_STEP = 20
@@ -36,9 +36,11 @@ const getHdProps = {
 
 
 
-const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes, setDataTypes}) =>{
+const PVPlot = React.memo(({patient,dataTypes, setDataTypes}) =>{
+  const {subscribe,unsubscribe, setIsPlaying,isPlaying} = patient
   const t = useTranslation();
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   const dataRef = useRef({})
   const leadingPointRef = useRef({});
@@ -51,11 +53,6 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
 
   const annotationDataRef = useRef({})
   const annotationSeriesRef=useRef({})
-
-  const alphaRef = useRef({}); 
-  const betaRef = useRef({});
-  const V0Ref = useRef({});
-  const EesRef = useRef({});
 
   const sciChartSurfaceRef = useRef();
   const wasmContextRef = useRef();
@@ -134,6 +131,10 @@ const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataT
 
   const initSciChart = async () => {
     SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
+    SciChartSurface.configure( {
+      dataUrl: "/scichart2d.data",
+      wasmUrl: "/scichart2d.wasm"
+    })
     const { sciChartSurface, wasmContext } = await SciChartSurface.create(
       "scichart-pv-root"
     );

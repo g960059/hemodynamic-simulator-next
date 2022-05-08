@@ -26,5 +26,9 @@ module.exports = {
     i18n: {
         locales: ['en', 'ja'],
         defaultLocale: 'ja'
-    }
+    },
+    images: {
+        domains: ['lh3.googleusercontent.com',"firebasestorage.googleapis.com", "127.0.0.1", "localhost"],
+    },
+    experimental: { esmExternals: false }
   }

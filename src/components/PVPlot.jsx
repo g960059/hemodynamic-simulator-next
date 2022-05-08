@@ -48,7 +48,8 @@ const useStyles = makeStyles((theme) =>({
 }));
 
 
-const PVPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes, setDataTypes}) =>{
+const PVPlot = React.memo(({patient, dataTypes, setDataTypes}) =>{
+  const {subscribe,unsubscribe, setIsPlaying,isPlaying} = patient
   const t = useTranslation();
   const classes = useStyles();
   const [loading, setLoading] = useState(true);

@@ -15,12 +15,12 @@ export class SV {
     const tes = Math.min(..._ts)
     if(tes < 5 ){
       const tesIndex = _ts.findIndex(_t => _t === tes)
-      this?.lvesv = data['Qlv'][tesIndex];
+      this.lvesv = data['Qlv'][tesIndex];
     }else{
       const ted = Math.max(...ts)
       if(60000/data['HR'][0] - ted  < 5){
         const tedIndex = ts.findIndex(_t => _t === ted)
-        this?.lvedv = data['Qlv'][tedIndex];
+        this.lvedv = data['Qlv'][tedIndex];
       }
     } 
   }
@@ -60,7 +60,7 @@ export class LVEDP{
     const ted = Math.max(...ts)
     if(60000/data['HR'][0] - ted  < 5){
       const tedIndex = ts.findIndex(_t => _t === ted)
-      this?.lvedp = data['Plv'][tedIndex];
+      this.lvedp = data['Plv'][tedIndex];
     } 
   }
   reset(){
@@ -162,7 +162,7 @@ export class CO {
     return "L/min"
   }
   update(data, time, hdps){
-    this?.HR= data['HR'][0]
+    this.HR= data['HR'][0]
     const HR = data['HR'][0]
     const ts = data['t'].map(_t=> (_t - hdps['LV_AV_delay']) % (60000 / HR))
     const _ts = ts.map(_t=> _t< hdps["LV_Tmax"] ? 10000 : _t - hdps["LV_Tmax"])
@@ -174,7 +174,7 @@ export class CO {
       const ted = Math.max(...ts)
       if(60000/HR - ted  < 5){
         const tedIndex = ts.findIndex(_t => _t === ted)
-        this?.lvedv = data['Qlv'][tedIndex];
+        this.lvedv = data['Qlv'][tedIndex];
       }
     } 
   }
@@ -209,7 +209,7 @@ export class LaKickRatio {
       const tedl = Math.max(...tls)
       if(60000/HR - tedl  < 5){
         const tedlIndex = tls.findIndex(_t => _t === tedl)
-        this?.lvedv = data['Qlv'][tedlIndex];
+        this.lvedv = data['Qlv'][tedlIndex];
       }
     } 
     const tsla = data['t'].map(_t=> (_t - hdps['LA_AV_delay']) % (60000 / HR))

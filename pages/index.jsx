@@ -1,220 +1,231 @@
-import React,{ useEffect, useRef }  from 'react'
-import {Box, Grid, Typography, Divider,Button,Stack,Link, CircularProgress} from '@mui/material'
-import Typed from "typed.js";
+import React,{ useEffect, useRef, useState }  from 'react'
+import {Box, Grid, Typography, Divider,Button,Stack, CircularProgress,Tab} from '@mui/material'
+import {TabContext,TabList,TabPanel} from '@mui/lab';
+
 import {useTranslation} from "../src/hooks/useTranslation"
-import Image from 'next/image'
 import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
 import Footer from "../src/components/Footer"
 import {auth,db} from '../src/utils/firebase'
-import Lottie from 'react-lottie-player' 
-import MedicalFrontliners from "../src/lotties/MedicalFrontliners.json"
-import LearningConcept from "../src/lotties/LearningConcept.json"
-import Discussion from "../src/lotties/Discussion.json"
-import Teaching from "../src/lotties/Teaching.json"
+
+import Layout from "../src/components/layout"
+import { collectionGroup, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
+import Image from 'next/image'
+import { formatDateDiff } from '../src/utils/utils';
+import {useObservable} from "reactfire"
+import {following$} from '../src/hooks/usePvLoop'
+import Link from 'next/link';
 
 
-const useStyles = makeStyles((theme) =>({
-  background: {
-    position: "fixed",
-    zIndex: -1,
-    top: "0px",
-    left: "0px",
-    width: "100%",
-    overflow: "hidden",
-    transform: "translate3d(0px, 0px, 0px)",
-    height: "-webkit-fill-available",
-    background: "white",
-    opacity: 1,
-    userSelect: "none",
-    pointerEvents: "none"
-  },
-  featuredBox: {
-    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-    color: "rgb(69, 90, 100)",
-    boxShadow: "rgb(0 0 0 / 10%) 0px 2px 4px -2px",
-    backgroundColor: "white",
-    border: "1px solid rgba(92, 147, 187, 0.17)",
-    borderRadius: "12px",
-  }
-}),
-);
-
-
-const About = () => {
-  const el = useRef(null);
+const TopPage = ({articles,books}) => {
   const t = useTranslation();
-  const classes = useStyles();
   const router = useRouter()
+  const [tabValue, setTabValue] = useState('home');
+  const followingFeed = useObservable(`following`,following$)
 
-  useEffect(() => {
-    let typed= new Typed(el.current, {
-      strings: ["Deepen","Discuss", "Share",], 
-      startDelay: 300,
-      typeSpeed: 100,
-      backSpeed: 50,
-      backDelay: 1000,
-      smartBackspace: true,
-      loop: true,
-      showCursor: true,
-    });
-    return () => {
-      typed?.destroy();
-    };
-  }, []);
-
-
-  return <>
-      <Box> 
-        <Grid container justifyContent="center">
-          <Grid item xs={11} md={4} display="flex" justifyContent="flex-end" alignItems="center">
-            <Box mt={{xs:3,md:0}} mb={{md:1}}>
-              <Typography variant="h3" color="primary" sx={{fontWeight:"bold"}}><span ref={el}></span></Typography>
-              <Typography variant="h3" sx={{fontWeight:"bold"}}>Your Insight</Typography>
-              <Typography variant="subtitle1" sx={{lineHeight:1.8,color:"#4c4c4c",mt:2}}>{t["LpDescription"]}</Typography>
-              <Box sx={{width:1,display:"flex", justifyContent:{xs:"center",md:"flex-start"}}}>
-                <Button variant="contained" size="large" sx={{mt:3}} onClick={()=>{router.push("/app")}}>今すぐはじめる</Button>
-              </Box>
-            </Box>
-          </Grid>
-          <Grid item xs={11} md={6} sx={{display:"flex",justifyContent:"center", height: {xs:"330px", md:"440px"}}}>
-            <Lottie loop animationData={MedicalFrontliners} play style={{ objectFit:"contain" }} />
-          </Grid>
-        </Grid>
-        <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
-        <Box display="flex" justifyContent="center" mt={4}>
-          <Typography variant="h4" fontWeight="bold">How it works</Typography>
-        </Box>
-        <Grid container spacing={3} px={4} mt={1} mb={6}>
-          <Grid item xs={12} md={4}>
-            <Box sx={{p:2}} className={classes.featuredBox}>
-              <Typography variant="h6" sx={{mb:2, fontWeight:"bold",textAlign:"center"}}>循環をより深く理解しよう</Typography>
-              <Box sx={{display:"flex",justifyContent:"center",width:1,height:"200px"}}>
-                <Lottie loop animationData={LearningConcept} play style={{ objectFit:"contain" }} />
-              </Box>
-              <Typography variant="body1">強固な数理モデルを使っているので、複雑な循環動態を再現性・透明性を持って理解することができます。</Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Box sx={{p:2}} className={classes.featuredBox}>
-              <Typography variant="h6" sx={{mb:2, fontWeight:"bold",textAlign:"center"}}>症例を振り返ろう</Typography>
-              <Box sx={{display:"flex",justifyContent:"center",width:1,height:"200px"}}>
-                <Lottie loop animationData={Discussion} play style={{ objectFit:"contain" }} />
-              </Box>
-              <Typography variant="body1">心不全や弁膜症など様々な病態のシミュレーションが可能です。検討した症例は周りにも共有しよう。</Typography>
-            </Box>    
-          </Grid>
-          <Grid item xs={12} md={4}>
-          <Box sx={{p:2}} className={classes.featuredBox}>
-            <Typography variant="h6" sx={{mb:2, fontWeight:"bold",textAlign:"center"}}>分かりやすく伝えよう</Typography>
-            <Box sx={{display:"flex",justifyContent:"center",width:1,height:"200px"}}>
-              <Lottie loop animationData={Teaching} play style={{ objectFit:"contain" }} />
-            </Box>
-            <Typography variant="body1">可視化することで、医療者それぞれの経験に基づいた治療をわかりやすく、周りに伝えることができます。</Typography>
-            </Box>
-          </Grid>            
-        </Grid>
-        {/* <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/> */}
-        <Box display="flex" justifyContent="center" mt={5}>
-          <Typography variant="h4" fontWeight="bold">Supporter Plans</Typography>
-        </Box>
-        <Grid container spacing={3} px={4} mt={1} mb={6}>
-          {/* <Grid item xs={12} md={3}>
-            <Box sx={{p:3}} className={classes.featuredBox}>
-              <Grid container justifyContent="space-between" sx={{mb:3}}>
-                <Grid item xs={12}>
-                  <Typography variant="h5" sx={{my:2, fontWeight:"bold",textAlign:"center"}}>✨ Supporter</Typography>
-                </Grid>
-                <Grid item xs={12} justifyContent="center" sx={{pl:2}}>
-                  <Stack direction="row" alignItems="center" justifyContent="center"><Typography variant="h4" color="primary">無料</Typography><Typography variant="subtitle2" color="primary" sx={{mt:.5,ml:.5}}>/月</Typography></Stack>                    
-                </Grid>
-              </Grid>
-              <Stack justifyContent="center" alignItems="center">
-                <Typography variant="body1">使っていただき、感謝です。</Typography>
-                <Typography variant="body1">ぜひ循環を好きになってください。</Typography>
-              </Stack>
-              <Stack mt={3} justifyContent="center" alignItems="center" spacing={1}>
-                <Typography variant="subtitle1">✔ほぼ全ての機能を使えます</Typography>
-              </Stack>              
-              <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
-            </Box>
-          </Grid>           */}
-          <Grid item xs={12} md={4}>
-            <Box sx={{p:3}} className={classes.featuredBox}>
-              <Grid container justifyContent="space-between" sx={{mb:3}}>
-                <Grid item xs={12}>
-                  <Typography variant="h5" sx={{my:2, fontWeight:"bold",textAlign:"center"}}>☕ Coffee Supporter</Typography>
-                </Grid>
-                <Grid item xs={12} justifyContent="center" sx={{pl:2}}>
-                  <Stack direction="row" alignItems="center" justifyContent="center"><Typography variant="h4" color="primary">¥500</Typography><Typography variant="subtitle2" color="primary" sx={{mt:.5,ml:.5}}>/月</Typography></Stack>                    
-                </Grid>
-              </Grid>
-              <Stack justifyContent="center" alignItems="center">
-                <Typography variant="body1">私はコーヒーが大好きです。</Typography>
-                <Typography variant="body1">あなたの1杯でさらに頑張れます。</Typography>
-              </Stack>
-              <Stack mt={3} justifyContent="center" alignItems="center" spacing={1}>
-                <Typography variant="subtitle1">✔特別な患者プリセットのロード</Typography>
-              </Stack>
-              <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Box sx={{p:3}} className={classes.featuredBox}>
-              <Grid container justifyContent="space-between" sx={{mb:3}}>
-                <Grid item xs={12}>
-                  <Typography variant="h5" sx={{my:2, fontWeight:"bold",textAlign:"center"}}>📖 Book Supporter</Typography>
-                </Grid>
-                <Grid item xs={12} justifyContent="center" sx={{pl:2}}>
-                  <Stack direction="row" alignItems="center" justifyContent="center"><Typography variant="h4" color="primary">¥3000</Typography><Typography variant="subtitle2" color="primary" sx={{mt:.5,ml:.5}}>/月</Typography></Stack>                   
-                </Grid>
-              </Grid>
-              <Stack justifyContent="center" alignItems="center">
-                <Typography variant="body1">毎月、新しい論文や本を読んでいます。</Typography>
-                <Typography variant="body1">あなたのサポートで、新機能を開発できます。</Typography>
-              </Stack>
-              <Stack mt={3} justifyContent="center" alignItems="center">
-                <Stack justifyContent="flex-start" spacing={1}>
-                  <Typography variant="subtitle1">✔特別な患者プリセットのロード</Typography>
-                  <Typography variant="subtitle1">✔スポンサーページにロゴを表示</Typography>
-                </Stack>  
-              </Stack>
-              <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
-            </Box>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Box sx={{p:3}} className={classes.featuredBox}>
-              <Grid container justifyContent="space-between" sx={{mb:3}}>
-                <Grid item xs={12} >
-                  <Typography variant="h5" sx={{my:2, fontWeight:"bold",textAlign:"center"}}>🦄 Unicorn Supporter</Typography>
-                </Grid>
-                <Grid item xs={12} justifyContent="center" sx={{pl:2}}>
-                  <Stack direction="row" alignItems="center" justifyContent="center"><Typography variant="h4" color="primary">¥50000</Typography><Typography variant="subtitle2" color="primary" sx={{mt:.5,ml:.5}}>/月</Typography></Stack>                   
-                </Grid>
-              </Grid>
-              <Stack justifyContent="center" alignItems="center">
-                <Typography variant="body1">大きな支援を心より感謝します。</Typography>
-                <Typography variant="body1">今後も開発・研究を継続できます。</Typography>
-              </Stack>
-              <Stack mt={3} justifyContent="center" alignItems="center">
-                <Stack justifyContent="flex-start" spacing={1}>
-                  <Typography variant="subtitle1">✔特別な患者プリセットのロード</Typography>
-                  <Typography variant="subtitle1">✔スポンサーページにロゴを表示</Typography>
-                  <Typography variant="subtitle1">✔記事や学会発表時にロゴを表示</Typography>
-                  <Typography variant="subtitle1">✔Twitterでスポンサーシップをツイート</Typography>
-                  <Typography variant="subtitle1">✔新機能リクエストに優先的に対応</Typography>
-                </Stack>
-              </Stack>
-              <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
-            </Box>
-          </Grid>           
-        </Grid>
-        <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
-        <Footer/>
-      </Box>
-      <div className={classes.background}></div>
-  </>
+  return <Layout>
+        <div className='max-w-7xl w-full mx-auto px-4 md:px-10'>
+          <div onClick={()=>{setTabValue("home")}} className={`inline-block px-4 py-2 cursor-pointer transition-all duration-200 ${tabValue=="home"  ? "font-bold text-slate-900 border-0 border-b-2 border-solid border-slate-800" : "text-slate-400 hover:font-bold hover:text-slate-700"}`}>ホーム</div>
+          <div onClick={()=>{setTabValue("following")}} className={`inline-block px-4 py-2 cursor-pointer transition-all duration-200 ${tabValue=="following"  ? "font-bold text-slate-900 border-0 border-b-2 border-solid border-slate-800" : "text-slate-400 hover:font-bold hover:text-slate-700"}`}>フォロー中</div>
+        </div>
+        <div className='border-0 border-b border-solid border-b-slate-200'/>
+        {
+          tabValue=="home" && (
+            <div className='max-w-4xl w-full mx-auto md:py-4 px-4'>
+              <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Articles</div>
+              <div className="md:grid md:grid-cols-2 md:gap-4">
+                {
+                  articles?.map(article=><ArticleItem article={article}/>)
+                }
+              </div>
+              <div className='flex justify-center mt-6'>
+                <Link href="/articles">
+                  <a className='cursor-pointer no-underline text-blue-500 mb-[1px] hover:mb-0 hover:border-solid hover:border-0 hover:border-b hover:border-blue-500'>
+                    記事をさらに探す
+                  </a>
+                </Link>                
+              </div>
+              <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Books</div>
+              <div className="md:grid md:grid-cols-2 md:gap-4">
+                {
+                  books?.map(book=><BookItem book={book}/>)
+                }
+              </div>
+              <div className='flex justify-center mt-6'>
+                <Link href="/books">
+                  <a className='cursor-pointer no-underline text-blue-500 mb-[1px] hover:mb-0 hover:border-solid hover:border-0 hover:border-b hover:border-blue-500'>
+                    本をさらに探す
+                  </a>
+                </Link>                
+              </div>       
+            </div>            
+          )
+        }
+      {
+        tabValue=="following" && (
+          <div className="max-w-4xl w-full mx-auto md:py-4 px-4">
+            <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Articles</div>
+            <div className="md:grid md:grid-cols-2 md:gap-4">
+              {
+                followingFeed.data?.map(u=>u?.articles).flat().map(article=><ArticleItem article={article}/>)
+              }
+            </div>
+            <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Books</div>
+            <div className="md:grid md:grid-cols-2 md:gap-4">
+              {
+                followingFeed.data?.map(u=>u?.books).flat().map(book=><BookItem book={book}/>)
+              }
+            </div>
+          </div>
+        )
+      }
+      <hr className="border-0 border-b border-slate-200"/>
+      <Footer/>
+  </Layout>
 }
 
-export default About;
+export const getStaticProps = async () => {
+  const convertTimestampToJson = (data)=>{
+    const newData = {...data}
+    if(data?.updatedAt){
+      newData.updatedAt = data.updatedAt.toJSON()
+    }
+    if(data?.createdAt){
+      newData.createdAt = data.createdAt.toJSON()
+    }
+    return newData
+  }
+
+  const articlesSnap = await getDocs(query(collectionGroup(db,'articles'),orderBy("heartCount"),orderBy("updatedAt"),where("visibility", "==", "public"),limit(30)))
+  const articles = articlesSnap.docs.map(doc=>{
+    const article = convertTimestampToJson(doc.data())
+    article.id = doc.id
+    return article
+  })
+  const booksSnap = await getDocs(query(collectionGroup(db,'books'),orderBy("heartCount"),orderBy("updatedAt"),where("visibility", "==", "public"),limit(30)))
+  const books = booksSnap.docs.map(doc=>{
+    const book = convertTimestampToJson(doc.data())
+    book.id = doc.id
+    return book
+  })
+  return {
+    props: {articles, books},
+    revalidate: 1
+  }
+}
+
+export const ArticleItem = ({article})=> {
+  return (
+    <div key={article.id} className="w-full flex flex-row pb-5">
+      <Link href={`/${article?.userId}/articles/${article?.id}`} >
+        <a className= "text-slate-900 hover:opacity-70 transition-opacity duration-200 cursor-pointer w-24 h-24 no-underline hover:no-underline">
+          {
+            article?.coverURL ? <Image src={article?.coverURL} width={96} height={96}/> :
+            <div className='bg-blue-50 rounded-lg flex justify-center items-center w-24 h-24'>
+              <span className='text-4xl'>{article?.emoji}</span>
+            </div>
+          }
+        </a>
+      </Link>
+      <div className='ml-3 flex flex-col'>
+        <Link href={`/${article?.userId}/articles/${article?.id}`}>
+          <a className='font-bold text-slate-800 no-underline hover:no-underline'>
+            {article?.name || "無題の記事"}
+          </a>
+        </Link>
+        <div style={{flexGrow:1}}/>
+        <div className='flex flex-row items-center'>
+          {article.photoURL ?
+            <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/${article.userId}`)}}>
+              <Image src={article.photoURL} height="32" width="32"/>
+            </div> :  
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/${article.userId}`)}}>
+              <span className="text-xs font-medium leading-none text-white">{article?.displayName[0]}</span>
+            </div>
+          }
+          <div className='ml-2 text-slate-500'>
+            <Link href={`/${article?.userId}`}>
+              <a className='text-sm font-medium no-underline hover:no-underline text-slate-500'>
+                {article?.displayName}
+              </a>
+            </Link>
+            
+            <div className='flex flex-row items-center justify-between'>
+              <span className=' text-sm font-medium '>{ formatDateDiff(new Date(), new Date(article?.updatedAt?.seconds * 1000)) } </span>
+              <span className=' text-sm ml-3 flex flex-row '>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span className=' text-sm ml-0.5'>{article?.heartCount || 0}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export const BookItem = ({book}) => {
+  return (
+    <div key={book.id} className="w-full flex flex-row pb-5">
+      { book?.coverURL ? <Link href={`/${book?.userId}/books/${book?.id}`}>
+          <a className="cursor-pointer book-cover w-[100px] h-[140px] hover:opacity-70 transition-opacity duration-200 no-underline hover:no-underline">
+            <img src={book?.coverURL} width={100} height={140} className="object-cover rounded" />
+          </a>
+        </Link> : 
+        <div className="bg-blue-100 shadow-md cursor-pointer book-cover w-[100px] h-[140px] hover:opacity-70 transition-opacity duration-200 no-underline hover:no-underline">
+          <div className='flex justify-center items-center w-full h-full' style={{width:"100px"}}>
+            <div className='font-bold text-xl text-slate-400'>{book?.name || "無題の本"}</div>
+          </div>
+        </div>
+      }                   
+      <div className='ml-3 flex flex-col'>
+        <Link href={`/${book?.userId}/books/${book?.id}`}>
+          <a  className='font-bold text-slate-800 no-underline hover:no-underline'>
+            {book?.name || "無題の記事"}
+          </a>
+        </Link>
+        {book?.premium && <div className='text-blue-500 font-bold'>￥ {book?.amount}</div> }
+        <div style={{flexGrow:1}}/>
+        <div className='flex flex-row items-center'>
+          {book.photoURL ?
+            <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/${book.userId}`)}}>
+              <img src={book.photoURL} height="32" width="32"/>
+            </div> :  
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/${book.userId}`)}}>
+              <span className="text-xs font-medium leading-none text-white">{book?.displayName[0]}</span>
+            </div>
+          }
+          <div className='ml-2 text-slate-500'>
+            <Link href={`/${book?.userId}`}>
+              <a className='text-sm font-medium no-underline hover:no-underline text-slate-500'>
+                {book?.displayName}
+              </a>
+            </Link>
+            <div className='flex flex-row items-center justify-between'>
+              <span className=' text-sm font-medium '>{ formatDateDiff(new Date(), new Date(book?.updatedAt?.seconds * 1000)) } </span>
+              <span className=' text-sm ml-3 flex flex-row '>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span className=' text-sm ml-0.5'>{book?.heartCount || 0}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>    
+  )
+}
+
+// TopPage.getLayout = (page) => {
+//   return (
+//     <Layout>
+//       {page}
+//     </Layout>
+//   )
+// }
+
+export default TopPage;
 

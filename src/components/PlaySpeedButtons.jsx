@@ -1,15 +1,19 @@
 import React, {useState, useEffect} from 'react';
-import {Box, Button, IconButton, Stack, Typography, Menu, MenuItem,Dialog,DialogTitle,DialogContent,DialogActions, List, ListItem,ListItemText,ListItemIcon} from '@mui/material'
-import {PlayArrow,Pause,SaveAlt,Publish} from "@mui/icons-material";
+import {Box, Button, IconButton, Stack, Typography, Menu, MenuItem,Dialog,DialogTitle,DialogContent,DialogActions,Tab, List, ListItem,ListItemText,ListItemIcon, DialogContentText} from '@mui/material'
+
+import {PlayArrow,Pause,SaveAlt,CloudUpload,SwitchAccount} from "@mui/icons-material";
 import { useRouter } from 'next/router'
 import en from '../locales/en'
 import ja from '../locales/ja'
 
-const PlaySpeedButtons = ({isPlaying, setIsPlaying, setSpeed, mode, setMode}) =>{
+const PlaySpeedButtons = ({patient, mode, setMode}) =>{
+  const {subscribe, unsubscribe, isPlaying, setIsPlaying, setSpeed,getHdps} = patient
   const [anchorEl, setAnchorEl] = useState(null);
   const [speedDisplayed, setSpeedDisplayed] = useState(1.0);
   const {locale} = useRouter()
   const t = locale==='en' ? en : ja
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [tabValue, setTabValue] = useState("0");
 
   return (
     <Stack direction='row' justifyContent='center' alignItems='center' sx={{backgroundColor:'white',boxShadow:'0 2px 4px rgb(67 133 187 / 7%)',borderColor: 'grey.300'}}>
@@ -46,19 +50,44 @@ const PlaySpeedButtons = ({isPlaying, setIsPlaying, setSpeed, mode, setMode}) =>
           <Typography variant="subtitle2" sx={{color:"#525151"}}>{mode == 'basic' ? t['Basic'] : t['Advanced']}</Typography>
           <Typography variant='caption'>{t['ControllerMode']}</Typography>
         </Stack>
-      </Button> 
-      {/* <Button sx={{color:'gray'}}>
+      </Button>      
+      {/* <Button sx={{color:'gray'}} onClick={()=>{setDialogOpen(true)}}>
         <Stack justifyContent='center' alignItems='center'>
-          <SaveAlt/>
-          <Typography variant='caption'>{t['Save']}</Typography>
+          <SwitchAccount/>
+          <Typography variant='caption'>{t['NewCase']}</Typography>
         </Stack> 
-      </Button>
-      <Button sx={{color:'gray'}}>
-        <Stack justifyContent='center' alignItems='center'>
-          <Publish/>
-          <Typography variant='caption'>{t['Load']}</Typography>
-        </Stack>      
       </Button> */}
+      {/* <Button sx={{color:'gray'}} onClick={()=>{saveInitialDataHdps()}}>
+        <Stack justifyContent='center' alignItems='center'>
+          <CloudUpload/>
+          <Typography variant='caption'>{t['Save']}</Typography>
+        </Stack>      
+      </Button>        */}
+      {/* <Dialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}}>
+        <DialogTitle>
+          {t["CaseList"]}
+        </DialogTitle>
+        <DialogContent>
+        <TabContext value={tabValue}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <TabList onChange={(e,v)=>{setTabValue(v)}}>
+              <Tab label="Private" value="0" />
+              <Tab label="Public" value="1" />
+            </TabList>
+          </Box>          
+          <TabPanel value="0">
+            
+          </TabPanel>
+          <TabPanel value="1">
+          </TabPanel>
+        </TabContext>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={()=>{setDialogOpen(false)}} >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog> */}
     </Stack>
   )
 }

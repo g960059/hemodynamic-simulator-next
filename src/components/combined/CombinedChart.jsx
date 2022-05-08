@@ -4,14 +4,14 @@ import {Box,Grid} from '@mui/material'
 import PVPlot from './PVPlot'
 import RealTimeChart from './RealTimeChart';
 
-const CombinedChart = ({subscribe,unsubscribe, setIsPlaying,isPlaying, dataTypes, setDataTypes}) => {
+const CombinedChart = ({patient, dataTypes, setDataTypes}) => {
   return (
     <Grid container>
       <Grid item xs={6}>
-        <PVPlot subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} dataTypes={dataTypes} setDataTypes={setDataTypes}/>
+        <PVPlot patient={patient} dataTypes={dataTypes} setDataTypes={setDataTypes}/>
       </Grid>
       <Grid item xs={6}>
-        <RealTimeChart subscribe={subscribe} unsubscribe={unsubscribe} setIsPlaying={setIsPlaying} isPlaying={isPlaying} dataTypes={dataTypes} setDataTypes={setDataTypes}/>
+        <RealTimeChart patient={patient} dataTypes={dataTypes} setDataTypes={setDataTypes}/>
       </Grid>
     </Grid>
   )
