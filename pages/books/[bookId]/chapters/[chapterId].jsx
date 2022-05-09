@@ -108,7 +108,7 @@ const Chapter = () => {
   const {data:user} = useObservable("user",user$)
 
   const loadedChapter = useObservable("chapter"+router.query.chapterId,user$.pipe(
-    filter(user => !!user.uid),
+    filter(user => !!user?.uid),
     mergeMap(user => docData(doc(db,'users',user?.uid,"books",router.query.bookId, "chapters",router.query.chapterId))),
   ))
 
