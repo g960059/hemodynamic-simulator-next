@@ -5,6 +5,7 @@ import { makeStyles,withStyles} from '@mui/styles';
 import Footer from "../src/components/Footer"
 import ReactMarkdown from 'markdown-to-jsx';
 import PrivacyMd from "../src/markdown/privacy.md"
+import Layout from '../src/components/layout';
 
 
 const styles = (theme) => ({
@@ -64,6 +65,14 @@ const Terms = () => {
       </Grid>
       <div className={classes.background}/>
   </>
+}
+
+Terms.getLayout = (page) => {
+  return (
+    <Layout>
+      {page}
+    </Layout>
+  )
 }
 
 export default Terms;

@@ -4,6 +4,7 @@ import {useTranslation} from "../src/hooks/useTranslation"
 import { makeStyles} from '@mui/styles';
 import Footer from "../src/components/Footer"
 import {Timeline, TimelineConnector,TimelineItem,TimelineContent,TimelineSeparator,TimelineDot} from '@mui/lab'
+import Layout from '../src/components/layout';
 
 const useStyles = makeStyles((theme) =>({
   featuredBox: {
@@ -58,6 +59,14 @@ const Changelog = () => {
       </Grid>
       <div className={classes.background}/>
   </>
+}
+
+Changelog.getLayout = (page) => {
+  return (
+    <Layout>
+      {page}
+    </Layout>
+  )
 }
 
 export default Changelog;

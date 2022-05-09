@@ -40,7 +40,7 @@ export const functions = getFunctions(app)
 export const storage = getStorage(app)
 
 const EMULATORS_STARTED = 'EMULATORS_STARTED';
-if (process.env.NODE_ENV === 'development' && !global[EMULATORS_STARTED]){
+if (process.env.NODE_ENV != 'production' && !global[EMULATORS_STARTED]){
   global[EMULATORS_STARTED] = true;
   connectFirestoreEmulator(db,"localhost",8084);
   connectFunctionsEmulator(functions, "localhost", 5001);

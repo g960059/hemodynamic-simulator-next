@@ -118,10 +118,10 @@ const About: NextPageWithLayout = () => {
           </Grid>            
         </Grid>
         {/* <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/> */}
-        <Box display="flex" justifyContent="center" mt={5}>
+        {/* <Box display="flex" justifyContent="center" mt={5}>
           <Typography variant="h4" fontWeight="bold">Supporter Plans</Typography>
-        </Box>
-        <Grid container spacing={3} px={4} mt={1} mb={6}>
+        </Box> */}
+        {/* <Grid container spacing={3} px={4} mt={1} mb={6}> */}
           {/* <Grid item xs={12} md={3}>
             <Box sx={{p:3}} className={classes.featuredBox}>
               <Grid container justifyContent="space-between" sx={{mb:3}}>
@@ -142,7 +142,7 @@ const About: NextPageWithLayout = () => {
               <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
             </Box>
           </Grid>           */}
-          <Grid item xs={12} md={4}>
+          {/* <Grid item xs={12} md={4}>
             <Box sx={{p:3}} className={classes.featuredBox}>
               <Grid container justifyContent="space-between" sx={{mb:3}}>
                 <Grid item xs={12}>
@@ -211,7 +211,7 @@ const About: NextPageWithLayout = () => {
               <Stack justifyContent="center" alignItems="center" mt={3}><Button variant='outlined'>選択する</Button></Stack>
             </Box>
           </Grid>           
-        </Grid>
+        </Grid> */}
         <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
         <Footer/>
       </Box>
