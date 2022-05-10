@@ -7,15 +7,27 @@ import 'firebase/compat/auth';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 import { connectStorageEmulator, getStorage } from 'firebase/storage';
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_PROJECT_ID,
-  projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_APP_ID,
+let firebaseConfig = {
+  apiKey: "AIzaSyDunS6i7doodnUGU1w-XrGEDmOzCFflyWY",
+  authDomain: "hemodynamic-simulator.firebaseapp.com",
+  projectId: "hemodynamic-simulator",
+  storageBucket: "hemodynamic-simulator.appspot.com",
+  messagingSenderId: "594246666374",
+  appId: "1:594246666374:web:6c90c79d2fbdff5b9d2907",
   measurementId: "${config.measurementId}"
 };
+
+if (process.env.NEXT_PUBLIC_ENV != "production"){
+  firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_PROJECT_ID,
+    projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_APP_ID,
+    measurementId: "${config.measurementId}"
+  }
+}
 
 
 const uiConfig = {
