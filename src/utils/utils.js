@@ -18,8 +18,12 @@ export const getRandomEmoji = () =>{
 }
 
 export const objectWithoutKey = (object, key) => {
-  const {[key]: deletedKey, ...otherKeys} = object;
-  return otherKeys;
+  if(key){
+    const {[key]: deleted, ...rest} = object;
+    return rest;
+  }else{
+    return object;
+  }
 }
 export const objectWithoutKeys = (object, keys) => {
   const {...otherKeys} = object;
