@@ -310,10 +310,9 @@ export const getStaticPaths= async () => {
   };
 };
 
-
-
 export const getStaticProps = async (ctx) => {
   const { userId } = ctx.params
+  console.log(ctx.params)
   const convertTimestampToJson = (data)=>{
     const newData = {...data}
     if(data?.updatedAt){
