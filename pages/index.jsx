@@ -35,7 +35,7 @@ const TopPage = ({articles,books}) => {
               <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Articles</div>
               <div className="md:grid md:grid-cols-2 md:gap-4">
                 {
-                  articles?.map(article=><ArticleItem article={article}/>)
+                  articles?.filter(article=>article?.visibility=="public")?.map(article=><ArticleItem article={article}/>)
                 }
               </div>
               <div className='flex justify-center mt-6'>
@@ -48,7 +48,7 @@ const TopPage = ({articles,books}) => {
               <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Books</div>
               <div className="md:grid md:grid-cols-2 md:gap-4">
                 {
-                  books?.map(book=><BookItem book={book}/>)
+                  books?.filter(book=>book?.visibility=="public")?.map(book=><BookItem book={book}/>)
                 }
               </div>
               <div className='flex justify-center mt-6'>

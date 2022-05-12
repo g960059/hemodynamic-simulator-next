@@ -120,7 +120,6 @@ const UserSummary = ({uid,user,followers}) => {
     if(router.query.tabValue){
       setTabValue(router.query.tabValue )
     }else{
-      console.log(articles)
       if(articles?.length>0){
         setTabValue("articles")
       }else{
@@ -133,7 +132,6 @@ const UserSummary = ({uid,user,followers}) => {
     }
   }, [router.query.tabValue, articles, cases, books]);
 
-  console.log(currentUser, user)
   return <>
     {
       user && <>
@@ -312,7 +310,6 @@ export const getStaticPaths= async () => {
 
 export const getStaticProps = async (ctx) => {
   const { userId } = ctx.params
-  console.log(ctx.params)
   const convertTimestampToJson = (data)=>{
     const newData = {...data}
     if(data?.updatedAt){
