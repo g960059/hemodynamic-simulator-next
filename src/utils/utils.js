@@ -26,7 +26,7 @@ export const objectWithoutKey = (object, key) => {
   }
 }
 export const objectWithoutKeys = (object, keys) => {
-  const {...otherKeys} = object;
+  let {...otherKeys} = object;
   for(let key of keys){
     otherKeys = objectWithoutKey(otherKeys, key);
   }
