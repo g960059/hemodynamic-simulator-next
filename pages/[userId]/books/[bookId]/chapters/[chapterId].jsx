@@ -345,7 +345,7 @@ export const getStaticProps = async (ctx) => {
 }
 
 export const serialize = node => {
-  if(!Object.hasOwn(node,"type") && Object.hasOwn(node,"text")) {
+  if(!Object.prototype.hasOwnProperty.call(node,"type") && Object.prototype.hasOwnProperty.call(node,"text")) {
     let string = node.text
     if (node.bold) {
       string = <strong>{string}</strong>
