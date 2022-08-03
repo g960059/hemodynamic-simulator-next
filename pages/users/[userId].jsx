@@ -66,8 +66,10 @@ const useStyles = makeStyles((theme) =>({
 const UserSummary = ({uid,user,followers}) => {
   const classes = useStyles();
   const router = useRouter()
+  if (router.isFallback) {
+    return <div>Loading...</div>
+  }
   const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
-
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   // const [user, setUser] = useState();
   const [cases, setCases] = useState();
@@ -75,7 +77,6 @@ const UserSummary = ({uid,user,followers}) => {
   const [books, setBooks] = useState();
   const [followerDiff, setFollowerDiff] = useState(0);
   const [currentUser] = useAuthState(auth)
-
   const followedUser = useObservable("following"+uid, docData(doc(db,"followers",uid)));
   const isFollowing = followedUser.status="success" && followedUser.data?.users?.includes(auth.currentUser?.uid);
   const follow = async () => {
@@ -301,12 +302,12 @@ UserSummary.getLayout = (page) => {
 
 export default UserSummary;
 
-export const getStaticPaths= async () => {
-  return {
-    paths: [],
-    fallback: 'blocking',
-  };
-};
+// export const getStaticPaths= async () => {
+//   return {
+//     paths: [],
+//     fallback: true,
+//   };
+// };
 
 export const getStaticProps = async (ctx) => {
   const { userId } = ctx.params
@@ -332,6 +333,6 @@ export const getStaticProps = async (ctx) => {
   console.log(followers)
   return {
     props: {uid,user,followers},
-    revalidate: 1
+
   }
 }
