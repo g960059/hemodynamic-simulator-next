@@ -320,12 +320,16 @@ export const getStaticProps = async (ctx) => {
     }
     return newData
   }    
+  console.log(userId)
   const uidSnap = await getDoc(doc(db,'userIds',userId))
   const uid = uidSnap.data()?.uid
+  console.log(uid)
   const userSnap = await getDoc(doc(db,'users',uid))
   const user = {...convertTimestampToJson(userSnap.data()),uid}
+  console.log(user)
   const followersSnap = await getDoc(doc(db,'followers',uid))
   const followers = followersSnap.data().users
+  console.log(followers)
   return {
     props: {uid,user,followers},
     revalidate: 1
