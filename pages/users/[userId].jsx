@@ -302,15 +302,15 @@ UserSummary.getLayout = (page) => {
 
 export default UserSummary;
 
-// export const getStaticPaths= async () => {
-//   return {
-//     paths: [],
-//     fallback: true,
-//   };
-// };
+export const getStaticPaths= async () => {
+  return {
+    paths: [],
+    fallback: true,
+  };
+};
 
-export const getStaticProps = async (ctx) => {
-  const { userId } = ctx.params
+export const getStaticProps = async ({params}) => {
+  const { userId } = params
   const convertTimestampToJson = (data)=>{
     const newData = {...data}
     if(data?.updatedAt){
@@ -329,10 +329,9 @@ export const getStaticProps = async (ctx) => {
   const user = {...convertTimestampToJson(userSnap.data()),uid}
   console.log(user)
   const followersSnap = await getDoc(doc(db,'followers',uid))
-  const followers = followersSnap.data().users
+  const followers = followersSnap.data()?.users || []
   console.log(followers)
   return {
     props: {uid,user,followers},
-
   }
 }
