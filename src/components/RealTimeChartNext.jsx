@@ -166,7 +166,7 @@ const RealTimeChart = React.memo(({engine,initialView,setInitialView,removeView,
 
   const initSciChart = async () => {
     SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
-    SciChartSurface.configure( {
+    SciChartSurface.configure({
       dataUrl: "/scichart2d.data",
       wasmUrl: "/scichart2d.wasm"
     })
