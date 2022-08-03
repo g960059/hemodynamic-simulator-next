@@ -16,7 +16,8 @@ import { formatDateDiff } from '../../src/utils/utils';
 import { user$ } from '../../src/hooks/usePvLoop';
 import clsx from 'clsx';
 import { query } from 'firebase/database';
-import { useAuthState } from 'react-firebase-hooks/auth';
+import { useAuthState} from 'react-firebase-hooks/auth';
+import {useDocumentData} from "react-firebase-hooks/firestore"
 
 
 const useStyles = makeStyles((theme) =>({
@@ -61,15 +62,26 @@ const useStyles = makeStyles((theme) =>({
   }
 }),
 );
+  const convertTimestampToJson = (data)=>{
+    const newData = {...data}
+    if(data?.updatedAt){
+      newData.updatedAt = data.updatedAt.toJSON()
+    }
+    if(data?.createdAt){
+      newData.createdAt = data.createdAt.toJSON()
+    }
+    return newData
+  }    
 
-
-const UserSummary = ({uid,user,followers}) => {
+const UserSummary = ({uid}) => {
   const classes = useStyles();
   const router = useRouter()
-  if (router.isFallback) {
-    return <div>Loading...</div>
-  }
   const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
+
+  const [user] = useDocumentData(doc(db,'users',uid))
+  const [followersData] = useDocumentData(doc(db,'followers',uid))
+  const followers = followersData?.users
+
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   // const [user, setUser] = useState();
   const [cases, setCases] = useState();
@@ -77,6 +89,7 @@ const UserSummary = ({uid,user,followers}) => {
   const [books, setBooks] = useState();
   const [followerDiff, setFollowerDiff] = useState(0);
   const [currentUser] = useAuthState(auth)
+
   const followedUser = useObservable("following"+uid, docData(doc(db,"followers",uid)));
   const isFollowing = followedUser.status="success" && followedUser.data?.users?.includes(auth.currentUser?.uid);
   const follow = async () => {
@@ -305,33 +318,17 @@ export default UserSummary;
 export const getStaticPaths= async () => {
   return {
     paths: [],
-    fallback: true,
+    fallback: 'blocking',
   };
 };
 
-export const getStaticProps = async ({params}) => {
-  const { userId } = params
-  const convertTimestampToJson = (data)=>{
-    const newData = {...data}
-    if(data?.updatedAt){
-      newData.updatedAt = data.updatedAt.toJSON()
-    }
-    if(data?.createdAt){
-      newData.createdAt = data.createdAt.toJSON()
-    }
-    return newData
-  }    
-  console.log(userId)
+export const getStaticProps = async (ctx) => {
+  const { userId } = ctx.params
+
   const uidSnap = await getDoc(doc(db,'userIds',userId))
   const uid = uidSnap.data()?.uid
-  console.log(uid)
-  const userSnap = await getDoc(doc(db,'users',uid))
-  const user = {...convertTimestampToJson(userSnap.data()),uid}
-  console.log(user)
-  const followersSnap = await getDoc(doc(db,'followers',uid))
-  const followers = followersSnap.data()?.users || []
-  console.log(followers)
   return {
-    props: {uid,user,followers},
+    props: {uid},
+    revalidate: 1
   }
 }
