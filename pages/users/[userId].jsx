@@ -10,7 +10,7 @@ import {useObservable} from "reactfire"
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc, getDocs, arrayUnion, arrayRemove, where,} from 'firebase/firestore';
 import Layout from "../../src/components/layout"
 import { collectionData, docData } from 'rxfire/firestore';
-import { mergeMap, of } from 'rxjs';
+import { filter, map, mergeMap, of } from 'rxjs';
 import Image from 'next/image'
 import { formatDateDiff } from '../../src/utils/utils';
 import { user$ } from '../../src/hooks/usePvLoop';
@@ -18,7 +18,7 @@ import clsx from 'clsx';
 import { query } from 'firebase/database';
 import { useAuthState} from 'react-firebase-hooks/auth';
 import {useDocumentData} from "react-firebase-hooks/firestore"
-
+import { adminDB } from '../../src/utils/server';
 
 const useStyles = makeStyles((theme) =>({
   background: {
@@ -62,24 +62,11 @@ const useStyles = makeStyles((theme) =>({
   }
 }),
 );
-  const convertTimestampToJson = (data)=>{
-    const newData = {...data}
-    if(data?.updatedAt){
-      newData.updatedAt = data.updatedAt.toJSON()
-    }
-    if(data?.createdAt){
-      newData.createdAt = data.createdAt.toJSON()
-    }
-    return newData
-  }    
 
-const UserSummary = ({uid}) => {
+const UserSummary = ({uid,user,followers}) => {
   const classes = useStyles();
   const router = useRouter()
   const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
-  const [user] = useDocumentData(doc(db,'users',uid))
-  const [followersData] = useDocumentData(doc(db,'followers',uid))
-  const followers = followersData?.users
 
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   // const [user, setUser] = useState();
@@ -323,10 +310,24 @@ export const getStaticPaths= async () => {
 
 export const getStaticProps = async (ctx) => {
   const { userId } = ctx.params
-  const uidSnap = await getDoc(doc(db,'userIds',userId))
+  const convertTimestampToJson = (data)=>{
+    const newData = {...data}
+    if(data?.updatedAt){
+      newData.updatedAt = data.updatedAt?.toMillis()
+    }
+    if(data?.createdAt){
+      newData.createdAt = data.createdAt?.toMillis()
+    }
+    return newData
+  }    
+  const uidSnap = await adminDB.collection("userIds").doc(userId).get()
   const uid = uidSnap.data()?.uid
+  const userSnap = await adminDB.collection("users").doc(uid).get()
+  const user = {...convertTimestampToJson(userSnap.data()),uid}
+  const followersSnap = await adminDB.collection("followers").doc(uid).get()
+  const followers = followersSnap.data().users
   return {
-    props: {uid},
+    props: {uid,user,followers},
     revalidate: 1
   }
 }
