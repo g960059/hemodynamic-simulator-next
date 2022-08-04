@@ -77,7 +77,6 @@ const UserSummary = ({uid}) => {
   const classes = useStyles();
   const router = useRouter()
   const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
-
   const [user] = useDocumentData(doc(db,'users',uid))
   const [followersData] = useDocumentData(doc(db,'followers',uid))
   const followers = followersData?.users
@@ -324,7 +323,6 @@ export const getStaticPaths= async () => {
 
 export const getStaticProps = async (ctx) => {
   const { userId } = ctx.params
-
   const uidSnap = await getDoc(doc(db,'userIds',userId))
   const uid = uidSnap.data()?.uid
   return {

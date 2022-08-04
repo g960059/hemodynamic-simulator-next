@@ -7,7 +7,7 @@ import 'firebase/compat/auth';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 import { connectStorageEmulator, getStorage } from 'firebase/storage';
 
-let firebaseConfig = {
+export let firebaseConfig = {
   apiKey: "AIzaSyDunS6i7doodnUGU1w-XrGEDmOzCFflyWY",
   authDomain: "hemodynamic-simulator.firebaseapp.com",
   projectId: "hemodynamic-simulator",
@@ -17,18 +17,17 @@ let firebaseConfig = {
   measurementId: "${config.measurementId}"
 };
 
-if (process.env.NEXT_PUBLIC_ENV != "production"){
-  firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_PROJECT_ID,
-    projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_APP_ID,
-    measurementId: "${config.measurementId}"
-  }
-}
-
+// if (process.env.NEXT_PUBLIC_ENV != "production"){
+  // firebaseConfig = {
+  //   apiKey: process.env.NEXT_PUBLIC_API_KEY,
+  //   authDomain: process.env.NEXT_PUBLIC_PROJECT_ID,
+  //   projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
+  //   storageBucket: process.env.NEXT_PUBLIC_STORAGE_BUCKET,
+  //   messagingSenderId: process.env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
+  //   appId: process.env.NEXT_PUBLIC_APP_ID,
+  //   measurementId: "${config.measurementId}"
+  // }
+// }
 
 const uiConfig = {
   signInFlow: 'popup',
@@ -51,16 +50,17 @@ export const db = getFirestore(app);
 export const functions = getFunctions(app)
 export const storage = getStorage(app)
 
-const EMULATORS_STARTED = 'EMULATORS_STARTED';
-if (process.env.NEXT_PUBLIC_ENV == 'test' && !global[EMULATORS_STARTED]){
-  global[EMULATORS_STARTED] = true;
-  connectFirestoreEmulator(db,"localhost",8084);
-  connectFunctionsEmulator(functions, "localhost", 5001);
-  connectAuthEmulator(auth, "http://localhost:9099",{disableWarnings: true});
-  connectStorageEmulator(storage, "localhost", 9199);
-}
+// const EMULATORS_STARTED = 'EMULATORS_STARTED';
+// if (process.env.NEXT_PUBLIC_ENV == 'test' && !global[EMULATORS_STARTED]){
+//   global[EMULATORS_STARTED] = true;
+//   connectFirestoreEmulator(db,"localhost",8084);
+//   connectFunctionsEmulator(functions, "localhost", 5001);
+//   connectAuthEmulator(auth, "http://localhost:9099",{disableWarnings: true});
+//   connectStorageEmulator(storage, "localhost", 9199);
+// }
 
 
 export const StyledAuth = () => {
   return <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={auth} />
 }
+
