@@ -5,20 +5,20 @@ import {Twitter,Facebook, Link as LinkIcon,FavoriteBorder} from "@mui/icons-mate
 import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
 import Footer from "../../src/components/Footer"
-// import {auth,db} from '../../src/utils/firebase'
-// import {useObservable} from "reactfire"
-// import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc, getDocs, arrayUnion, arrayRemove, where,} from 'firebase/firestore';
-// import Layout from "../../src/components/layout"
-// import { collectionData, docData } from 'rxfire/firestore';
-// import { filter, map, mergeMap, of } from 'rxjs';
-// import Image from 'next/image'
-// import { formatDateDiff } from '../../src/utils/utils';
-// import { user$ } from '../../src/hooks/usePvLoop';
-// import clsx from 'clsx';
-// import { query } from 'firebase/database';
-// import { useAuthState} from 'react-firebase-hooks/auth';
-// import {useDocumentData} from "react-firebase-hooks/firestore"
-// import { adminDB } from '../../src/utils/server';
+import {auth,db} from '../../src/utils/firebase'
+import {useObservable} from "reactfire"
+import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc, getDocs, arrayUnion, arrayRemove, where,} from 'firebase/firestore';
+import Layout from "../../src/components/layout"
+import { collectionData, docData } from 'rxfire/firestore';
+import { filter, map, mergeMap, of } from 'rxjs';
+import Image from 'next/image'
+import { formatDateDiff } from '../../src/utils/utils';
+import { user$ } from '../../src/hooks/usePvLoop';
+import clsx from 'clsx';
+import { query } from 'firebase/database';
+import { useAuthState} from 'react-firebase-hooks/auth';
+import {useDocumentData} from "react-firebase-hooks/firestore"
+import { adminDB } from '../../src/utils/server';
 
 const useStyles = makeStyles((theme) =>({
   background: {
@@ -292,13 +292,13 @@ function UserSummary({stars}){
   // </>
 }
 
-// UserSummary.getLayout = (page) => {
-//   return (
-//     <Layout>
-//       {page}
-//     </Layout>
-//   )
-// }
+UserSummary.getLayout = (page) => {
+  return (
+    <Layout>
+      {page}
+    </Layout>
+  )
+}
 
 export async function getStaticPaths() {
   return { paths:[], fallback: 'blocking' };
