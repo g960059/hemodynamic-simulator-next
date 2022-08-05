@@ -18,7 +18,7 @@ import clsx from 'clsx';
 import { query } from 'firebase/database';
 import { useAuthState} from 'react-firebase-hooks/auth';
 import {useDocumentData} from "react-firebase-hooks/firestore"
-import { adminDB } from '../../src/utils/server';
+// import { adminDB } from '../../src/utils/server';
 
 const useStyles = makeStyles((theme) =>({
   background: {
@@ -310,24 +310,25 @@ export const getStaticPaths= async () => {
 
 export const getStaticProps = async (ctx) => {
   const { userId } = ctx.params
-  const convertTimestampToJson = (data)=>{
-    const newData = {...data}
-    if(data?.updatedAt){
-      newData.updatedAt = data.updatedAt?.toMillis()
-    }
-    if(data?.createdAt){
-      newData.createdAt = data.createdAt?.toMillis()
-    }
-    return newData
-  }    
-  const uidSnap = await adminDB.collection("userIds").doc(userId).get()
-  const uid = uidSnap.data()?.uid
+  // const convertTimestampToJson = (data)=>{
+  //   const newData = {...data}
+  //   if(data?.updatedAt){
+  //     newData.updatedAt = data.updatedAt?.toMillis()
+  //   }
+  //   if(data?.createdAt){
+  //     newData.createdAt = data.createdAt?.toMillis()
+  //   }
+  //   return newData
+  // }    
+  // const uidSnap = await adminDB.collection("userIds").doc(userId).get()
+  // const uid = uidSnap.data()?.uid
+
   // const userSnap = await adminDB.collection("users").doc(uid).get()
   // const user = {...convertTimestampToJson(userSnap.data()),uid}
   // const followersSnap = await adminDB.collection("followers").doc(uid).get()
   // const followers = followersSnap.data().users
   return {
-    props: {uid: "T1cEzM1V6fNdzMrRp00j2U7b2CB2"},
+    props: {uid: userId},
     revalidate: 1
   }
 }
