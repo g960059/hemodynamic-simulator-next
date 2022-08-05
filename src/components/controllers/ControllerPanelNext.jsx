@@ -11,7 +11,6 @@ import {Refresh,Delete,EditOutlined,ChevronRight,Add,DragIndicator,NavigateNext,
 import ReactiveInput from "../ReactiveInput";
 import DeleteMenuItemWithDialog from "../DeleteMenuItemWithDialog";
 import { useImmer } from "use-immer";
-import 'emoji-mart/css/emoji-mart.css'
 import { nanoid } from 'nanoid';
 import produce from "immer"
 
