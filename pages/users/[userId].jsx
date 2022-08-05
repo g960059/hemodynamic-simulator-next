@@ -66,7 +66,7 @@ import Footer from "../../src/components/Footer"
 function UserSummary({stars}){
   // const classes = useStyles();
   // const router = useRouter()
-  const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
+  // const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
   
   return <p>{stars}</p>
   // const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
