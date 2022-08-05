@@ -323,7 +323,6 @@ export const getStaticProps = async (ctx) => {
   // const followers = followersSnap.data().users
   return {
     props: {uid: "userId"},
-    revalidate: 1
   }
 }
 
