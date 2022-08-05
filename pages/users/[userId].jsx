@@ -1,10 +1,10 @@
 import React,{ useEffect, useRef,useState,useCallback}  from 'react'
-// import {Box, Grid, Typography, Divider,Button,Stack, Tab,Avatar, useMediaQuery,NoSsr} from '@mui/material'
-// import {TabContext,TabList,TabPanel} from '@mui/lab';
-// import {Twitter,Facebook, Link as LinkIcon,FavoriteBorder} from "@mui/icons-material"
-// import { makeStyles} from '@mui/styles';
-// import { useRouter } from 'next/router'
-// import Footer from "../../src/components/Footer"
+import {Box, Grid, Typography, Divider,Button,Stack, Tab,Avatar, useMediaQuery,NoSsr} from '@mui/material'
+import {TabContext,TabList,TabPanel} from '@mui/lab';
+import {Twitter,Facebook, Link as LinkIcon,FavoriteBorder} from "@mui/icons-material"
+import { makeStyles} from '@mui/styles';
+import { useRouter } from 'next/router'
+import Footer from "../../src/components/Footer"
 // import {auth,db} from '../../src/utils/firebase'
 // import {useObservable} from "reactfire"
 // import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc, getDocs, arrayUnion, arrayRemove, where,} from 'firebase/firestore';
@@ -20,53 +20,53 @@ import React,{ useEffect, useRef,useState,useCallback}  from 'react'
 // import {useDocumentData} from "react-firebase-hooks/firestore"
 // import { adminDB } from '../../src/utils/server';
 
-// const useStyles = makeStyles((theme) =>({
-//   background: {
-//     position: "fixed",
-//     zIndex: -1,
-//     top: "0px",
-//     left: "0px",
-//     width: "100%",
-//     overflow: "hidden",
-//     transform: "translate3d(0px, 0px, 0px)",
-//     height: "-webkit-fill-available",
-//     background: "white",
-//     opacity: 1,
-//     userSelect: "none",
-//     pointerEvents: "none"
-//   },
-//   featuredBox: {
-//     transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-//     color: "rgb(69, 90, 100)",
-//     boxShadow: "rgb(0 0 0 / 10%) 0px 2px 4px -2px",
-//     backgroundColor: "white",
-//     border: "1px solid rgba(92, 147, 187, 0.17)",
-//     borderRadius: "12px",
-//   },
-//   bookCover: {
-//     boxShadow: "-6px 6px 10px -2px #001b4440, 0 0 3px #8f9aaf1a",
-//     position: "relative",
-//     maxWidth: "100%",
-//     width: "100px",
-//     height: "140px",
-//     "&::after": {
-//       bottom: 0,
-//       content: '""',
-//       height: "100%",
-//       left: "0",
-//       position: "absolute",
-//       width: "100%",
-//       borderRadius: "5px",
-//       background: "linear-gradient(-90deg,#fff0,#ffffff1a 80%,#ffffff4d 95%,#fff6 96.5%,#cbcbcb14 98%,#6a6a6a1a)",
-//     }
-//   }
-// }),
-// );
+const useStyles = makeStyles((theme) =>({
+  background: {
+    position: "fixed",
+    zIndex: -1,
+    top: "0px",
+    left: "0px",
+    width: "100%",
+    overflow: "hidden",
+    transform: "translate3d(0px, 0px, 0px)",
+    height: "-webkit-fill-available",
+    background: "white",
+    opacity: 1,
+    userSelect: "none",
+    pointerEvents: "none"
+  },
+  featuredBox: {
+    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+    color: "rgb(69, 90, 100)",
+    boxShadow: "rgb(0 0 0 / 10%) 0px 2px 4px -2px",
+    backgroundColor: "white",
+    border: "1px solid rgba(92, 147, 187, 0.17)",
+    borderRadius: "12px",
+  },
+  bookCover: {
+    boxShadow: "-6px 6px 10px -2px #001b4440, 0 0 3px #8f9aaf1a",
+    position: "relative",
+    maxWidth: "100%",
+    width: "100px",
+    height: "140px",
+    "&::after": {
+      bottom: 0,
+      content: '""',
+      height: "100%",
+      left: "0",
+      position: "absolute",
+      width: "100%",
+      borderRadius: "5px",
+      background: "linear-gradient(-90deg,#fff0,#ffffff1a 80%,#ffffff4d 95%,#fff6 96.5%,#cbcbcb14 98%,#6a6a6a1a)",
+    }
+  }
+}),
+);
 
 function UserSummary({stars}){
-  // const classes = useStyles();
-  // const router = useRouter()
-  // const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
+  const classes = useStyles();
+  const router = useRouter()
+  const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
   
   return <p>{stars}</p>
   // const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
