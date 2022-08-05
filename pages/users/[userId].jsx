@@ -1,9 +1,9 @@
 import React,{ useEffect, useRef,useState,useCallback}  from 'react'
 import {Box, Grid, Typography, Divider,Button,Stack, Tab,Avatar, useMediaQuery,NoSsr} from '@mui/material'
-import {TabContext,TabList,TabPanel} from '@mui/lab';
+// import {TabContext,TabList,TabPanel} from '@mui/lab';
 import {Twitter,Facebook, Link as LinkIcon,FavoriteBorder} from "@mui/icons-material"
 import { makeStyles} from '@mui/styles';
-import { useRouter } from 'next/router'
+// import { useRouter } from 'next/router'
 import Footer from "../../src/components/Footer"
 // import {auth,db} from '../../src/utils/firebase'
 // import {useObservable} from "reactfire"
@@ -65,7 +65,7 @@ const useStyles = makeStyles((theme) =>({
 
 function UserSummary({stars}){
   const classes = useStyles();
-  const router = useRouter()
+  // const router = useRouter()
   const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
   
   return <p>{stars}</p>
