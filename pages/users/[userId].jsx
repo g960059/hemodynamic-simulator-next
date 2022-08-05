@@ -63,11 +63,11 @@ const useStyles = makeStyles((theme) =>({
 }),
 );
 
-const UserSummary = () => {
+const UserSummary = ({uid}) => {
   const classes = useStyles();
   const router = useRouter()
   const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
-  return <p>test</p>
+  return <p>{uid}</p>
   // const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   // // const [user, setUser] = useState();
   // const [cases, setCases] = useState();
@@ -301,15 +301,15 @@ UserSummary.getLayout = (page) => {
 
 export default UserSummary;
 
-// export const getStaticPaths= async () => {
-//   return {
-//     paths: [],
-//     fallback: 'blocking',
-//   };
-// };
+export const getStaticPaths= async () => {
+  return {
+    paths: [],
+    fallback: 'blocking',
+  };
+};
 
-// export const getStaticProps = async (ctx) => {
-//   const { userId } = ctx.params
+export const getStaticProps = async (ctx) => {
+  const { userId } = ctx.params
   // const convertTimestampToJson = (data)=>{
   //   const newData = {...data}
   //   if(data?.updatedAt){
@@ -327,8 +327,8 @@ export default UserSummary;
   // const user = {...convertTimestampToJson(userSnap.data()),uid}
   // const followersSnap = await adminDB.collection("followers").doc(uid).get()
   // const followers = followersSnap.data().users
-//   return {
-//     props: {uid: userId},
-//     revalidate: 1
-//   }
-// }
+  return {
+    props: {uid: userId},
+    revalidate: 1
+  }
+}
