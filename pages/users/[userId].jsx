@@ -327,7 +327,7 @@ export const getStaticProps = async (ctx) => {
   // const followersSnap = await adminDB.collection("followers").doc(uid).get()
   // const followers = followersSnap.data().users
   return {
-    props: {uid},
+    props: {uid: "T1cEzM1V6fNdzMrRp00j2U7b2CB2"},
     revalidate: 1
   }
 }
