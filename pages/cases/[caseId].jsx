@@ -1,5 +1,5 @@
 import React, {useRef, useState, useEffect} from 'react'
-import {Box,Typography,Grid,Tab,Tabs, Divider,AppBar,Tooltip, Toolbar,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery} from '@mui/material'
+import {Box,Typography,Grid,Tab,Tabs, Divider,AppBar,Tooltip, Toolbar,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery, NoSsr} from '@mui/material'
 import {ArrowBack,Add,Check,Tune,FavoriteBorder,DragIndicator} from '@mui/icons-material';
 import Masonry from '@mui/lab/Masonry';
 import {useEngine, user$,cases$, allCases$} from '../../src/hooks/usePvLoop'
@@ -127,6 +127,9 @@ const useStyles = makeStyles((theme) =>(
 
 
 const App = () => {
+  if (typeof window == "undefined") {
+    return <p>loading</p>
+  }
   const classes = useStyles();
   const t = useTranslation();
   const router = useRouter()
