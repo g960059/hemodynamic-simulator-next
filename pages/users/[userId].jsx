@@ -1,4 +1,4 @@
-function Blog({ starts }) {
+function Blog({ stars }) {
   return (
     <p>{stars}</p>
   )
