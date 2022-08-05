@@ -1,10 +1,6 @@
-function Blog({ posts }) {
+function Blog({ starts }) {
   return (
-    <ul>
-      {posts.map((post) => (
-        <li>{post.title}</li>
-      ))}
-    </ul>
+    <p>{stars}</p>
   )
 }
 export async function getStaticPaths() {
@@ -17,14 +13,11 @@ export async function getStaticPaths() {
 // クライアント側では呼び出されないので、
 // 直接データベースクエリを実行できます。
 export async function getStaticProps() {
-  // posts を取得するために外部 API をコールします。
-  // どんなデータ取得ライブラリでも使用できます。
-
-  // { props: { posts } } を返すことで、Blog コンポーネントはビルド時に
-  // `posts` を prop として受け取ります。
+  const res = await fetch('https://api.github.com/repos/zeit/next.js')
+  const json = await res.json()
   return {
     props: {
-      posts:[{title:'test'}],
+      stars: json.stargazers_count,
     },
   }
 }
