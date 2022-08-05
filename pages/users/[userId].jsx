@@ -67,6 +67,7 @@ const UserSummary = ({uid}) => {
   const classes = useStyles();
   const router = useRouter()
   const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
+  
   return <p>{uid}</p>
   // const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   // // const [user, setUser] = useState();
@@ -328,7 +329,7 @@ export const getStaticProps = async (ctx) => {
   // const followersSnap = await adminDB.collection("followers").doc(uid).get()
   // const followers = followersSnap.data().users
   return {
-    props: {uid: userId},
+    props: {uid: "T1cEzM1V6fNdzMrRp00j2U7b2CB2"},
     revalidate: 1
   }
 }
