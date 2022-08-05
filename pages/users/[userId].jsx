@@ -292,15 +292,8 @@ const UserSummary = ({uid}) => {
   // </>
 }
 
-UserSummary.getLayout = (page) => {
-  return (
-    <Layout>
-      {page}
-    </Layout>
-  )
-}
 
-export default UserSummary;
+
 
 export const getStaticPaths= async () => {
   return {
@@ -329,7 +322,9 @@ export const getStaticProps = async (ctx) => {
   // const followersSnap = await adminDB.collection("followers").doc(uid).get()
   // const followers = followersSnap.data().users
   return {
-    props: {uid: "T1cEzM1V6fNdzMrRp00j2U7b2CB2"},
+    props: {uid: "userId"},
     revalidate: 1
   }
 }
+
+export default UserSummary;
