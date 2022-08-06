@@ -1,6 +1,6 @@
 import React,{ useEffect, useRef,useState,useCallback}  from 'react'
 import {Box, Grid, Typography, Divider,Button,Stack, Tab,Avatar, useMediaQuery,NoSsr} from '@mui/material'
-// import {TabContext,TabList,TabPanel} from '@mui/lab';
+import {TabContext,TabList,TabPanel} from '@mui/lab';
 import {Twitter,Facebook, Link as LinkIcon,FavoriteBorder} from "@mui/icons-material"
 import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
@@ -63,12 +63,12 @@ const useStyles = makeStyles((theme) =>({
 }),
 );
 
-function UserSummary({stars}){
+function UserSummary({userId}){
   const classes = useStyles();
   const router = useRouter()
   // const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
   
-  return <p>{stars}</p>
+  return <p>{userId}</p>
   // const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   // // const [user, setUser] = useState();
   // const [cases, setCases] = useState();
@@ -304,39 +304,30 @@ export async function getStaticPaths() {
   return { paths:[], fallback: 'blocking' };
 }
 
-// export const getStaticProps = async (ctx) => {
-//   const { userId } = ctx.params
-//   // const convertTimestampToJson = (data)=>{
-//   //   const newData = {...data}
-//   //   if(data?.updatedAt){
-//   //     newData.updatedAt = data.updatedAt?.toMillis()
-//   //   }
-//   //   if(data?.createdAt){
-//   //     newData.createdAt = data.createdAt?.toMillis()
-//   //   }
-//   //   return newData
-//   // }    
-//   // const uidSnap = await adminDB.collection("userIds").doc(userId).get()
-//   // const uid = uidSnap.data()?.uid
+export const getStaticProps = async (ctx) => {
+  const { userId } = ctx.params
+  // const convertTimestampToJson = (data)=>{
+  //   const newData = {...data}
+  //   if(data?.updatedAt){
+  //     newData.updatedAt = data.updatedAt?.toMillis()
+  //   }
+  //   if(data?.createdAt){
+  //     newData.createdAt = data.createdAt?.toMillis()
+  //   }
+  //   return newData
+  // }    
+  // const uidSnap = await adminDB.collection("userIds").doc(userId).get()
+  // const uid = uidSnap.data()?.uid
 
-//   // const userSnap = await adminDB.collection("users").doc(uid).get()
-//   // const user = {...convertTimestampToJson(userSnap.data()),uid}
-//   // const followersSnap = await adminDB.collection("followers").doc(uid).get()
-//   // const followers = followersSnap.data().users
-//   return {
-//     props: {uid: "userId"},
-//     revalidate: 1
-//   }
-// }
-
-export async function getStaticProps() {
-  const res = await fetch('https://api.github.com/repos/zeit/next.js')
-  const json = await res.json()
+  // const userSnap = await adminDB.collection("users").doc(uid).get()
+  // const user = {...convertTimestampToJson(userSnap.data()),uid}
+  // const followersSnap = await adminDB.collection("followers").doc(uid).get()
+  // const followers = followersSnap.data().users
   return {
-    props: {
-      stars: json.stargazers_count,
-    },
+    props: {uid: userId},
+    revalidate: 1
   }
 }
+
 
 export default UserSummary;
