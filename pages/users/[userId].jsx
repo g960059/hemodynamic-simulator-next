@@ -63,12 +63,12 @@ const useStyles = makeStyles((theme) =>({
 }),
 );
 
-function UserSummary({userId}){
+function UserSummary({uid}){
   const classes = useStyles();
   const router = useRouter()
   // const [tabValue, setTabValue] = useState(router.query?.tabValue || "account");
   
-  return <p>{userId}</p>
+  return <p>{uid}</p>
   // const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   // // const [user, setUser] = useState();
   // const [cases, setCases] = useState();
@@ -305,7 +305,7 @@ export async function getStaticPaths() {
 }
 
 export const getStaticProps = async (ctx) => {
-  const { userId } = ctx.params
+  const {userId} = ctx.params
   // const convertTimestampToJson = (data)=>{
   //   const newData = {...data}
   //   if(data?.updatedAt){
@@ -324,7 +324,7 @@ export const getStaticProps = async (ctx) => {
   // const followersSnap = await adminDB.collection("followers").doc(uid).get()
   // const followers = followersSnap.data().users
   return {
-    props: {uid: userId},
+    props: {uid:userId},
     revalidate: 1
   }
 }
