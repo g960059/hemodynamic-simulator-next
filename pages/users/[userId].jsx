@@ -304,7 +304,7 @@ export async function getStaticPaths() {
   return { paths:[], fallback: 'blocking' };
 }
 
-export const getStaticProps = async (ctx) => {
+export async function getStaticProps(ctx) {
   const {userId} = ctx.params
   // const convertTimestampToJson = (data)=>{
   //   const newData = {...data}
@@ -325,9 +325,9 @@ export const getStaticProps = async (ctx) => {
   // const followers = followersSnap.data().users
   return {
     props: {uid:userId},
-    revalidate: 1
   }
 }
+
 
 
 export default UserSummary;
