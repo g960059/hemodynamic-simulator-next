@@ -571,7 +571,7 @@ export const CaseEmbedButtton = () => {
                 <Typography variant="caption" sx={{color:"#6e7b85"}}>{formatDateDiff(new Date(),c.updatedAt?.toDate()) + (isEqual(c.updatedAt,c.createdAt) ? "に作成":"に更新")}</Typography>
               </Stack>
               <div style={{flexGrow:1}}/>
-              <button className="btn-neumorphic" onClick={()=>{insertMediaEmbed(editor, { url:`http://localhost:3000/embed/${c.id}`,key:ELEMENT_CASE_EMBED});handleClose()}}>挿入</button>
+              <button className="btn-neumorphic" onClick={()=>{insertMediaEmbed(editor, { url:`${c.id}`,key:ELEMENT_CASE_EMBED});handleClose()}}>挿入</button>
             </Stack>
           ))}
         </Stack>

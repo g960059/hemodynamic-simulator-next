@@ -127,7 +127,7 @@ const ArticleReader = () => {
   const articleId$ = of(router.query.articleId).pipe(filter(Boolean))
   const {data:article} = useObservable(`article_${router.query.userId}_${router.query.articleId}`,combineLatest(uid$,articleId$).pipe(
     filter(x=>x[0]&&x[1]),
-    mergeMap(([uid,articleId])=>docData(doc(db,'users',uid,'articles',articleId))),
+    mergeMap(([uid,articleId])=>docData(doc(db,'users',uid,'articles',articleId),{idField: "id"})),
   ));
   const {data:user} = useObservable(`user_${router.query.userId}`,user$);
   const {data:followers} = useObservable(`followedUser_${router.query.userId}`,uid$.pipe(
@@ -154,29 +154,30 @@ const ArticleReader = () => {
   const heart = useObservable('/articles/'+article?.id+'/heart', user$.pipe(
     mergeMap(currentUser => docData(doc(db,'users',user?.uid,'articles',article?.id,'hearts',currentUser?.uid))))
   ) 
-  const addHeart = useCallback(async () => {
-    const uid = auth.currentUser?.uid
-    if(!uid) return
+  const addHeart =async () => {
+    const currentUid = auth.currentUser?.uid
+    if(!currentUid) return
     const batch = writeBatch(db);
+    console.log(user,article)
     batch.update(doc(db,`users/${user?.uid}/articles/${article?.id}`),{heartCount:increment(1)})
     batch.update(doc(db,`users/${user?.uid}`),{articleHeartCount:increment(1)})
-    batch.set(doc(db,`users/${user?.uid}/articles/${article?.id}/hearts/${uid}`),{uid})
-    batch.set(doc(db, `users/${uid}/favorites/${article?.id}`),{articleId:article?.id,type:"article",authorId:user?.uid, timestamp: serverTimestamp()})
+    batch.set(doc(db,`users/${user?.uid}/articles/${article?.id}/hearts/${currentUid}`),{uid:currentUid})
+    batch.set(doc(db, `users/${currentUid}/favorites/${article?.id}`),{articleId:article?.id,type:"article",authorId:user?.uid, timestamp: serverTimestamp()})
     await batch.commit()
     setHeartDiff(prev=>prev+1);
-  },[article?.id])
+  }
 
-  const removeHeart = useCallback(async () => {
-    const uid = auth.currentUser?.uid
-    if(!uid) return
+  const removeHeart =async () => {
+    const currentUid = auth.currentUser?.uid
+    if(!currentUid) return
     const batch = writeBatch(db);
     batch.update(doc(db,`users/${user?.uid}/articles/${article?.id}`),{heartCount:increment(-1)})
     batch.update(doc(db,`users/${user?.uid}`),{articleHeartCount:increment(-1)})
-    batch.delete(doc(db,`users/${user?.uid}/articles/${article?.id}/hearts/${uid}`))
-    batch.delete(doc(db, `users/${uid}/favorites/${article?.id}`))
+    batch.delete(doc(db,`users/${user?.uid}/articles/${article?.id}/hearts/${currentUid}`))
+    batch.delete(doc(db, `users/${currentUid}/favorites/${article?.id}`))
     await batch.commit()
     setHeartDiff(prev=>prev-1);
-  },[article?.id])
+  }
 
   useEffect(() => {
     tocbot.init({
@@ -211,11 +212,11 @@ const ArticleReader = () => {
               }
               <Stack direction="row" justifyContent="center" mt={5}>
                 <Stack direction="row" >
-                  {heart.status=="success" && 
+                  { 
                     (heart.data ? <IconButton onClick={removeHeart} className={classes.favoritedButton} sx={{}}><Favorite sx={{width:"33px"}}/></IconButton>
                     : <IconButton onClick={addHeart} className={classes.faintNeumoButton}><FavoriteBorder sx={{width:"33px"}}/></IconButton>)
                   }
-                  <Typography variant="subtitle1" sx={{margin:"auto 0px auto 8px"}} color="secondary">{article.heartCount +heartDiff}</Typography>
+                  {/* <Typography variant="subtitle1" sx={{margin:"auto 0px auto 8px"}} color="secondary">{article.heartCount +heartDiff}</Typography> */}
                 </Stack>
                 <div style={{flexGrow:1}}/>
                 <IconButton className={classes.faintNeumoBlackButton} sx={{backgroundColor:"transparent !important"}}><ExpandMore fontSize='large'/></IconButton>
@@ -346,7 +347,7 @@ export const serialize = node => {
         <iframe
           style={{position: "absolute",top: 0,left: 0, width: "100%",height: "100%",border:0,borderRadius:8,overflow:"scroll",border:"1px solid #5c93bb2b"}}
           title="embed"
-          src={`${node.url}`}
+          src={`${NEXT_PUBLIC_HOST}/embed/${node.url}`}
         />
       </Box>
     default:
