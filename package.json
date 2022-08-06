@@ -19,6 +19,7 @@
     "date-fns": "^2.29.1",
     "emoji-mart": "^5.2.0",
     "firebase": "^9.9.2",
+    "firebase-admin": "^11.0.1",
     "immer": "^9.0.15",
     "lodash": "^4.17.21",
     "markdown-to-jsx": "^7.1.7",
