@@ -11,10 +11,9 @@ import {format} from "date-fns";
 import {TwitterTweetEmbed } from 'react-twitter-embed';
 import tocbot from 'tocbot'
 import clsx from 'clsx';
-import { user$ } from '../../../src/hooks/usePvLoop';
 import { useObservable } from 'reactfire';
 import { docData } from 'rxfire/firestore';
-import {  mergeMap} from 'rxjs';
+import {  combineLatest, filter, map, mergeMap, mergeMapTo, of, zip} from 'rxjs';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { nanoid } from 'nanoid';
 
@@ -109,54 +108,75 @@ const useStyles = makeStyles((theme) =>({
 );
 
 
-const ArticleReader = ({article,user}) => {
+const ArticleReader = () => {
   const classes = useStyles();
   const router = useRouter()
   const [heartDiff, setHeartDiff] = useState(0);
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const [followerDiff, setFollowerDiff] = useState(0);
 
-  const followedUser = useObservable("following"+user.uid, docData(doc(db,"followers",user.uid)));
-  const isFollowing = followedUser.status="success" && followedUser.data?.users?.includes(auth.currentUser?.uid);
+  const uid$ = of(router.query.userId).pipe(
+    filter(Boolean),
+    mergeMap(userId=> docData(doc(db,'userIds',userId))),
+    map(user => user?.uid)
+  );
+  const user$= uid$.pipe(
+    filter(Boolean),
+    mergeMap(uid=>docData(doc(db,'users',uid))),
+  )
+  const articleId$ = of(router.query.articleId).pipe(filter(Boolean))
+  const {data:article} = useObservable(`article_${router.query.userId}_${router.query.articleId}`,combineLatest(uid$,articleId$).pipe(
+    filter(x=>x[0]&&x[1]),
+    mergeMap(([uid,articleId])=>docData(doc(db,'users',uid,'articles',articleId))),
+  ));
+  const {data:user} = useObservable(`user_${router.query.userId}`,user$);
+  const {data:followers} = useObservable(`followedUser_${router.query.userId}`,uid$.pipe(
+    filter(Boolean),
+    mergeMap(uid=>docData(doc(db,'followers',uid))),
+    map(followers => followers.users)
+  ));
+
+  const isFollowing = followers?.includes(auth.currentUser?.uid);
   const follow = async () => {
-    if(!followedUser.data?.users){
-      await setDoc(doc(db,"followers",user.uid),{users: [auth.currentUser?.uid]})
+    if(!followers){
+      await setDoc(doc(db,"followers",user?.uid),{users: [auth.currentUser?.uid]})
     }else{
-      await updateDoc(doc(db,"followers",user.uid),{users: arrayUnion(auth.currentUser?.uid)})
+      await updateDoc(doc(db,"followers",user?.uid),{users: arrayUnion(auth.currentUser?.uid)})
     }
     setFollowerDiff(followerDiff+1)
   }
   const unfollow = async () => {
-    await updateDoc(doc(db,"followers",user.uid),{users: arrayRemove(auth.currentUser?.uid)})
+    await updateDoc(doc(db,"followers",user?.uid),{users: arrayRemove(auth.currentUser?.uid)})
     setFollowerDiff(followerDiff-1)
   }
 
-  const heart = useObservable('/articles/'+article.id+'/heart', user$.pipe(
-    mergeMap(currentUser => docData(doc(db,'users',user.uid,'articles',article.id,'hearts',currentUser.uid))))
+
+  const heart = useObservable('/articles/'+article?.id+'/heart', user$.pipe(
+    mergeMap(currentUser => docData(doc(db,'users',user?.uid,'articles',article?.id,'hearts',currentUser?.uid))))
   ) 
   const addHeart = useCallback(async () => {
     const uid = auth.currentUser?.uid
     if(!uid) return
     const batch = writeBatch(db);
-    batch.update(doc(db,`users/${user.uid}/articles/${article.id}`),{heartCount:increment(1)})
-    batch.update(doc(db,`users/${user.uid}`),{articleHeartCount:increment(1)})
-    batch.set(doc(db,`users/${user.uid}/articles/${article.id}/hearts/${uid}`),{uid})
-    batch.set(doc(db, `users/${uid}/favorites/${article.id}`),{articleId:article.id,type:"article",authorId:user.uid, timestamp: serverTimestamp()})
+    batch.update(doc(db,`users/${user?.uid}/articles/${article?.id}`),{heartCount:increment(1)})
+    batch.update(doc(db,`users/${user?.uid}`),{articleHeartCount:increment(1)})
+    batch.set(doc(db,`users/${user?.uid}/articles/${article?.id}/hearts/${uid}`),{uid})
+    batch.set(doc(db, `users/${uid}/favorites/${article?.id}`),{articleId:article?.id,type:"article",authorId:user?.uid, timestamp: serverTimestamp()})
     await batch.commit()
     setHeartDiff(prev=>prev+1);
-  },[article.id])
+  },[article?.id])
 
   const removeHeart = useCallback(async () => {
     const uid = auth.currentUser?.uid
     if(!uid) return
     const batch = writeBatch(db);
-    batch.update(doc(db,`users/${user.uid}/articles/${article.id}`),{heartCount:increment(-1)})
-    batch.update(doc(db,`users/${user.uid}`),{articleHeartCount:increment(-1)})
-    batch.delete(doc(db,`users/${user.uid}/articles/${article.id}/hearts/${uid}`))
-    batch.delete(doc(db, `users/${uid}/favorites/${article.id}`))
+    batch.update(doc(db,`users/${user?.uid}/articles/${article?.id}`),{heartCount:increment(-1)})
+    batch.update(doc(db,`users/${user?.uid}`),{articleHeartCount:increment(-1)})
+    batch.delete(doc(db,`users/${user?.uid}/articles/${article?.id}/hearts/${uid}`))
+    batch.delete(doc(db, `users/${uid}/favorites/${article?.id}`))
     await batch.commit()
     setHeartDiff(prev=>prev-1);
-  },[article.id])
+  },[article?.id])
 
   useEffect(() => {
     tocbot.init({
@@ -266,41 +286,12 @@ ArticleReader.getLayout = (page) => {
 
 export default ArticleReader;
 
-export const getStaticPaths= async () => {
-  return {
-    paths: [],
-    fallback: 'blocking',
-  };
-};
 
 
 
-export const getStaticProps = async (ctx) => {
-  const { userId,articleId } = ctx.params
-  const convertTimestampToJson = (data)=>{
-    const newData = {...data}
-    if(data?.updatedAt){
-      newData.updatedAt = data.updatedAt.toJSON()
-    }
-    if(data?.createdAt){
-      newData.createdAt = data.createdAt.toJSON()
-    }
-    return newData
-  }
-  const uidSnap = await getDoc(doc(db,'userIds',userId))
-  const uid = uidSnap.data().uid
-  const userSnap = await getDoc(doc(db,'users',uid))
-  const user = {...convertTimestampToJson(userSnap.data()),uid}
-  const articleSnap = await getDoc(doc(db,'users',uid,'articles',articleId))
-  const article = {...convertTimestampToJson(articleSnap.data()),id:articleId}
-  return {
-    props: {user,article},
-    revalidate: 1
-  }
-}
+
 
 export const serialize = node => {
-  const classes = useStyles()
   if(!Object.prototype.hasOwnProperty.call(node,"type") && Object.prototype.hasOwnProperty.call(node,"text")) {
     let string = node.text
     if (node.bold) {
@@ -323,7 +314,7 @@ export const serialize = node => {
     case 'p':
       return <Typography variant="body1" sx={{lineHeight: 1.9, fontSize: {xs:"16px",md:"17px"}}}>{children}</Typography>
     case 'a':
-      return <a href="${escapeHtml(node.url)}" className={classes.textLink}>{children}</a>
+      return <a href="${escapeHtml(node.url)}" style={{textDecoration: "none",textUnderlineOffset: "0.15em",transition: ".25s",color:"#0f83fd","&:hover":{textDecoration:"underline"}}}>{children}</a>
     case "h2":
       return <Typography fontWeight="bold" id={children} className="plateH2" variant='h6' sx={{mt: "2.3em",mb: "0.5em",fontSize:{xs:"1.3em",md:"1.5em"}}}>{children}</Typography>
     case "h1":
