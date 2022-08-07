@@ -136,10 +136,10 @@ export const ArticleItem = ({article})=> {
         <div style={{flexGrow:1}}/>
         <div className='flex flex-row items-center'>
           {article.photoURL ?
-            <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/${article.userId}`)}}>
+            <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/users/${article.userId}`)}}>
               <Image src={article.photoURL} height="32" width="32"/>
             </div> :  
-            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/${article.userId}`)}}>
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${article.userId}`)}}>
               <span className="text-xs font-medium leading-none text-white">{article?.displayName[0]}</span>
             </div>
           }
@@ -190,10 +190,10 @@ export const BookItem = ({book}) => {
         <div style={{flexGrow:1}}/>
         <div className='flex flex-row items-center'>
           {book.photoURL ?
-            <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/${book.userId}`)}}>
+            <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/users/${book.userId}`)}}>
               <img src={book.photoURL} height="32" width="32"/>
             </div> :  
-            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/${book.userId}`)}}>
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${book.userId}`)}}>
               <span className="text-xs font-medium leading-none text-white">{book?.displayName[0]}</span>
             </div>
           }
