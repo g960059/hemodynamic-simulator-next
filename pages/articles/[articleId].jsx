@@ -495,7 +495,7 @@ export const CaseEmbedElement = (props) => {
             css={styles.iframe?.css}
             className={styles.iframe?.className}
             title="embed"
-            src={url}
+            src={`${process.env.NEXT_PUBLIC_HOST}/embed/${url}`}
             {...nodeProps}
             style={{border:0,borderRadius:8,overflow:"scroll",width:"100%",minHeight:"260px",aspectRatio:"2/1.3",border:"1px solid #5c93bb2b"}}
           />
@@ -571,7 +571,7 @@ export const CaseEmbedButtton = () => {
                 <Typography variant="caption" sx={{color:"#6e7b85"}}>{formatDateDiff(new Date(),c.updatedAt?.toDate()) + (isEqual(c.updatedAt,c.createdAt) ? "に作成":"に更新")}</Typography>
               </Stack>
               <div style={{flexGrow:1}}/>
-              <button className="btn-neumorphic" onClick={()=>{insertMediaEmbed(editor, { url:`${c.id}`,key:ELEMENT_CASE_EMBED});handleClose()}}>挿入</button>
+              <button className="btn-neumorphic" onClick={()=>{insertMediaEmbed(editor, { url:`${c.uid}/${c.id}`,key:ELEMENT_CASE_EMBED});handleClose()}}>挿入</button>
             </Stack>
           ))}
         </Stack>

@@ -330,10 +330,8 @@ class Patient {
 export const user$ = authState(auth).pipe(
   mergeMap(user => {
     if(user){
-      console.log("hy")
       return zip([docData(doc(db,'users',user?.uid),{idField: 'uid'}),of(user)])
     }else{
-      console.log("goo")
       return zip([of(null),of(user)])
     }
   }),
@@ -358,9 +356,7 @@ export const user$ = authState(auth).pipe(
       }
     }
   ),
-  tap(x=>{console.log(x)}),
   map(([userDocData,user])=> userDocData),
-  tap(x=>{console.log(x)})
 );
 
 export const nextUser$ = user$.pipe(

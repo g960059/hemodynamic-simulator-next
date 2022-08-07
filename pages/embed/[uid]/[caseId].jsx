@@ -1,82 +1,49 @@
 import React, {useRef, useState, useEffect} from 'react'
 import {Box,Typography,Grid,Tab,Tabs, Divider,AppBar,Tooltip, Toolbar,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery} from '@mui/material'
 import {ArrowBack,Add,Check,Tune,FavoriteBorder,DragIndicator} from '@mui/icons-material';
-import {useEngine, user$} from '../../src/hooks/usePvLoop'
+import {useEngine, user$} from '../../../src/hooks/usePvLoop'
 import { useRouter } from 'next/router'
-import PlaySpeedButtonsNext from '../../src/components/PlaySpeedButtonsNext'
-import {a11yProps, TabPanel} from '../../src/components/TabUtils'
+import PlaySpeedButtonsNext from '../../../src/components/PlaySpeedButtonsNext'
+import {a11yProps, TabPanel} from '../../../src/components/TabUtils'
 import { makeStyles } from '@mui/styles';
-import {useTranslation} from '../../src/hooks/useTranslation'
-import OutputPanel from '../../src/components/OutputPanel'
-import ControllerPanelNext from '../../src/components/controllers/ControllerPanelNext'
-import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS, DEFAULT_CONTROLLER_NEXT} from '../../src/utils/presets'
-import {COLORS} from '../../src/styles/chartConstants'
+import {useTranslation} from '../../../src/hooks/useTranslation'
+import OutputPanel from '../../../src/components/OutputPanel'
+import ControllerPanelNext from '../../../src/components/controllers/ControllerPanelNext'
+import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS, DEFAULT_CONTROLLER_NEXT} from '../../../src/utils/presets'
+import {COLORS} from '../../../src/styles/chartConstants'
 
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import dynamic from 'next/dynamic'
 import {useObservable} from "reactfire"
-import {db,auth,app} from "../../src/utils/firebase"
+import {db,auth,app} from "../../../src/utils/firebase"
 import { mergeMap,filter,tap,map} from "rxjs/operators";
 import {forkJoin, combine, combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
-import {objectWithoutKey,objectWithoutKeys,getRandomEmoji,useLeavePageConfirmation} from "../../src/utils/utils"
+import {objectWithoutKey,objectWithoutKeys,getRandomEmoji,useLeavePageConfirmation} from "../../../src/utils/utils"
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import Lottie from 'react-lottie-player' 
-import LoadingAnimation from "../../src/lotties/LoadingAnimation.json"
+import LoadingAnimation from "../../../src/lotties/LoadingAnimation.json"
 
-const RealTimeChartNext = dynamic(()=>import('../../src/components/RealTimeChartNext'), {ssr: false});
-const PressureVolumeCurveNext = dynamic(()=>import('../../src/components/PressureVolumeCurveNext'), {ssr: false,});
-const CombinedChart = dynamic(()=>import('../../src/components/combined/CombinedChart'), {ssr: false,});
+const RealTimeChartNext = dynamic(()=>import('../../../src/components/RealTimeChartNext'), {ssr: false});
+const PressureVolumeCurveNext = dynamic(()=>import('../../../src/components/PressureVolumeCurveNext'), {ssr: false,});
+const CombinedChart = dynamic(()=>import('../../../src/components/combined/CombinedChart'), {ssr: false,});
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 
-const useStyles = makeStyles((theme) =>(
-  {
-    background: {
-      position: "fixed",
-      zIndex: -1,
-      top: "0px",
-      left: "0px",
-      width: "100%",
-      overflow: "hidden",
-      transform: "translate3d(0px, 0px, 0px)",
-      height: "-webkit-fill-available",
-      background: "radial-gradient(50% 50% at 50% 50%, rgb(255, 0, 122) 0%, rgb(247, 248, 250) 100%)",
-      opacity: 0.15,
-      userSelect: "none",
-      pointerEvents: "none"
-    },
-    neumoButton: {
-      transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-      color: "rgb(69, 90, 100)",
-      boxShadow: "0 2px 4px -2px #21253840",
-      backgroundColor: "white",
-      border: "1px solid rgba(92, 147, 187, 0.17)",
-      fontWeight:"bold",
-      "&:hover":{
-        backgroundColor: "rgba(239, 246, 251, 0.6)",
-        borderColor: "rgb(207, 220, 230)"
-      }
-    },
-  })
-);
-
 
 const App = () => {
-  const classes = useStyles();
-  const t = useTranslation();
   const router = useRouter()
-  const {data:user} = useObservable("user",user$)
-  const loadedCase = useObservable("case"+router.query.caseId,user$.pipe(
-    filter(user => !!user?.uid),
-    mergeMap(user => combineLatest([
-      docData(doc(db,'users',user?.uid,"cases",router.query.caseId)),
-      collectionData(collection(db,'users',user?.uid,"cases",router.query.caseId,"patients"),{idField: 'id'}),
-      collectionData(collection(db,'users',user?.uid,"cases",router.query.caseId,"views"),{idField: 'id'})
+  const loadedCase = useObservable("case"+router.query.caseId,combineLatest([of(router.query?.uid),of(router.query?.caseId)]).pipe(
+    tap(console.log),
+    filter(([uid,caseId])=>uid && caseId),
+    mergeMap(([uid,caseId]) => combineLatest([
+      docData(doc(db,'users',uid,"cases",caseId)),
+      collectionData(collection(db,'users',uid,"cases",caseId,"patients"),{idField: 'id'}),
+      collectionData(collection(db,'users',uid,"cases",caseId,"views"),{idField: 'id'})
     ])),
     map(([caseData,patients,views])=>({caseData,patients,views})),
   ))
@@ -86,11 +53,9 @@ const App = () => {
 
   const engine = useEngine()
   const [patients, setPatients] = useImmer([]);
-  const [defaultPatients, setDefaultPatients] = useState([]);
   const [views, setViews] = useImmer([]);
-  const [defaultViews, setDefaultViews] = useState([]);
   const [caseData, setCaseData] = useImmer({});
-  const [defaultCaseData, setDefaultCaseData] = useState({});
+
 
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'), {noSsr: true});
   const controllerRef = useRef(null);
@@ -107,76 +72,13 @@ const App = () => {
       setViews(loadedCase.data.views)
       setCaseData(loadedCase.data.caseData)
       engine.setIsPlaying(true);
-    }else{
-      if(router.query.newItem){
-        engine.setIsPlaying(false);
-        const newPatientId = nanoid();
-        const newPateint = {
-          id: newPatientId,
-          name: "",
-          initialHdps: DEFAULT_HEMODYANMIC_PROPS,
-          initialData: DEFAULT_DATA,
-          initialTime: DEFAULT_TIME,
-          controller:{ id:nanoid(), controllers: DEFAULT_CONTROLLER_NEXT, items:[],name:""},
-        }
-        engine.register(newPateint);
-        setPatients([{...engine.getPatient(newPatientId),...newPateint}]);
-        setDefaultPatients([{...engine.getPatient(newPatientId),...newPateint}]);
-        const newViews = [{
-          id:nanoid(),
-          name: "",
-          type: "PressureCurve",
-          items: [
-            {
-              patientId:newPatientId,
-              id:nanoid(),
-              hdp:"Plv",
-              label:"左室圧",
-              color: COLORS[0]
-            },{
-              patientId:newPatientId,
-              id:nanoid(),
-              hdp:"AoP",
-              label:"大動脈圧",
-              color: COLORS[1]
-            },{
-              patientId:newPatientId,
-              id:nanoid(),
-              hdp:"Pla",
-              label:"左房圧",
-              color: COLORS[2]
-            },
-          ],
-          options: {
-            timescale: 6,
-          },
-        }]
-        setViews(newViews);
-        setDefaultViews(newViews);
-        const newCaseData = {
-          name:"",
-          visibility: "private",
-          emoji: getRandomEmoji(),
-          tags:[],
-          favs:0,
-          uid:user.uid,
-          displayName:user.displayName,
-          photoURL:user.photoURL,
-          patientIds:[newPatientId],
-          updatedAt: serverTimestamp(),
-          createdAt: serverTimestamp(),
-        }
-        setCaseData(newCaseData);
-        setDefaultCaseData(newCaseData);
-        engine.setIsPlaying(true);
-      }
     }
     setLoading(false)
   }, [loadedCase.status]);
 
 
   return <div>
-      {loading && <Box>
+      {(loading || loadedCase.status !="success") && <Box>
           <Lottie loop animationData={LoadingAnimation} play style={{ objectFit:"contain" }} />
         </Box>
       }

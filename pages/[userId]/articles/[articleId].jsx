@@ -320,7 +320,7 @@ export const serialize = node => {
     case "h2":
       return <Typography fontWeight="bold" id={children} className="plateH2" variant='h6' sx={{mt: "2.3em",mb: "0.5em",fontSize:{xs:"1.3em",md:"1.5em"}}}>{children}</Typography>
     case "h1":
-      return <Typography fontWeight="bold" id={children} className="plateH1" variant='h5' sx={{fontSize:{xs:"1.6em",md:" 1.7em"},pb: "0.2em",mb:"1.1rem",mt: "2.3em",borderBottom: "1px solid #5c93bb2b"}}>{children}</Typography>
+      return <Typography fontWeight="bold" id={children} className="plateH1" variant='h5' sx={{fontSize:{xs:"1.6em",md:" 1.7em"},pb: "0.2em",mb:"1.1rem",mt: ".5em",borderBottom: "1px solid #5c93bb2b"}}>{children}</Typography>
     case "ul":
       return <ul style={{margin: "1.4rem 0", lineHeight: 1.7}}>{children}</ul>
     case "ol":
