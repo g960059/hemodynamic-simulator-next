@@ -28,8 +28,8 @@ import { getRandomColor } from '../../../src/styles/chartConstants';
 import Lottie from 'react-lottie-player' 
 import LoadingAnimation from "../../../src/lotties/LoadingAnimation.json"
 import {format} from "date-fns"
-import { mergeMap } from 'rxjs';
-import { docData } from 'rxfire/firestore';
+import { filter, map, mergeMap, of, zip } from 'rxjs';
+import { collectionData, docData } from 'rxfire/firestore';
 
 const RealTimeChartNext = dynamic(()=>import('../../../src/components/RealTimeChartNext'), {ssr: false});
 const PressureVolumeCurveNext = dynamic(()=>import('../../../src/components/PressureVolumeCurveNext'), {ssr: false,});
@@ -136,7 +136,34 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
   const t = useTranslation();
   const router = useRouter()
 
-  const {data:user} = useObservable("user",user$)
+  const uid$ = of(router.query.userId).pipe(
+    filter(Boolean),
+    mergeMap(userId=> docData(doc(db,'userIds',userId))),
+    map(user => user?.uid)
+  );
+  const caseId$ = of(router.query.caseId).pipe(
+    filter(Boolean),
+  )
+
+  const caseUser$= uid$.pipe(
+    filter(Boolean),
+    mergeMap(uid=>docData(doc(db,'users',uid))),
+  )
+  // const caseData$ = zip([uid$,caseId$]).pipe(
+  //   filter(([uid,caseId])=>Boolean(uid)&&Boolean(caseId)),
+  //   mergeMap(([uid,caseId])=>docData(doc(db,'users',uid,'cases',caseId))),
+  // )
+  // const patients$ = zip([uid$,caseId$]).pipe(
+  //   filter(Boolean),
+  //   mergeMap(uid=>collectionData(collection(db,'users',uid,'cases',caseId,'patients'))),
+  // )
+  // const views$ = zip([uid$,caseId$]).pipe(
+  //   filter(Boolean),
+  //   mergeMap(uid=>collectionData(collection(db,'users',uid,'cases',caseId,'views'))),
+  // )
+
+  // const {data:caseUser} = useObservable(`user_${router.query.caseId}`,caseUser$)
+  const {data:user} = useObservable("caseData",user$)
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -168,8 +195,8 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
   const [sizes, setSizes] = useState((isUpMd ? [40,60] : [30,70]));
   const [heartDiff, setHeartDiff] = useState(0);
 
-  const heart = useObservable('/cases/'+caseData.id+'/heart', user$.pipe(
-    mergeMap(currentUser => docData(doc(db,'users',caseUser.uid,'cases',caseData.id,'hearts',currentUser.uid))))
+  const heart = useObservable('/cases/'+caseData.id+'/heart', caseUser$.pipe(
+    mergeMap(caseUser => auth.currentUser?  docData(doc(db,'users',caseUser.uid,'cases',caseData.id,'hearts',auth.currentUser.uid)):of(null)))
   ) 
     
   useEffect(() => {
@@ -267,7 +294,7 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
           </Box>
           {isUpMd && <NoSsr>
               <Avatar onClick={()=>{router.push(`/${caseUser.userId}`)}} sx={{ width: "34px", height: "34px" ,cursor:"pointer",ml:4}}>
-                <Image src={caseUser.photoURL} layout='fill'/>
+                <Image src={caseUser?.photoURL} layout='fill'/>
               </Avatar>
               <Stack mx={1} >
                 <Typography variant="subtitle2" sx={{cursor:"pointer"}} onClick={()=>{router.push(`/${caseUser.userId}`)}}>{caseUser.displayName}</Typography>

@@ -369,13 +369,13 @@ const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patient
       changedVisibleRange.current = false
       if(autoScaleRef.current ){
         const newXMax = Math.max(...Object.values(xMaxRef.current))
-        if(newXMax != xMaxRef.current["All"] && newXMax){
+        if(newXMax != xMaxRef.current["All"] && newXMax && xAxisRef.current){
           xAxisRef.current.visibleRange = new NumberRange(0,format(newXMax));
           xMaxRef.current["All"] = format(newXMax);
           changedVisibleRange.current =true;
         }
         const newYMax = Math.max(...Object.values(yMaxRef.current))
-        if(newYMax != yMaxRef.current["All"] && newYMax){
+        if(newYMax != yMaxRef.current["All"] && newYMax && yAxisRef.current){
           yAxisRef.current.visibleRange = new NumberRange(0,format(newYMax));
           yMaxRef.current["All"] = format(newYMax);
           changedVisibleRange.current =true;
