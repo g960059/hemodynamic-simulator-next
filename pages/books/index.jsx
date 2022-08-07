@@ -102,7 +102,7 @@ export const BookItem = ({book}) => {
             </div>
           }
           <div className='ml-2 text-slate-500'>
-            <Link href={`/${book?.userId}`}>
+            <Link href={`/users/${book?.userId}`}>
               <a className='text-sm font-medium no-underline hover:no-underline text-slate-500'>
                 {book?.displayName}
               </a>
