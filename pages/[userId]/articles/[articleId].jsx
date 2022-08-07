@@ -125,7 +125,7 @@ const ArticleReader = () => {
     mergeMap(uid=>docData(doc(db,'users',uid))),
   )
   const articleId$ = of(router.query.articleId).pipe(filter(Boolean))
-  const {data:article} = useObservable(`article_${router.query.userId}_${router.query.articleId}`,combineLatest(uid$,articleId$).pipe(
+  const {data:article} = useObservable(`article_${router.query.userId}_${router.query.articleId}`,combineLatest([uid$,articleId$]).pipe(
     filter(x=>x[0]&&x[1]),
     mergeMap(([uid,articleId])=>docData(doc(db,'users',uid,'articles',articleId),{idField: "id"})),
   ));
@@ -151,8 +151,9 @@ const ArticleReader = () => {
   }
 
 
-  const heart = useObservable('/articles/'+article?.id+'/heart', user$.pipe(
-    mergeMap(currentUser => docData(doc(db,'users',user?.uid,'articles',article?.id,'hearts',currentUser?.uid))))
+  const heart = useObservable('/articles/'+article?.id+'/heart', combineLatest([user$,articleId$]).pipe(
+    filter(x=>x[0]&&x[1]),
+    mergeMap(([user,articleId]) => docData(doc(db,'users',user?.uid,'articles',article?.id,'hearts',auth.currentUser?.uid))))
   ) 
   const addHeart =async () => {
     const currentUid = auth.currentUser?.uid
@@ -347,7 +348,7 @@ export const serialize = node => {
         <iframe
           style={{position: "absolute",top: 0,left: 0, width: "100%",height: "100%",border:0,borderRadius:8,overflow:"scroll",border:"1px solid #5c93bb2b"}}
           title="embed"
-          src={`${NEXT_PUBLIC_HOST}/embed/${node.url}`}
+          src={`${process.env.NEXT_PUBLIC_HOST}/embed/${node.url}`}
         />
       </Box>
     default:
