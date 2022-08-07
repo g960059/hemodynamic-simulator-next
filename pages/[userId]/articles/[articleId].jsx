@@ -153,7 +153,7 @@ const ArticleReader = () => {
 
   const heart = useObservable('/articles/'+article?.id+'/heart', combineLatest([user$,articleId$]).pipe(
     filter(x=>x[0]&&x[1]),
-    mergeMap(([user,articleId]) => docData(doc(db,'users',user?.uid,'articles',article?.id,'hearts',auth.currentUser?.uid))))
+    mergeMap(([user,articleId]) => auth.currentUser ? docData(doc(db,'users',user?.uid,'articles',articleId,'hearts',auth.currentUser?.uid)): of(null) ))
   ) 
   const addHeart =async () => {
     const currentUid = auth.currentUser?.uid
@@ -212,7 +212,7 @@ const ArticleReader = () => {
                 article?.body.map(n=>serialize(n)) 
               }
               <Stack direction="row" justifyContent="center" mt={5}>
-                <Stack direction="row" >
+                <Stack direction="row">
                   { 
                     (heart.data ? <IconButton onClick={removeHeart} className={classes.favoritedButton} sx={{}}><Favorite sx={{width:"33px"}}/></IconButton>
                     : <IconButton onClick={addHeart} className={classes.faintNeumoButton}><FavoriteBorder sx={{width:"33px"}}/></IconButton>)

@@ -330,31 +330,37 @@ class Patient {
 export const user$ = authState(auth).pipe(
   mergeMap(user => {
     if(user){
-      return combineLatest([docData(doc(db,'users',user?.uid),{idField: 'uid'}),of(user)])
+      console.log("hy")
+      return zip([docData(doc(db,'users',user?.uid),{idField: 'uid'}),of(user)])
     }else{
-      return combineLatest([of(null),of(user)])
+      console.log("goo")
+      return zip([of(null),of(user)])
     }
   }),
-  tap({
-    next : async ([userDocData,user])=>{
+  tap(([userDocData,user])=>{
       if(user && !userDocData){
-        const batch = writeBatch(db);
-        batch.set(doc(db,"users",user.uid),{
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          userId: user.uid,
-          email: user.email,
-          articleHeartCount:0,
-          caseHeartCount:0,
-          createdAt:serverTimestamp(),
-        });
-        batch.set(doc(db,"userIds",user.uid),{uid:user.uid, createdAt:serverTimestamp()});
-        batch.set(doc(db,"followers",user.uid),{users:[]});
-        await batch.commit();
+        const initializeUser = async ()=>{
+          const batch = writeBatch(db);
+          batch.set(doc(db,"users",user.uid),{
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            userId: user.uid,
+            email: user.email,
+            articleHeartCount:0,
+            caseHeartCount:0,
+            createdAt:serverTimestamp(),
+          });
+          batch.set(doc(db,"userIds",user.uid),{uid:user.uid, createdAt:serverTimestamp()});
+          batch.set(doc(db,"followers",user.uid),{users:[]});
+          await batch.commit();
+        }
+        initializeUser();
       }
     }
-  }),
-  map(([userDocData,user])=> userDocData)
+  ),
+  tap(x=>{console.log(x)}),
+  map(([userDocData,user])=> userDocData),
+  tap(x=>{console.log(x)})
 );
 
 export const nextUser$ = user$.pipe(

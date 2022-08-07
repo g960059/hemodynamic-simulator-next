@@ -91,6 +91,7 @@ function Layout(props) {
   const classes = useStyles();
   const router = useRouter()
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
+  console.log(user)
   const [dialogOpen, setDialogOpen] = useState(false);
   const [signInWithGoogle, _, loading, error] = useSignInWithGoogle(auth);
 
