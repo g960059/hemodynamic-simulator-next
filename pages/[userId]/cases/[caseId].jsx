@@ -1,6 +1,6 @@
 import React, {useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Typography,Grid,Tab,Tabs, Divider,AppBar,Tooltip, Toolbar,Button,IconButton,Stack,Menu,Dialog,DialogContent,DialogActions,DialogTitle,Popover,MenuItem,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery, DialogContentText, NoSsr} from '@mui/material'
-import {ArrowBack,Add,Favorite,FavoriteBorder,EventNoteOutlined,FeedOutlined,SettingsOutlined,Logout,Feed,EventNote, Edit,CalendarToday} from '@mui/icons-material';
+import {ArrowBack,Add,Favorite,FavoriteBorder,EventNoteOutlined,FeedOutlined,SettingsOutlined,Logout,Feed,EventNote, Edit,CalendarToday, ConstructionOutlined} from '@mui/icons-material';
 import Masonry from '@mui/lab/Masonry';
 import {useEngine, user$,cases$, allCases$} from '../../../src/hooks/usePvLoop'
 import { useRouter } from 'next/router'
@@ -28,7 +28,7 @@ import { getRandomColor } from '../../../src/styles/chartConstants';
 import Lottie from 'react-lottie-player' 
 import LoadingAnimation from "../../../src/lotties/LoadingAnimation.json"
 import {format} from "date-fns"
-import { filter, map, mergeMap, of, zip } from 'rxjs';
+import { combineLatest, filter, map, mergeMap, of, zip } from 'rxjs';
 import { collectionData, docData } from 'rxfire/firestore';
 
 const RealTimeChartNext = dynamic(()=>import('../../../src/components/RealTimeChartNext'), {ssr: false});
@@ -131,10 +131,11 @@ const useStyles = makeStyles((theme) =>(
 );
 
 
-const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,views:initialViews, allCases}) => {
+const CaseReader = () => {
   const classes = useStyles();
   const t = useTranslation();
   const router = useRouter()
+  const allCases = []
 
   const uid$ = of(router.query.userId).pipe(
     filter(Boolean),
@@ -145,6 +146,16 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
     filter(Boolean),
   )
 
+  const loadedCase = useObservable("case"+router.query?.caseId,combineLatest([uid$,of(router.query?.caseId)]).pipe(
+    filter(([uid,caseId])=>uid && caseId),
+    mergeMap(([uid,caseId]) => combineLatest([
+      docData(doc(db,'users',uid,"cases",caseId)),
+      collectionData(collection(db,'users',uid,"cases",caseId,"patients"),{idField: 'id'}),
+      collectionData(collection(db,'users',uid,"cases",caseId,"views"),{idField: 'id'})
+    ])),
+    map(([caseData,patients,views])=>({caseData,patients,views})),
+  ))
+
   const caseUser$= uid$.pipe(
     filter(Boolean),
     mergeMap(uid=>docData(doc(db,'users',uid))),
@@ -154,16 +165,19 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
   //   mergeMap(([uid,caseId])=>docData(doc(db,'users',uid,'cases',caseId))),
   // )
   // const patients$ = zip([uid$,caseId$]).pipe(
-  //   filter(Boolean),
-  //   mergeMap(uid=>collectionData(collection(db,'users',uid,'cases',caseId,'patients'))),
+  //   filter(([uid,caseId])=>Boolean(uid)&&Boolean(caseId)),
+  //   mergeMap(([uid,caseId])=>collectionData(collection(db,'users',uid,'cases',caseId,'patients'))),
   // )
   // const views$ = zip([uid$,caseId$]).pipe(
-  //   filter(Boolean),
-  //   mergeMap(uid=>collectionData(collection(db,'users',uid,'cases',caseId,'views'))),
+  //   filter(([uid,caseId])=>Boolean(uid)&&Boolean(caseId)),
+  //   mergeMap(([uid,caseId])=>collectionData(collection(db,'users',uid,'cases',caseId,'views'))),
   // )
-
-  // const {data:caseUser} = useObservable(`user_${router.query.caseId}`,caseUser$)
+  // const {data:initialCaseData} = useObservable(`case_${router.query.caseId}`,caseData$);
+  // const {data: initialPatients} = useObservable(`patients_${router.query.caseId}`,patients$);
+  // const {data:initialViews} = useObservable(`views_${router.query.caseId}`,views$);
+  const {data:caseUser} = useObservable(`user_${router.query.caseId}`,caseUser$)
   const {data:user} = useObservable("caseData",user$)
+
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
@@ -185,8 +199,8 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
 
   const engine = useEngine()
   const [patients, setPatients] = useImmer();
-  const [views, setViews] = useImmer(initialViews);
-  const [caseData, setCaseData] = useImmer(initialCaseData);
+  const [views, setViews] = useImmer();
+  const [caseData, setCaseData] = useImmer();
 
   const [openAddPatientDialog, setOpenAddPatientDialog] = useState(false);
   const [patientListMode, setPatientListMode] = useState(null);
@@ -195,24 +209,37 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
   const [sizes, setSizes] = useState((isUpMd ? [40,60] : [30,70]));
   const [heartDiff, setHeartDiff] = useState(0);
 
-  const heart = useObservable('/cases/'+caseData.id+'/heart', caseUser$.pipe(
-    mergeMap(caseUser => auth.currentUser?  docData(doc(db,'users',caseUser.uid,'cases',caseData.id,'hearts',auth.currentUser.uid)):of(null)))
+  const heart = useObservable('/cases/'+caseData?.id+'/heart', zip([uid$,caseId$]).pipe(
+    filter(([uid,caseId])=>Boolean(uid)&&Boolean(caseId)),
+    mergeMap(([uid,caseId]) => auth.currentUser?  docData(doc(db,'users',uid,'cases',caseId,'hearts',auth.currentUser.uid)):of(null)))
   ) 
-    
+  
+  // useEffect(() => {
+  //   setCaseData(initialCaseData)
+  // }, [initialCaseData]);
+  // useEffect(() => {
+  //   setPatients(initialPatients)
+  // }, [initialPatients]);
+  // useEffect(() => {
+  //   setViews(initialViews)
+  // }, [initialViews]);
+
+
   useEffect(() => {
     setLoading(true)
-    engine.setIsPlaying(false);
-    initialPatients.forEach(p=>{
-      engine.register(p);
-    })
-    setPatients(engine.getAllPatinets().map(p=>({...p,...initialPatients.find(_p=>_p.id==p.id)})));
-    engine.setIsPlaying(true);
-    const localSizes = localStorage.getItem('case-split-sizes')
-    if(localSizes && !caseData?.id){
-      setSizes(JSON.parse(localSizes));
+    if(loadedCase.status == "success" && loadedCase.data?.patients.length>0){
+      engine.setIsPlaying(false);
+      loadedCase.data.patients.forEach(p=>{
+        engine.register(p);
+      })
+      setPatients(engine.getAllPatinets().map(p=>({...p,...loadedCase.data.patients.find(_p=>_p.id==p.id)})));
+      setViews(loadedCase.data.views)
+      setCaseData(loadedCase.data.caseData)
+      engine.setIsPlaying(true);
     }
     setLoading(false)
-  }, [initialPatients]);
+  }, [loadedCase.status]);
+
 
   const addPatient = patient =>{
     const newPatient = {...patient,id:nanoid()}
@@ -271,7 +298,7 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
     batch.set(doc(db,`users/${uid}/cases/${caseData.id}/hearts/${auth.currentUser.uid}`),{uid:auth.currentUser.uid})
     await batch.commit()
     setHeartDiff(prev=>prev+1);
-  },[caseData.id])
+  },[caseData?.id])
   const removeHeart = useCallback(async () => {
     const uid = caseUser.uid
     if(!uid) return
@@ -281,7 +308,7 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
     batch.delete(doc(db,`users/${uid}/cases/${caseData.id}/hearts/${auth.currentUser.uid}`))
     await batch.commit()
     setHeartDiff(prev=>prev-1);
-  },[caseData.id])
+  },[caseData?.id])
 
 
 
@@ -290,20 +317,21 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
         <Toolbar sx={{py:.5}}>
           <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex", alignItems:"center"}}>
             <Box mb={-1} mr={1}><Image src="/HeaderIcon.png" width={32} height={32}/></Box>
-            <Typography variant='h4' fontWeight="bold" textAlign="left">{caseData.name || "無題の症例"}</Typography>
+            <Typography variant='h4' fontWeight="bold" textAlign="left">{caseData?.name || "無題の症例"}</Typography>
           </Box>
-          {isUpMd && <NoSsr>
+          {isUpMd && !loading && caseData && <NoSsr>
               <Avatar onClick={()=>{router.push(`/${caseUser.userId}`)}} sx={{ width: "34px", height: "34px" ,cursor:"pointer",ml:4}}>
                 <Image src={caseUser?.photoURL} layout='fill'/>
               </Avatar>
               <Stack mx={1} >
-                <Typography variant="subtitle2" sx={{cursor:"pointer"}} onClick={()=>{router.push(`/${caseUser.userId}`)}}>{caseUser.displayName}</Typography>
-                <Typography  variant="body2" sx={{color:"#6e7b85"}}>{format(new Date(caseData.updatedAt?.seconds*1000),'yyyy年M月dd日') }</Typography>
+                <Typography variant="subtitle2" sx={{cursor:"pointer"}} onClick={()=>{router.push(`/${caseUser?.userId}`)}}>{caseUser?.displayName}</Typography>
+                {console.log(caseData)}
+                <Typography  variant="body2" sx={{color:"#6e7b85"}}>{ format(caseData?.updatedAt?.toDate(),'yyyy年M月dd日') }</Typography>
               </Stack>
               <Button variant='outlined'>Follow</Button>
             </NoSsr>}
           <div style={{flexGrow:1}}/>
-          {isUpMd && <Stack direction="row">
+          {isUpMd && !loading &&<Stack direction="row">
             {heart.status=="success" && 
               (heart.data ? <IconButton onClick={removeHeart} className={classes.favoritedButton}sx={{width:"43px",height:"43px",mr:1}} ><Favorite sx={{width:"30px",height:"30px"}}/></IconButton>
               : <IconButton onClick={addHeart} className={classes.faintNeumoButton}sx={{width:"43px",height:"43px",mr:1}} ><FavoriteBorder sx={{width:"30px",height:"30px"}}/></IconButton>)
@@ -384,13 +412,13 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
         </Toolbar>
       </AppBar>
       <Divider sx={{borderColor:"#5c93bb2b"}}/>
-      <NextSeo title={"症例"+caseData.name}/>
+      <NextSeo title={"症例"+caseData?.name}/>
       <Box className={classes.background}/>
       {loading && <Box>
           <Lottie loop animationData={LoadingAnimation} play style={{ objectFit:"contain" }} />
         </Box>
       }
-      {!loading && (isUpMd != null && isUpMd != undefined) && <> 
+      {!loading && (isUpMd != null && isUpMd != undefined) && caseData &&  <> 
         <Split 
           className={classes.split} 
           sizes={sizes} 
@@ -589,7 +617,7 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
                     <Stack ml={1} flexGrow={1}>
                       <Typography variant="subtitle2" sx={{cursor:"pointer"}} onClick={()=>{router.push(`/${caseUser.userId}`)}}>{caseUser.displayName}</Typography>
                       <Stack direction="row">
-                        <Typography  variant="body2" sx={{color:"#6e7b85"}}>{format(new Date(caseData.updatedAt?.seconds*1000),'yyyy年M月dd日') }</Typography>
+                        <Typography  variant="body2" sx={{color:"#6e7b85"}}>{ format(caseData?.updatedAt?.toDate(),'yyyy年M月dd日') }</Typography>
                       </Stack>
                     </Stack>
                     <div style={{flexGrow:1}}/>
@@ -631,6 +659,7 @@ const CaseReader = ({caseUser,caseData:initialCaseData,patients:initialPatients,
                         }}
                       />
                     }
+                    {console.log(engine.getAllPatinets())}
                     {view.type === "PressureVolumeCurve" && 
                       <PressureVolumeCurveNext engine={engine} initialView={view} 
                         setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
@@ -710,50 +739,50 @@ const NewAddViewDialog = React.memo(({addViewItem,patients})=>{
   </>
 })
 
-export const getStaticPaths= async () => {
-  return {
-    paths: [],
-    fallback: 'blocking',
-  };
-};
+// export const getStaticPaths= async () => {
+//   return {
+//     paths: [],
+//     fallback: 'blocking',
+//   };
+// };
 
 
 
-export const getStaticProps = async (ctx) => {
-  const { userId,caseId } = ctx.params
-  const convertTimestampToJson = (data)=>{
-    const newData = {...data}
-    if(data?.updatedAt){
-      newData.updatedAt = data.updatedAt.toJSON()
-    }
-    if(data?.createdAt){
-      newData.createdAt = data.createdAt.toJSON()
-    }
-    return newData
-  }
-  const uidSnap = await getDoc(doc(db,'userIds',userId))
-  const uid = uidSnap.data().uid
-  const userSnap = await getDoc(doc(db,'users',uid))
-  const user = {...convertTimestampToJson(userSnap.data()),uid}
-  const caseSnap = await getDoc(doc(db,'users',uid,'cases',caseId))
-  const caseData = {...convertTimestampToJson(caseSnap.data()),id:caseId}
-  const patientsSnap = await getDocs(collection(db,'users',uid,'cases',caseId,'patients'))
-  const viewsSnap = await getDocs(collection(db,'users',uid,'cases',caseId,'views'))
-  const patients =[];
-  const views = [];
-  const allCases = [];
-  patientsSnap.forEach(d=>{patients.push({...convertTimestampToJson(d.data()),id:d.id})})
-  viewsSnap.forEach(d=>{views.push({...convertTimestampToJson(d.data()),id:d.id})})
-  const allCasesSnap = await getDocs(query(collectionGroup(db,'cases'),orderBy("favs"),limit(50)))
-  allCasesSnap.forEach(async d=>{
-    const caseData_ = d.data()
-    const casePatients = []
-    const casePatientsSnap = await getDocs(collection(db,'users',caseData_.uid,'cases',d.id,'patients'))
-    casePatientsSnap.forEach(d=>{casePatients.push({...convertTimestampToJson(d.data()),id:d.id})})
-    allCases.push({...caseData_,patients:casePatients})
-  })
-  return {
-    props: {caseUser:user,caseData,patients,views,allCases},
-    revalidate: 1
-  }
-}
+// export const getStaticProps = async (ctx) => {
+//   const { userId,caseId } = ctx.params
+//   const convertTimestampToJson = (data)=>{
+//     const newData = {...data}
+//     if(data?.updatedAt){
+//       newData.updatedAt = data.updatedAt.toJSON()
+//     }
+//     if(data?.createdAt){
+//       newData.createdAt = data.createdAt.toJSON()
+//     }
+//     return newData
+//   }
+//   const uidSnap = await getDoc(doc(db,'userIds',userId))
+//   const uid = uidSnap.data().uid
+//   const userSnap = await getDoc(doc(db,'users',uid))
+//   const user = {...convertTimestampToJson(userSnap.data()),uid}
+//   const caseSnap = await getDoc(doc(db,'users',uid,'cases',caseId))
+//   const caseData = {...convertTimestampToJson(caseSnap.data()),id:caseId}
+//   const patientsSnap = await getDocs(collection(db,'users',uid,'cases',caseId,'patients'))
+//   const viewsSnap = await getDocs(collection(db,'users',uid,'cases',caseId,'views'))
+//   const patients =[];
+//   const views = [];
+//   const allCases = [];
+//   patientsSnap.forEach(d=>{patients.push({...convertTimestampToJson(d.data()),id:d.id})})
+//   viewsSnap.forEach(d=>{views.push({...convertTimestampToJson(d.data()),id:d.id})})
+//   const allCasesSnap = await getDocs(query(collectionGroup(db,'cases'),orderBy("favs"),limit(50)))
+//   allCasesSnap.forEach(async d=>{
+//     const caseData_ = d.data()
+//     const casePatients = []
+//     const casePatientsSnap = await getDocs(collection(db,'users',caseData_.uid,'cases',d.id,'patients'))
+//     casePatientsSnap.forEach(d=>{casePatients.push({...convertTimestampToJson(d.data()),id:d.id})})
+//     allCases.push({...caseData_,patients:casePatients})
+//   })
+//   return {
+//     props: {caseUser:user,caseData,patients,views,allCases},
+//     revalidate: 1
+//   }
+// }

@@ -214,6 +214,7 @@ export const useEngine = () => {
 
   const subscribe = (id) => (update) => {
     const subsId = nanoid()
+    console.log(subsId,subscriptionsRef.current[id])
     subscriptionsRef.current[id][subsId] = update
     return subsId
   }
