@@ -135,7 +135,7 @@ const CaseReader = () => {
   const classes = useStyles();
   const t = useTranslation();
   const router = useRouter()
-  const allCases = []
+  const [allCases, setAllCases] = useState([]);
 
   const uid$ = of(router.query.userId).pipe(
     filter(Boolean),
@@ -160,6 +160,21 @@ const CaseReader = () => {
     filter(Boolean),
     mergeMap(uid=>docData(doc(db,'users',uid))),
   )
+
+
+  // const allCases$ = collectionData(query(collectionGroup(db,'cases'),orderBy("favs"),limit(50)),{idField: "id"}).pipe(
+  //   mergeMap(cases=>combineLatest(
+  //     cases.map(caseData=>
+  //       zip({
+  //         caseData: of({...caseData}),
+  //         patients: collectionData(collection(db,'users',caseData.uid,'cases',caseData.id,'patients'))
+  //       })
+  //     )
+  //   ))
+  // )
+  
+  // const {data: allcases} = useObservable(`allcases`,allCases$)
+  // console.log(allcases)
   // const caseData$ = zip([uid$,caseId$]).pipe(
   //   filter(([uid,caseId])=>Boolean(uid)&&Boolean(caseId)),
   //   mergeMap(([uid,caseId])=>docData(doc(db,'users',uid,'cases',caseId))),
@@ -213,16 +228,6 @@ const CaseReader = () => {
     filter(([uid,caseId])=>Boolean(uid)&&Boolean(caseId)),
     mergeMap(([uid,caseId]) => auth.currentUser?  docData(doc(db,'users',uid,'cases',caseId,'hearts',auth.currentUser.uid)):of(null)))
   ) 
-  
-  // useEffect(() => {
-  //   setCaseData(initialCaseData)
-  // }, [initialCaseData]);
-  // useEffect(() => {
-  //   setPatients(initialPatients)
-  // }, [initialPatients]);
-  // useEffect(() => {
-  //   setViews(initialViews)
-  // }, [initialViews]);
 
 
   useEffect(() => {
@@ -240,6 +245,22 @@ const CaseReader = () => {
     setLoading(false)
   }, [loadedCase.status]);
 
+  useEffect(() => {
+    const getAllCases = async () => {
+      const tmpAllCases = []
+      const allCasesSnap = await getDocs(query(collectionGroup(db,'cases'),limit(50)))
+      allCasesSnap.forEach(async d=>{
+        const caseData_ = d.data()
+        console.log(d.data())
+        const casePatients = []
+        const casePatientsSnap = await getDocs(collection(db,'users',caseData_.uid,'cases',d.id,'patients'))
+        casePatientsSnap.forEach(d=>{casePatients.push({...d.data(),id:d.id})})
+        tmpAllCases.push({...caseData_,patients:casePatients})
+      })
+      setAllCases(tmpAllCases)
+    }
+    getAllCases()
+  }, []);
 
   const addPatient = patient =>{
     const newPatient = {...patient,id:nanoid()}
@@ -448,7 +469,7 @@ const CaseReader = () => {
                               {
                                 patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
                                     <ListItemButton>
-                                      <ListItemText primary={p.name}/>
+                                      <ListItemText primary={p.name || "無題の患者"}/>
                                     </ListItemButton>
                                 </ListItem>
                               })}
@@ -458,10 +479,10 @@ const CaseReader = () => {
                         <Link underline="hover" sx={{cursor:"pointer",my:1}} onClick={()=>{setPatientListMode("myPatients")}}>see more my patients →</Link>
                         <Typography variant="h6" fontWeight="bold" sx={{mt:2}}>Popular</Typography>
                         <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
-                          {allCases?.slice(0,6).map(c=>{
+                          {allCases?.filter(x=>x.patients?.length>0 && x.visibility != "private").slice(0,6).map(c=>{
                             return <Box className={classes.shadowBox} minWidth="120px">
                                 <Stack sx={{backgroundColor:"#edf2f6",px:2,py:1}} >
-                                  <Typography variant="body1">{c.emoji +" "+ c.name}</Typography>
+                                  <Typography variant="body1">{c.emoji +" "+ (c.name || "無題の症例")}</Typography>
                                   <Stack direction="row" justifyContent="center" alignItems="center">
                                     <Avatar sx={{ width: 16, height: 16 }}>
                                       <Image src={c?.photoURL} layout='fill'/>
@@ -478,7 +499,7 @@ const CaseReader = () => {
                                       return( 
                                       <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}} >
                                         <ListItemButton>
-                                          <ListItemText primary={p.name}/>
+                                          <ListItemText primary={p.name || "無題の患者"}/>
                                         </ListItemButton>
                                       </ListItem>
                                     )})}
@@ -571,7 +592,7 @@ const CaseReader = () => {
                 {caseData.patientIds?.map((patientId,index)=>{
                   const patient = patients.find(({id})=>id===patientId);
                   if(patient){
-                    return <Box maxWidth={{xs:"100%",md:"420px"}} mx={1} ref={(index==patients.length-1)? scrollPatientBottomRef : null}>
+                    return <Box maxWidth={{xs:"100%",md:"420px"}} width={1} mx={1} ref={(index==patients.length-1)? scrollPatientBottomRef : null}>
                       <ControllerPanelNext
                         key={patient.id}
                         patient={patient} 
