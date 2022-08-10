@@ -38,7 +38,6 @@ SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 const App = () => {
   const router = useRouter()
   const loadedCase = useObservable("case"+router.query.caseId,combineLatest([of(router.query?.uid),of(router.query?.caseId)]).pipe(
-    tap(console.log),
     filter(([uid,caseId])=>uid && caseId),
     mergeMap(([uid,caseId]) => combineLatest([
       docData(doc(db,'users',uid,"cases",caseId)),
@@ -123,7 +122,7 @@ const App = () => {
                 }
               })}
               <div className="mx-auto mt-2">
-                <PlaySpeedButtonsNext engine={engine}/>
+                <PlaySpeedButtonsNext engine={engine} isEmbed={true}/>
               </div>
             </div>
           </Box>

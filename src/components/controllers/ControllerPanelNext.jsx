@@ -75,9 +75,9 @@ const ControllerPanel = React.memo(({patient, setPatient,removePatient,setViews,
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
 
   return (
-    <Box p={2} pb={1} my={1} className="bg-white shadow-3xl rounded-lg md:max-w-md max-w-sm mx-auto">
+    <div className="p-4 md:pb-2 md:my-2 bg-white md:shadow-3xl md:rounded-lg md:max-w-md md:mx-auto">
       <Stack direction="row" justifyContent="flex-start" alignItems="center" px={1}>
-        <Typography variant="h6" fontWeight="bold" color="primary" sx={{mr:2}}>{String(patientIndex+1).padStart(2,'0')}</Typography>
+        <Typography variant="h6" fontWeight="bold" color="primary" sx={{mr:2}} className="hidden md:inline-block">{String(patientIndex+1).padStart(2,'0')}</Typography>
         {
           patientNameEditing && !readOnly ? 
             <ReactiveInput 
@@ -170,7 +170,7 @@ const ControllerPanel = React.memo(({patient, setPatient,removePatient,setViews,
           }
         </Box>
       }
-    </Box>
+    </div>
   )
 })
 
@@ -186,8 +186,9 @@ export const ControllerEditor = ({initialController,updateController})=>{
   const [dialogParentNameEditing, setDialogParentNameEditing] = useState(false);
   const [dialogChildNameEditing, setDialogChildNameEditing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedParentIndex, setSelectedParentIndex] = useState(0);
+  const [selectedParentIndex, setSelectedParentIndex] = useState(null);
   const [selectedChildIndex, setSelectedChildIndex] = useState(null);
+  console.log(selectedParentIndex, selectedChildIndex)
   return <>
     <Tooltip title="コントローラーを編集する">
       <IconButton onClick={()=>{setDialogOpen(true)}} size="small" className={classes.faintNeumoButton} sx={{mr:1}}><EditOutlined/></IconButton>
@@ -197,7 +198,13 @@ export const ControllerEditor = ({initialController,updateController})=>{
         <Grid container sx={{border: "1px solid #5c93bb2b",borderRadius: "15px"}} disablePadding>
           <Grid item xs={12} px={2} py={1} sx={{backgroundColor:"whitesmoke"}}>
             <Breadcrumbs separator={<NavigateNext fontSize="small" />}>
-              <Link onClick={()=>{setSelectedChildIndex(null);setSelectedParentIndex(null)}} component="button" variant="body1" href="#" underline="hover" color="inherit" sx={{"&:hover":{color:"#f16a95"}}}>{controller?.name}</Link>
+              <Link onClick={()=>{setSelectedChildIndex(null);setSelectedParentIndex(null)}} component="button" variant="body1" href="#" underline="hover" color="inherit" sx={{"&:hover":{color:"#f16a95"}}}>
+                <div className='px-1.5 m-1.5 mx-0  inline-flex items-center'>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 fill-slate-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+                  </svg>
+                </div>
+              </Link>
               {selectedParentIndex!=null && <Link onClick={()=>{setSelectedChildIndex(null)}} component="button" variant="body1" href="#" underline="hover" color="inherit" sx={{"&:hover":{color:"#f16a95"}}}>{controller.controllers[selectedParentIndex]?.name}</Link>}
               {selectedParentIndex!=null && selectedChildIndex != null && <Link variant="body1" href="#" underline="none" color="inherit" >{controller.controllers[selectedParentIndex].controllers[selectedChildIndex]?.name}</Link>}
             </Breadcrumbs>
@@ -208,7 +215,7 @@ export const ControllerEditor = ({initialController,updateController})=>{
           <Slide direction={"right"} in={isUpMd || selectedParentIndex==null} mountOnEnter unmountOnExit>
             <Grid item xs={12} md={4} sx={{display: !isUpMd && selectedParentIndex!=null && "none"}}>
               <List sx={{"& .MuiListItemIcon-root":{minWidth: "32px"}}} disablePadding>               
-                <ListItem sx={{backgroundColor:"whitesmoke"}}>
+                {/* <ListItem sx={{backgroundColor:"whitesmoke"}}>
                 {
                   controllerNameEditing ? 
                     <ReactiveInput 
@@ -220,7 +227,7 @@ export const ControllerEditor = ({initialController,updateController})=>{
                       type="text" autoFocus/> :
                     <Typography variant="h6" fontWeight="bold" onClick={()=>{setControllerNameEditing(true)}} sx={{width:1,cursor:"pointer","&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"}}}>{controller?.name}</Typography>
                 }                  
-                </ListItem>
+                </ListItem> */}
                 <Divider/>
                 <ListItem 
                   button sx={{"&.MuiListItem-root:hover":{backgroundColor:"#fef0f5"}}} 
@@ -304,7 +311,7 @@ export const ControllerEditor = ({initialController,updateController})=>{
           <Slide direction="left" in={isUpMd || selectedParentIndex!=null} mountOnEnter unmountOnExit>
             <Grid item xs={12} md={4} sx={{display: !isUpMd && (selectedParentIndex==null || selectedParentIndex!=null && selectedChildIndex!=null) && "none"}}>
               <List sx={{"& .MuiListItemIcon-root":{minWidth: "32px"}}} disablePadding>
-                <ListItem sx={{backgroundColor:"whitesmoke"}} className={isUpMd && classes.secondaryActionHidden} secondaryAction={
+                {selectedParentIndex != null && <ListItem sx={{backgroundColor:"whitesmoke"}} className={isUpMd && classes.secondaryActionHidden} secondaryAction={
                   <IconButton edge="end" aria-label="delete" onClick={()=>{setController(draft=>{draft.controllers.splice(selectedParentIndex,1)});setSelectedParentIndex(null);setSelectedChildIndex(null)}}>
                     <Delete/>
                   </IconButton>
@@ -320,7 +327,7 @@ export const ControllerEditor = ({initialController,updateController})=>{
                         type="text" autoFocus/> :
                       <Typography variant="h6" fontWeight="bold" onClick={()=>{setDialogParentNameEditing(true)}} sx={{width:1,cursor:"pointer","&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"}}}>{controller.controllers[selectedParentIndex]?.name}</Typography>
                   }
-                </ListItem>
+                </ListItem>}
                 <Divider/>
                 <ListItem button 
                   sx={{"&.MuiListItem-root:hover":{backgroundColor:"#fef0f5"}}}

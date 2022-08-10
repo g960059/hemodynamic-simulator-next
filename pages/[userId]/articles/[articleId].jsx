@@ -226,12 +226,12 @@ const ArticleReader = () => {
               </Stack>
               <Box sx={{borderTop:"solid 1px #5c93bb2b", width:1,mt:2,pt:3}}>
                 <Stack direction="row">
-                  <Avatar src={user?.photoURL} sx={{width:"60px",height:"60px",mr:2,cursor:"pointer"}} onClick={()=>{router.push(`/${user.userId}`)}}>
+                  <Avatar src={user?.photoURL} sx={{width:"60px",height:"60px",mr:2,cursor:"pointer"}} onClick={()=>{router.push(`/users/${user.userId}`)}}>
                     {user?.displayName[0]}
                   </Avatar> 
                   <Stack>
                     <Stack direction="row" justifyContent="space-between">
-                      <Typography variant='h6' onClick={()=>{router.push(`/${user.userId}`)}} sx={{cursor:"pointer", mr:2}}>{user?.displayName}</Typography>
+                      <Typography variant='h6' onClick={()=>{router.push(`/users/${user.userId}`)}} sx={{cursor:"pointer", mr:2}}>{user?.displayName}</Typography>
                       {isFollowing ? <Button className='font-bold text-white' variant="contained" onClick={unfollow} disableElevation size="small">フォロー中</Button> : <Button variant="outlined" onClick={follow} size="small">フォローする</Button>}
                     </Stack>
                     {user?.description  && <Typography variant="body1" sx={{my:1}}>{user?.description}</Typography>}
@@ -249,11 +249,11 @@ const ArticleReader = () => {
               <Stack  spacing={3} position="sticky" sx={{top:"30px",maxHeight: "calc(100vh - 50px)",height:"100%" }}>
                 <Box className={classes.shadowBox} p={2.5} width="320px">
                   <Stack direction="row">
-                    <Avatar src={user?.photoURL} sx={{width:"60px",height:"60px",mr:1,cursor:"pointer"}} onClick={()=>{router.push(`/${user.userId}`)}}>
+                    <Avatar src={user?.photoURL} sx={{width:"60px",height:"60px",mr:1,cursor:"pointer"}} onClick={()=>{router.push(`/users/${user.userId}`)}}>
                       {user?.displayName[0]}
                     </Avatar> 
                     <Stack>
-                      <Typography variant='h6' onClick={()=>{router.push(`/${user.userId}`)}} sx={{cursor:"pointer"}}>{user?.displayName}</Typography>
+                      <Typography variant='h6' onClick={()=>{router.push(`/users/${user.userId}`)}} sx={{cursor:"pointer"}}>{user?.displayName}</Typography>
                       <Stack direction="row" spacing={isUpMd ? 1.5 :1}>
                         {user?.twitterUserName && <a href={"https://twitter.com/"+user?.twitterUserName} target="_blank" style={{color:"#93a5b1"}}><Twitter sx={{"&:hover":{color:"#000000d1"}}}/></a>}
                         {user?.facebookUserName && <a href={"https://facebook.com/"+user?.facebookUserName} target="_blank" style={{color:"#93a5b1"}}><Facebook sx={{"&:hover":{color:"#000000d1"}}}/></a>}

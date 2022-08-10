@@ -444,7 +444,7 @@ const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patient
     <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{position: 'relative',backgroundColor:'white', p:[0.5,2],py:2}}>
       <Box width={1} style={{opacity: loading ? 0 : 1}}>
         <Stack alignItems='center' sx={{zIndex: 100, position: "relative"}}>
-          <Stack direction="row" pr={1} pl={2} pb={{xs:1,md:1}} justifyContent="center" sx={{width:1}}>
+          {isUpMd && <Stack direction="row" pr={1} pl={2} pb={{xs:1,md:1}} justifyContent="center" sx={{width:1}}>
             {
               viewNameEditing && !readOnly ? 
                 <ReactiveInput 
@@ -469,15 +469,26 @@ const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patient
                 <DeleteMenuItemWithDialog onDelete={()=>{removeView();setMenuAnchorEl(null)}} onClose={()=>{setMenuAnchorEl(null)}} message={"グラフ「"+view?.name +"」を削除しようとしています。この操作は戻すことができません。"}/>
               </Menu>
             </>}
-          </Stack> 
-          <Grid container xs={12} spacing={1} justifyContent='flex-start' display='flex' sx={{pl:2}}>
-            {initialView.items.map((item,i)=>(
-              <Grid item justifyContent='center' alignItems='center' display='flex' key={item} style={{marginBottom:'-4px'}}> 
-                <FiberManualRecord sx={{color:item.color}} />
-                <Typography variant='subtitle2' noWrap>{item.label}</Typography>
-              </Grid>
-            ))}
-          </Grid>
+          </Stack> }
+          <div className='flex w-full'>
+            <Grid container xs={12} spacing={1} justifyContent='flex-start' display='flex' sx={{pl:2}} className="flex-grow">
+              {initialView.items.map((item,i)=>(
+                <Grid item justifyContent='center' alignItems='center' display='flex' key={item} style={{marginBottom:'-4px'}}> 
+                  <FiberManualRecord sx={{color:item.color}} />
+                  <Typography variant='subtitle2' noWrap>{item.label}</Typography>
+                </Grid>
+              ))}
+            </Grid>
+            {!readOnly && !isUpMd &&  <>
+              <IconButton size="small" className={classes.faintNeumoButton} onClick={e=>{setDialogOpen(true);changingRef.current=engine.isPlaying;engine.setIsPlaying(false)}}>
+                <Tune/>
+              </IconButton>
+              <IconButton onClick={e=>{setMenuAnchorEl(e.currentTarget)}} size="small" className={classes.faintNeumoButton} sx={{ml:1,backgroundColor:"transparent !important"}}><ExpandMore/></IconButton>
+              <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={()=>{setMenuAnchorEl(null)}} MenuListProps={{dense:true}}>
+                <DeleteMenuItemWithDialog onDelete={()=>{removeView();setMenuAnchorEl(null)}} onClose={()=>{setMenuAnchorEl(null)}} message={"グラフ「"+view?.name +"」を削除しようとしています。この操作は戻すことができません。"}/>
+              </Menu>
+            </>}
+          </div>
           <Dialog open={dialogOpen} onClose={onDialogClose} maxWidth='md' sx={{minHeight:'340px',"& .MuiDialog-paper":{minWidth : isUpMd ? "800px": "100%"}}} >
             <DialogTitle  sx={{ borderBottom: isUpMd ? 1:0, borderColor: 'divider',"& .MuiOutlinedInput-input.MuiInputBase-input":{fontWeight:"bold"}}}>
               {
@@ -520,7 +531,7 @@ const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patient
                                   })}}
                                 className={classes.neumoSelect}
                               >
-                                {patients.map(p=><MenuItem value={p.id} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{p.name}</MenuItem>)}
+                                {patients.map(p=><MenuItem value={p.id} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{p.name || "無題の患者"}</MenuItem>)}
                               </Select>
                             </Stack>
                             <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
