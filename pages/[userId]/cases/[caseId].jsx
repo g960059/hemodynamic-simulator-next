@@ -30,6 +30,7 @@ import LoadingAnimation from "../../../src/lotties/LoadingAnimation.json"
 import {format} from "date-fns"
 import { combineLatest, filter, map, mergeMap, of, zip } from 'rxjs';
 import { collectionData, docData } from 'rxfire/firestore';
+import { useLocalStorage } from "../../../src/hooks";
 
 const RealTimeChartNext = dynamic(()=>import('../../../src/components/RealTimeChartNext'), {ssr: false});
 const PressureVolumeCurveNext = dynamic(()=>import('../../../src/components/PressureVolumeCurveNext'), {ssr: false,});
@@ -100,16 +101,26 @@ const useStyles = makeStyles((theme) =>(
       },
       [theme.breakpoints.down('md')]: {
         height: `calc(100vh - 59px)`,
-        flexDirection: "column-reverse",
+        flexDirection: "column",
         "& .gutter.gutter-vertical":{
           backgroundImage: 'url("/horizontal.png")',
-          backgroundColor: "rgb(229, 231, 235)",
+          backgroundColor: "#f1f4f9",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "50% center",
           zIndex:1000
         }
       },      
-    },  
+    }, 
+    childSplit: {
+      height: `calc(100vh - 66px)`,
+      "& .gutter.gutter-vertical":{
+        backgroundImage: 'url("/horizontal.png")',
+        backgroundColor: "#f1f4f9",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "50% center",
+        zIndex:1000
+      }   
+    }, 
     faintNeumoButton: {
       transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
       color: "#b3b3b3",
@@ -190,13 +201,46 @@ const CaseReader = () => {
   const [patients, setPatients] = useImmer();
   const [views, setViews] = useImmer();
   const [caseData, setCaseData] = useImmer();
+  const [outputs, setOutputs] = useImmer([
+    {
+      id: "safasdf",
+      label: "tab1",
+      items:[
+        {
+          id: "tete",
+          label: "大動脈圧",
+          patientId: "7b819fa14a378b",
+          metric: "Aop",
+        },
+        {
+          id: "dsdfaf",
+          label: "",
+          patientId: "7b819fa14a378b",
+          metric: "Co",
+        }
+      ]
+    },
+    {
+      id: "sajhjhjk",
+      label: "tab2",
+      items:[
+        {
+          id: "dgasd",
+          label: "",
+          patientId: "7b819fa14a378b",
+          metric: "Co",
+        }
+      ]
+    }
+  ]);
 
   const [openAddPatientDialog, setOpenAddPatientDialog] = useState(false);
   const [patientListMode, setPatientListMode] = useState(null);
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'), {noSsr: true});
-  const isUpLg = useMediaQuery((theme) => theme.breakpoints.up('lg'), {noSsr: true});
-  const [sizes, setSizes] = useState((isUpMd ? [40,60] : [55,45]));
+  const [sizes, setSizes] = useLocalStorage("circleHeartSizes",(isUpMd ? [30,63,7] : [43,13,44]));
+  const [viewSizes, setViewSizes] = useLocalStorage("circleHeartViewSizes",[70,30]);
   const [heartDiff, setHeartDiff] = useState(0);
+  
 
   const heart = useObservable('/cases/'+caseData?.id+'/heart', zip([uid$,caseId$]).pipe(
     filter(([uid,caseId])=>Boolean(uid)&&Boolean(caseId)),
@@ -312,7 +356,11 @@ const CaseReader = () => {
     setHeartDiff(prev=>prev-1);
   },[caseData?.id])
 
-
+  useEffect(() => {
+    if(user){
+      setDialogOpen(false)
+    }
+  }, [user]);
 
   return <>
       <AppBar position="static" elevation={0} className={classes.appBar} >
@@ -320,10 +368,9 @@ const CaseReader = () => {
           <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex", alignItems:"center"}}>
             <Box mb={-1} mr={1}><Image src="/HeaderIcon.png" width={32} height={32}/></Box>
             <div>
-              <Typography variant={isUpMd ? 'h5':'h6'} fontWeight="bold" textAlign="left">{caseData?.name || "無題の症例"}</Typography>
+              <Typography variant={isUpMd ? 'h5':'subtitle1'} fontWeight="bold" textAlign="left">{caseData?.name || "無題の症例"}</Typography>
               {!isUpMd && <Typography variant="subtitle2" sx={{cursor:"pointer", mt:-.5}} className="text-gray-500" onClick={()=>{router.push(`/users/${caseUser?.userId}`)}}>{caseUser?.displayName}</Typography>}
             </div>
-            
           </Box>
           {isUpMd && !loading && caseData && <NoSsr>
               <Avatar onClick={()=>{router.push(`/${caseUser.userId}`)}} sx={{ width: "34px", height: "34px" ,cursor:"pointer",ml:4}}>
@@ -336,7 +383,7 @@ const CaseReader = () => {
               <Button variant='outlined'>Follow</Button>
             </NoSsr>}
           <div style={{flexGrow:1}}/>
-          {!loading &&<Stack direction="row">
+          {!loading  && auth.currentUser &&<Stack direction="row">
             {heart.status=="success" && 
               (heart.data ? <IconButton onClick={removeHeart} className={classes.favoritedButton} sx={{width: "40px",height:"40px",mr:1}} >
                   <Favorite sx={{width:"28px",height:"28px"}}/>
@@ -347,13 +394,13 @@ const CaseReader = () => {
               )
             }
           </Stack>}
-          {!isUpMd && <div className='bg-white px-1.5 my-1 mr-1 inline-flex items-center rounded cursor-pointer' onClick={cloneCase}>
+          {!isUpMd && auth.currentUser && <div className='bg-white px-1.5 my-1 mr-1 inline-flex items-center rounded cursor-pointer' onClick={cloneCase}>
             <svg viewBox="0 0 100 100" className='h-6 w-6 fill-slate-500'><path d="M84.339 62.504a15.805 15.805 0 00-11.313 4.721 40.187 40.187 0 01-1.578-1.572c-6.965-7.211-14.451-19.189-22.311-29.678-7.977-10.209-16.196-20.413-29.012-20.906H0v14.37h20.126c2.555-.111 6.556 1.993 11.208 6.914 6.961 7.197 14.454 19.171 22.315 29.662 4.822 6.164 9.759 12.293 15.741 16.289 1.99 6.191 7.93 10.688 14.949 10.688 8.648 0 15.661-6.824 15.661-15.244s-7.013-15.244-15.661-15.244zM51.541 29.438h18.986c2.637 4.795 7.831 8.059 13.811 8.059 8.648 0 15.661-6.824 15.661-15.243S92.986 7.01 84.338 7.01c-5.979 0-11.174 3.264-13.811 8.058H36.3c6.007 3.551 10.861 8.924 15.241 14.37z"></path></svg>
           </div>}
           {
             user && <>
               <IconButton size="small" id="profile-button" aria-controls="profile-menu" aria-haspopup="true"  onClick={e=>setAnchorEl(e.currentTarget)}>
-                <Avatar src={user?.photoURL} className= "inline-block h-9 w-9 md:h-11 md:w-11 rounded-md ">{user?.displayName[0]}</Avatar>
+                <Avatar src={user?.photoURL} className= "inline-block h-9 w-9 md:h-11 md:w-11 rounded-full ">{user?.displayName[0]}</Avatar>
               </IconButton> 
               <Button disableElevation variant='contained' className="text-white" sx={{ml:2,display:{xs:"none",md:"inherit"},fontWeight:"bold"}} onClick={cloneCase} startIcon={<Edit/>}>編集する</Button>
             </>
@@ -428,7 +475,8 @@ const CaseReader = () => {
       </AppBar>
       <Divider sx={{borderColor:"#5c93bb2b"}}/>
       <NextSeo title={"症例"+caseData?.name}/>
-      <Box className={classes.background}/>
+      <div className={classes.background}/> 
+      {!isUpMd && <div className="bg-slate-200 h-screen w-screen fixed -z-10"/>}
       {loading && <Box>
           <Lottie loop animationData={LoadingAnimation} play style={{ objectFit:"contain" }} />
         </Box>
@@ -437,315 +485,77 @@ const CaseReader = () => {
         <Split 
           className={classes.split} 
           sizes={sizes} 
-          gutterSize={8} 
-          minSize={[0,0]} 
+          gutterSize={12} 
+          minSize={[0,0,0]} 
           direction={isUpMd? "horizontal":"vertical"} 
           cursor={isUpMd ? "col-resize" : "row-resize"} 
-          onDragEnd={(newSizes_)=>{const newSizes=isUpMd ? newSizes_ : newSizes_.reverse();localStorage.setItem('case-split-sizes', JSON.stringify(newSizes)); setSizes(newSizes)}}
+          onDragEnd={(newSizes)=>{
+            localStorage.setItem('case-split-sizes', JSON.stringify(newSizes)); 
+            setSizes(newSizes)
+          }}
         >
-          <Box sx={{overflow:"auto",backgroundColor:!isUpMd && "#f1f5f9",zIndex:1000}}>
-            <Box>
-              {isUpMd && <>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mx:{xs:2,md:"auto"},mt:{xs:2,md:2},mb:1, maxWidth:"407px"}}>
-                  <Typography variant="h5" color="secondary" sx={{cursor: "default"}}>Patients</Typography>
-                  <Button onClick={()=>{setOpenAddPatientDialog(true)}} startIcon={<Add/>} variant='contained' disableElevation className={classes.neumoButton}>比較</Button>                                
-                </Stack>
-                <Stack justifyContent="center" alignItems="center">
-                  {caseData.patientIds?.map((patientId,index)=>{
-                    const patient = patients.find(({id})=>id===patientId);
-                    if(patient){
-                      return <Box maxWidth={{xs:"100%",md:"420px"}} width={1} mx={1} ref={(index==patients.length-1)? scrollPatientBottomRef : null}>
-                        <ControllerPanelNext
-                          key={patient.id}
-                          patient={patient} 
-                          setPatient={newPatient=>{setPatients(draft=>{draft.findIndex(p=>p.id===patient.id)===-1? draft.push(newPatient) : draft.splice(draft.findIndex(p=>p.id===patient.id),1,newPatient);})}}
-                          removePatient={()=>{
-                            setViews(draft=>{
-                              for(var i=0; i<draft.length; i++){
-                                draft[i].items = draft[i].items.filter(item=>item.patientId != patient.id)
-                              }
-                            })
-                            setCaseData(draft=>{draft.patientIds=draft.patientIds.filter(id=>id!=patient.id)})
-                            engine.unregister(patient.id);
-                            setPatients(patients.filter(p=>p.id!=patient.id));
-                          }}
-                          clonePatient={()=>{
-                            const newPatient = {
-                              ...patient,
-                              id: nanoid(),   
-                              name: patient.name+"の複製",
+          {isUpMd &&<Box sx={{overflow:"auto",backgroundColor:!isUpMd && "#f1f5f9",zIndex:1000}}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mx:{xs:2,md:"auto"},mt:{xs:2,md:2},mb:1, maxWidth:"407px"}}>
+                <Typography variant="h5" color="secondary" sx={{cursor: "default"}}>Patients</Typography>
+                <Button onClick={()=>{setOpenAddPatientDialog(true)}} startIcon={<Add/>} variant='contained' disableElevation className={classes.neumoButton}>比較</Button>                                
+              </Stack>
+              <Stack justifyContent="center" alignItems="center">
+                {caseData.patientIds?.map((patientId,index)=>{
+                  const patient = patients.find(({id})=>id===patientId);
+                  if(patient){
+                    return <Box maxWidth={{xs:"100%",md:"420px"}} width={1} mx={1} ref={(index==patients.length-1)? scrollPatientBottomRef : null}>
+                      <ControllerPanelNext
+                        key={patient.id}
+                        patient={patient} 
+                        setPatient={newPatient=>{setPatients(draft=>{draft.findIndex(p=>p.id===patient.id)===-1? draft.push(newPatient) : draft.splice(draft.findIndex(p=>p.id===patient.id),1,newPatient);})}}
+                        removePatient={()=>{
+                          setViews(draft=>{
+                            for(var i=0; i<draft.length; i++){
+                              draft[i].items = draft[i].items.filter(item=>item.patientId != patient.id)
                             }
-                            engine.register(newPatient);
-                            setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
-                            setCaseData(draft=>{draft.patientIds.push(newPatient.id)})
-                            setTimeout(()=>{scrollPatientBottomRef.current?.scrollIntoView({behavior: "smooth"});},100)
-                          }}
-                          setViews={setViews} 
-                          patientIndex = {index}
-                        />
-                      </Box>
-                    }
-                  })}
-                </Stack>
-              </>}
-              <Dialog open={openAddPatientDialog} onClose={()=>{setOpenAddPatientDialog(false);setPatientListMode(null)}} sx={{minHeight:'340px',"& .MuiPaper-root":{width:"100%"}}} >
-                <DialogTitle >
-                  比較対象を追加する
-                </DialogTitle>
-                <DialogContent>
-                  {
-                    !patientListMode && <>
-                      <Typography variant="h6" fontWeight="bold">My Patients</Typography>
-                      <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
-                        <Box className={classes.shadowBox} minWidth="120px">
-                          <Typography variant="body1" sx={{backgroundColor:"#edf2f6",px:2,py:1}}>{caseData.emoji +" "+ caseData.name}</Typography>
-                          <List>
-                            {
-                              patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
-                                  <ListItemButton>
-                                    <ListItemText primary={p.name || "無題の患者"}/>
-                                  </ListItemButton>
-                              </ListItem>
-                            })}
-                          </List>
-                        </Box>
-                      </Masonry>
-                      <Link underline="hover" sx={{cursor:"pointer",my:1}} onClick={()=>{setPatientListMode("myPatients")}}>see more my patients →</Link>
-                      <Typography variant="h6" fontWeight="bold" sx={{mt:2}}>Popular</Typography>
-                      <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
-                        {allCases?.filter(x=>x.patients?.length>0 && x.visibility != "private").slice(0,6).map(c=>{
-                          return <Box className={classes.shadowBox} minWidth="120px">
-                              <Stack sx={{backgroundColor:"#edf2f6",px:2,py:1}} >
-                                <Typography variant="body1">{c.emoji +" "+ (c.name || "無題の症例")}</Typography>
-                                <Stack direction="row" justifyContent="center" alignItems="center">
-                                  <Avatar sx={{ width: 16, height: 16 }}>
-                                    <Image src={c?.photoURL} layout='fill'/>
-                                  </Avatar>
-                                  <Typography variant="caption" sx={{mx:1}} >{c.displayName}</Typography>
-                                  <div style={{flexGrow:1}}/>
-                                  <FavoriteBorder sx={{color:"#6e7b85",fontSize:16}}/>
-                                  <Typography variant="caption" sx={{color:"#6e7b85"}}>{c.favs}</Typography>
-                                </Stack>
-                              </Stack>
-                              <List>
-                                {
-                                  c.patients?.map(p=>{
-                                    return( 
-                                    <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}} >
-                                      <ListItemButton>
-                                        <ListItemText primary={p.name || "無題の患者"}/>
-                                      </ListItemButton>
-                                    </ListItem>
-                                  )})}
-                              </List>
-                            </Box>
-                          })}  
-                        </Masonry>                    
-                      <Link underline="hover" sx={{cursor:"pointer",my:1}} onClick={()=>{setPatientListMode("popular")}}>see more public patients →</Link> 
-                    </>
-                  }
-                  {
-                    patientListMode && <>
-                      <ToggleButtonGroup
-                        color="primary"
-                        value={patientListMode}
-                        exclusive
-                        onChange={(e,newValue)=>{setPatientListMode(newValue)}}
-                        sx={{"& .MuiToggleButton-root": { padding:"3px 14px 2px"}}}
-                      >
-                        <ToggleButton value="myPatients">My Patients</ToggleButton>
-                        <ToggleButton value="popular">Popular</ToggleButton>
-                      </ToggleButtonGroup>
-                    </>
-                  }
-                  {patientListMode == "myPatients" && <>
-                    <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
-                      <Box className={classes.shadowBox} minWidth="120px">
-                        <Typography variant="body1" sx={{backgroundColor:"#edf2f6",px:2,py:1}}>{caseData.emoji +" "+ caseData.name}</Typography>
-                        <List>
-                          {
-                            patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
-                                <ListItemButton>
-                                  <ListItemText primary={p.name}/>
-                                </ListItemButton>
-                            </ListItem>
-                          })}
-                        </List>
-                      </Box>
-                      {cases.data?.filter(c=>c.id!=caseData.id).sort((a,b)=>a.updatedAt > b.updatedAt ? -1 : 1).map(c=>{
-                        return <Box className={classes.shadowBox} minWidth="120px">
-                            <Typography variant="body1" sx={{backgroundColor:"#edf2f6",px:2,py:1}}>{c.emoji +" "+ c.name}</Typography>
-                            <List>
-                              {
-                                c.patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
-                                    <ListItemButton>
-                                      <ListItemText primary={p.name}/>
-                                    </ListItemButton>
-                                </ListItem>
-                              })}
-                            </List>
-                          </Box>
-                      })}
-                    </Masonry>                        
-                  </>}
-                  {patientListMode == "popular" && <>
-                    <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
-                      {allCases.data?.map(c=>{
-                        return <Box className={classes.shadowBox} minWidth="120px">
-                            <Stack sx={{backgroundColor:"#edf2f6",px:2,py:1}} >
-                              <Typography variant="body1">{c.emoji +" "+ c.name}</Typography>
-                              <Stack direction="row" justifyContent="center" alignItems="center">
-                                <Avatar sx={{ width: 16, height: 16 }}>
-                                  <Image src={c?.photoURL} layout='fill'/>
-                                </Avatar>
-                                <Typography variant="caption" sx={{mx:1}} >{c.displayName}</Typography>
-                                <div style={{flexGrow:1}}/>
-                                <FavoriteBorder sx={{color:"#6e7b85",fontSize:16}}/>
-                                <Typography variant="caption" sx={{color:"#6e7b85"}}>{c.favs}</Typography>
-                              </Stack>
-                            </Stack>
-                            <List>
-                              {
-                                c.patients?.map(p=>{
-                                  return( 
-                                  <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}} >
-                                    <ListItemButton>
-                                      <ListItemText primary={p.name}/>
-                                    </ListItemButton>
-                                  </ListItem>
-                                )})}
-                            </List>
-                          </Box>
-                        })}  
-                      </Masonry>                           
-                  </>}
-                </DialogContent>
-              </Dialog>              
-              {
-                !isUpMd && <div>
-                  <div className='flex w-full bg-slate-200 -mb-px'>
-                    <nav className="flex overflow-x-scroll ">
-                      <div className='flex w-full'>
-                        {caseData.patientIds?.map((patientId,index)=>{
-                          const patient = patients.find(({id})=>id===patientId);
-                          if(patient?.id){ 
-                            console.log(patient);
-                            return <div key={patient.id} className='flex-shrink-0 flex-grow-0'>
-                              <div className={`btn py-2 px-5 text-sm font-bold mr-px text-center transition-all duration-150 ${selectedPatient?.id==patient.id ? "bg-white": "text-slate-600"} `} onClick={()=>{
-                                setSelectedPatient(patient);
-                              }}>
-                                {patient?.name || "無題の患者"}
-                              </div>
-                            </div>
+                          })
+                          setCaseData(draft=>{draft.patientIds=draft.patientIds.filter(id=>id!=patient.id)})
+                          engine.unregister(patient.id);
+                          setPatients(patients.filter(p=>p.id!=patient.id));
+                        }}
+                        clonePatient={()=>{
+                          const newPatient = {
+                            ...patient,
+                            id: nanoid(),   
+                            name: patient.name+"の複製",
                           }
-                        } )}
-                      </div>
-                      <div className={`bg-white px-1.5 m-1.5 mx-2 inline-flex items-center rounded-sm cursor-pointer hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-300`} onClick={()=>{setOpenAddPatientDialog(true)}}  >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                      </div>
-                    </nav>
-                  </div>
-                  <div>
-                    {selectedPatient?.id && <ControllerPanelNext
-                      key={selectedPatient.id}
-                      patient={selectedPatient} 
-                      setPatient={newPatient=>{setPatients(draft=>{draft.findIndex(p=>p.id===selectedPatient.id)===-1? draft.push(newPatient) : draft.splice(draft.findIndex(p=>p.id===selectedPatient.id),1,newPatient);})}}
-                      removePatient={()=>{
-                        setViews(draft=>{
-                          for(var i=0; i<draft.length; i++){
-                            draft[i].items = draft[i].items.filter(item=>item.patientId != selectedPatient.id)
-                          }
-                        })
-                        setCaseData(draft=>{draft.patientIds=draft.patientIds.filter(id=>id!=selectedPatient.id)})
-                        engine.unregister(selectedPatient.id);
-                        setPatients(patients.filter(p=>p.id!=selectedPatient.id));
-                      }}
-                      clonePatient={()=>{
-                        const newPatient = {
-                          ...selectedPatient,
-                          id: nanoid(),   
-                          name: selectedPatient.name+"の複製",
-                        }
-                        engine.register(newPatient);
-                        setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
-                        setCaseData(draft=>{draft.patientIds.push(newPatient.id)})
-                        setTimeout(()=>{scrollPatientBottomRef.current?.scrollIntoView({behavior: "smooth"});},100)
-                      }}
-                      setViews={setViews} 
-                      patientIndex = {patients.findIndex(p=>p.id===selectedPatient.id)}
-                    />}
-                  </div>
-                </div>
-              }              
-            </Box>
-          </Box>
-          <Box sx={{height:"100%",position:"relative",display:isUpLg && "flex", flexDirection: isUpLg && "row"}}>     
-            <Box sx={{height:"100%",overflow:"auto",flexGrow:isUpLg && 1,pr:isUpLg&&"88px",pl:isUpLg&& 1, pb:"88px"}}>
-              {isUpMd && <>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mx:2,mt:2,mb:1}}>
-                  <Typography variant="h5" color="secondary" sx={{cursor: "default"}}>Views</Typography>
-                  <NewAddViewDialog 
-                    addViewItem={(viewItem)=>{
-                      setCaseData(draft=>{draft.viewIds.push(viewItem.id)})
-                      setViews(draft=>{draft.push(viewItem)})
-                    }} 
-                    patients={patients}
-                  />
-                </Stack>
-                <Stack alignItems="center" px={1}>
-                  { caseData.viewIds?.map(viewId=>{
-                    const view = views.find(v=>v.id===viewId);
-                    if(view){ 
-                      return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,py:1,boxShadow:"0 10px 20px #4b57a936", overflow:"auto", maxWidth: "750px", width:1,minWidth:{xs:"auto",md:"400px"}}}>
-                      {view.type === "PressureCurve" && 
-                        <RealTimeChartNext engine={engine} initialView={view} patients={patients}
-                          setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
-                          removeView={()=>{
-                            setCaseData(draft=>{
-                              draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
-                            })
-                            setViews(draft=>{
-                              draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                            })
-                          }}
-                        />
-                      }
-                      {view.type === "PressureVolumeCurve" && 
-                        <PressureVolumeCurveNext engine={engine} initialView={view} 
-                          setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
-                          removeView={()=>{
-                            setCaseData(draft=>{
-                              draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
-                            })
-                            setViews(draft=>{
-                              draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                            })
-                          }}
-                          patients={patients}/>
-                      }
+                          engine.register(newPatient);
+                          setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
+                          setCaseData(draft=>{draft.patientIds.push(newPatient.id)})
+                          setTimeout(()=>{scrollPatientBottomRef.current?.scrollIntoView({behavior: "smooth"});},100)
+                        }}
+                        setViews={setViews} 
+                        patientIndex = {index}
+                      />
                     </Box>
-                  }})}
-                </Stack> 
-              </>}
-              {
-                !isUpMd && <div>
-                  <div className='flex w-full bg-slate-200 -mb-px'>
-                    <nav className="flex space-x-8 overflow-x-scroll ">
-                      <div className='flex w-full'>
-                        {caseData.viewIds?.map(viewId=>{
-                          const view = views.find(v=>v.id===viewId);
-                          if(view){ 
-                            return <div key={view.id} className='flex-shrink-0 flex-grow-0'>
-                              <div className={`btn py-2 px-5 text-sm font-bold mr-px text-center transition-all duration-150 ${selectedView.id==view.id ? "bg-white": "text-slate-600"} `} onClick={()=>{
-                                setSelectedView(view)
-                              }}>
-                                {view?.name || "無題のグラフ"}
-                              </div>
-                            </div>
-                          }
-                        } )}
+                  }
+                })}
+              </Stack>
+            </Box>
+          }
+          <div className={`z-10  ${!isUpMd && "bg-slate-200"}`}>
+            {/* <Box sx={{height: isUpMd && "100%",position: isUpMd &&"relative",display:isUpLg && "flex", flexDirection: isUpLg && "row"}}>     
+              <Box sx={{height: isUpMd && "100%",overflow: isUpMd && "auto",flexGrow:isUpLg && 1,pr:isUpLg&&"88px",pl:isUpLg&& 1, pb:"88px"}}> */}
+                {isUpMd && 
+                  <Split 
+                    sizes={viewSizes} 
+                    gutterSize={12} 
+                    minSize={[0,0]}
+                    direction="vertical"
+                    cursor="row-resize"
+                    onDragEnd={(newSizes)=>{
+                      setViewSizes(newSizes)
+                    } }
+                    className={classes.childSplit}
+                  >
+                    <div className='overflow-y-scroll'>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mx:2,mt:2,mb:1}}>
+                        <Typography variant="h5" color="secondary" sx={{cursor: "default"}}>Views</Typography>
                         <NewAddViewDialog 
                           addViewItem={(viewItem)=>{
                             setCaseData(draft=>{draft.viewIds.push(viewItem.id)})
@@ -753,66 +563,317 @@ const CaseReader = () => {
                           }} 
                           patients={patients}
                         />
-                      </div>
-                    </nav>
-                    <div className="flex-grow"></div>
-                    <div className='bg-white px-1.5 m-1.5 mx-1 inline-flex items-center rounded cursor-pointer' onClick={()=>{if(showController){
-                        setSizes([45,55])
-                        setShowController(false)
-                      }else{
-                        setSizes([100,0])
-                        setShowController(true)
-                      }
-                    }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 fill-slate-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd" />
-                      </svg>
+                      </Stack>
+                      <Stack alignItems="center" px={1}>
+                        { caseData.viewIds?.map(viewId=>{
+                          const view = views.find(v=>v.id===viewId);
+                          if(view){ 
+                            return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,py:1,boxShadow:"0 10px 20px #4b57a936", overflow:"auto", maxWidth: "750px", width:1,minWidth:{xs:"auto",md:"400px"}}}>
+                            {view.type === "PressureCurve" && 
+                              <RealTimeChartNext engine={engine} initialView={view} patients={patients}
+                                setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
+                                removeView={()=>{
+                                  setCaseData(draft=>{
+                                    draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
+                                  })
+                                  setViews(draft=>{
+                                    draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                                  })
+                                }}
+                              />
+                            }
+                            {view.type === "PressureVolumeCurve" && 
+                              <PressureVolumeCurveNext engine={engine} initialView={view} 
+                                setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
+                                removeView={()=>{
+                                  setCaseData(draft=>{
+                                    draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
+                                  })
+                                  setViews(draft=>{
+                                    draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                                  })
+                                }}
+                                patients={patients}/>
+                            }
+                          </Box>
+                        }})}
+                      </Stack> 
                     </div>
-                    <PlaySpeedButtonsNext engine={engine}/>
+                    <div className='flex justify-center overflow-y-scroll'>
+                      {
+                        patients?.length>0  && 
+                        <div className='overflow-hidden w-full'>
+                          <OutputPanel outputs = {outputs} setOutputs={setOutputs} patients = {patients}/>
+                        </div>
+                      }
+                    </div>
+                  </Split>
+                  }
+                {
+                  !isUpMd && <div>
+                    <div className='flex w-full -mb-px'>
+                      <nav className="flex space-x-8 overflow-x-scroll ">
+                        <div className='flex w-full'>
+                          {caseData.viewIds?.map(viewId=>{
+                            const view = views.find(v=>v.id===viewId);
+                            if(view){ 
+                              return <div key={view.id} className='flex-shrink-0 flex-grow-0'>
+                                <div className={`btn py-2 px-5 text-sm font-bold mr-px text-center transition-all duration-150 ${selectedView.id==view.id ? "bg-white": "text-slate-600"} `} onClick={()=>{
+                                  setSelectedView(view)
+                                }}>
+                                  {view?.name || "無題のグラフ"}
+                                </div>
+                              </div>
+                            }
+                          } )}
+                          <NewAddViewDialog 
+                            addViewItem={(viewItem)=>{
+                              setCaseData(draft=>{draft.viewIds.push(viewItem.id)})
+                              setViews(draft=>{draft.push(viewItem)})
+                            }} 
+                            patients={patients}
+                          />
+                        </div>
+                      </nav>
+                      <div className="flex-grow"></div>
+                      <PlaySpeedButtonsNext engine={engine}/>
+                    </div>
+                    <div>
+                      {selectedView.type === "PressureCurve" && 
+                        <RealTimeChartNext engine={engine} initialView={selectedView} patients={patients}
+                          setInitialView={newView=>{
+                            setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
+                            setSelectedView(newView)
+                          }} 
+                          removeView={()=>{
+                            setCaseData(draft=>{
+                              draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
+                            })
+                            setViews(draft=>{
+                              draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
+                            })
+                          }}
+                        />
+                      }
+                      {selectedView.type === "PressureVolumeCurve" && 
+                        <PressureVolumeCurveNext engine={engine} initialView={selectedView} 
+                          setInitialView={newView=>{
+                            setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
+                            setSelectedView(newView)
+                          }} 
+                          removeView={()=>{
+                            setCaseData(draft=>{
+                              draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
+                            })
+                            setViews(draft=>{
+                              draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
+                            })
+                          }}
+                          patients={patients}/>
+                      }
+                    </div>
                   </div>
-                  <div>
-                    {selectedView.type === "PressureCurve" && 
-                      <RealTimeChartNext engine={engine} initialView={selectedView} patients={patients}
-                        setInitialView={newView=>{
-                          setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
-                          setSelectedView(newView)
-                        }} 
-                        removeView={()=>{
-                          setCaseData(draft=>{
-                            draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
-                          })
-                          setViews(draft=>{
-                            draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
-                          })
-                        }}
-                      />
-                    }
-                    {selectedView.type === "PressureVolumeCurve" && 
-                      <PressureVolumeCurveNext engine={engine} initialView={selectedView} 
-                        setInitialView={newView=>{
-                          setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
-                          setSelectedView(newView)
-                        }} 
-                        removeView={()=>{
-                          setCaseData(draft=>{
-                            draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
-                          })
-                          setViews(draft=>{
-                            draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
-                          })
-                        }}
-                        patients={patients}/>
-                    }
+                }
+          </div>
+          {!isUpMd ? <>
+            <div className='z-20 bg-slate-200'>
+              {patients?.length>0 && <OutputPanel outputs = {outputs} patients = {patients} setOutputs={setOutputs}/>}
+            </div>
+            <div className='z-30'>
+              <div className='flex w-full bg-slate-200 -mb-px'>
+                <nav className="flex overflow-x-scroll ">
+                  <div className='flex w-full'>
+                    {caseData.patientIds?.map((patientId,index)=>{
+                      const patient = patients.find(({id})=>id===patientId);
+                      if(patient?.id){ 
+                        return <div key={patient.id} className='flex-shrink-0 flex-grow-0'>
+                          <div className={`btn py-2 px-5 text-sm font-bold mr-px text-center transition-all duration-150 ${selectedPatient?.id==patient.id ? "bg-white": "text-slate-600"} `} onClick={()=>{
+                            setSelectedPatient(patient);
+                          }}>
+                            {patient?.name || "無題の患者"}
+                          </div>
+                        </div>
+                      }
+                    } )}
                   </div>
-                </div>
-              }
-            </Box>
-            {isUpLg && <Box pr={2} pl={1} display="flex" justifyContent="center" alignItems="center" position="fixed" sx={{right:0,paddingTop:"60px"}}><PlaySpeedButtonsNext engine={engine} vertical/></Box>}
-            {isUpMd && !isUpLg && <Box width={1} justifyContent="center" alignItems="center" position="absolute" sx={{bottom:"32px"}}>
-              <PlaySpeedButtonsNext engine={engine}/>
-            </Box>}
-          </Box>
+                  <div className={`bg-white px-1.5 m-1.5 mx-2 inline-flex items-center rounded-sm cursor-pointer hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-300`} onClick={()=>{setOpenAddPatientDialog(true)}}  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                  </div>
+                </nav>
+              </div>
+              <div>
+                {selectedPatient?.id && <ControllerPanelNext
+                  key={selectedPatient.id}
+                  patient={selectedPatient} 
+                  setPatient={newPatient=>{setPatients(draft=>{draft.findIndex(p=>p.id===selectedPatient.id)===-1? draft.push(newPatient) : draft.splice(draft.findIndex(p=>p.id===selectedPatient.id),1,newPatient);})}}
+                  removePatient={()=>{
+                    setViews(draft=>{
+                      for(var i=0; i<draft.length; i++){
+                        draft[i].items = draft[i].items.filter(item=>item.patientId != selectedPatient.id)
+                      }
+                    })
+                    setCaseData(draft=>{draft.patientIds=draft.patientIds.filter(id=>id!=selectedPatient.id)})
+                    engine.unregister(selectedPatient.id);
+                    setPatients(patients.filter(p=>p.id!=selectedPatient.id));
+                  }}
+                  clonePatient={()=>{
+                    const newPatient = {
+                      ...selectedPatient,
+                      id: nanoid(),   
+                      name: selectedPatient.name+"の複製",
+                    }
+                    engine.register(newPatient);
+                    setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
+                    setCaseData(draft=>{draft.patientIds.push(newPatient.id)})
+                    setTimeout(()=>{scrollPatientBottomRef.current?.scrollIntoView({behavior: "smooth"});},100)
+                  }}
+                  setViews={setViews} 
+                  patientIndex = {patients.findIndex(p=>p.id===selectedPatient.id)}
+                />}
+              </div>
+            </div>
+            </> : <div className='flex flex-col'>
+              <div className='pt-5 px-3'>
+                <PlaySpeedButtonsNext engine={engine} vertical/>
+              </div>  
+            </div>
+          }              
         </Split>
+        <Dialog open={openAddPatientDialog} onClose={()=>{setOpenAddPatientDialog(false);setPatientListMode(null)}} sx={{minHeight:'340px',"& .MuiPaper-root":{width:"100%"}}} >
+          <DialogTitle >
+            比較対象を追加する
+          </DialogTitle>
+          <DialogContent>
+            {
+              !patientListMode && <>
+                <Typography variant="h6" fontWeight="bold">My Patients</Typography>
+                <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
+                  <Box className={classes.shadowBox} minWidth="120px">
+                    <Typography variant="body1" sx={{backgroundColor:"#edf2f6",px:2,py:1}}>{caseData.emoji +" "+ caseData.name}</Typography>
+                    <List>
+                      {
+                        patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
+                            <ListItemButton>
+                              <ListItemText primary={p.name || "無題の患者"}/>
+                            </ListItemButton>
+                        </ListItem>
+                      })}
+                    </List>
+                  </Box>
+                </Masonry>
+                <Link underline="hover" sx={{cursor:"pointer",my:1}} onClick={()=>{setPatientListMode("myPatients")}}>see more my patients →</Link>
+                <Typography variant="h6" fontWeight="bold" sx={{mt:2}}>Popular</Typography>
+                <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
+                  {allCases?.filter(x=>x.patients?.length>0 && x.visibility != "private").slice(0,6).map(c=>{
+                    return <Box className={classes.shadowBox} minWidth="120px">
+                        <Stack sx={{backgroundColor:"#edf2f6",px:2,py:1}} >
+                          <Typography variant="body1">{c.emoji +" "+ (c.name || "無題の症例")}</Typography>
+                          <Stack direction="row" justifyContent="center" alignItems="center">
+                            <Avatar sx={{ width: 16, height: 16 }}>
+                              <Image src={c?.photoURL} layout='fill'/>
+                            </Avatar>
+                            <Typography variant="caption" sx={{mx:1}} >{c.displayName}</Typography>
+                            <div style={{flexGrow:1}}/>
+                            <FavoriteBorder sx={{color:"#6e7b85",fontSize:16}}/>
+                            <Typography variant="caption" sx={{color:"#6e7b85"}}>{c.favs}</Typography>
+                          </Stack>
+                        </Stack>
+                        <List>
+                          {
+                            c.patients?.map(p=>{
+                              return( 
+                              <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}} >
+                                <ListItemButton>
+                                  <ListItemText primary={p.name || "無題の患者"}/>
+                                </ListItemButton>
+                              </ListItem>
+                            )})}
+                        </List>
+                      </Box>
+                    })}  
+                  </Masonry>                    
+                <Link underline="hover" sx={{cursor:"pointer",my:1}} onClick={()=>{setPatientListMode("popular")}}>see more public patients →</Link> 
+              </>
+            }
+            {
+              patientListMode && <>
+                <ToggleButtonGroup
+                  color="primary"
+                  value={patientListMode}
+                  exclusive
+                  onChange={(e,newValue)=>{setPatientListMode(newValue)}}
+                  sx={{"& .MuiToggleButton-root": { padding:"3px 14px 2px"}}}
+                >
+                  <ToggleButton value="myPatients">My Patients</ToggleButton>
+                  <ToggleButton value="popular">Popular</ToggleButton>
+                </ToggleButtonGroup>
+              </>
+            }
+            {patientListMode == "myPatients" && <>
+              <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
+                <Box className={classes.shadowBox} minWidth="120px">
+                  <Typography variant="body1" sx={{backgroundColor:"#edf2f6",px:2,py:1}}>{caseData.emoji +" "+ caseData.name}</Typography>
+                  <List>
+                    {
+                      patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
+                          <ListItemButton>
+                            <ListItemText primary={p.name}/>
+                          </ListItemButton>
+                      </ListItem>
+                    })}
+                  </List>
+                </Box>
+                {cases.data?.filter(c=>c.id!=caseData.id).sort((a,b)=>a.updatedAt > b.updatedAt ? -1 : 1).map(c=>{
+                  return <Box className={classes.shadowBox} minWidth="120px">
+                      <Typography variant="body1" sx={{backgroundColor:"#edf2f6",px:2,py:1}}>{c.emoji +" "+ c.name}</Typography>
+                      <List>
+                        {
+                          c.patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
+                              <ListItemButton>
+                                <ListItemText primary={p.name}/>
+                              </ListItemButton>
+                          </ListItem>
+                        })}
+                      </List>
+                    </Box>
+                })}
+              </Masonry>                        
+            </>}
+            {patientListMode == "popular" && <>
+              <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
+                {allCases.data?.map(c=>{
+                  return <Box className={classes.shadowBox} minWidth="120px">
+                      <Stack sx={{backgroundColor:"#edf2f6",px:2,py:1}} >
+                        <Typography variant="body1">{c.emoji +" "+ c.name}</Typography>
+                        <Stack direction="row" justifyContent="center" alignItems="center">
+                          <Avatar sx={{ width: 16, height: 16 }}>
+                            <Image src={c?.photoURL} layout='fill'/>
+                          </Avatar>
+                          <Typography variant="caption" sx={{mx:1}} >{c.displayName}</Typography>
+                          <div style={{flexGrow:1}}/>
+                          <FavoriteBorder sx={{color:"#6e7b85",fontSize:16}}/>
+                          <Typography variant="caption" sx={{color:"#6e7b85"}}>{c.favs}</Typography>
+                        </Stack>
+                      </Stack>
+                      <List>
+                        {
+                          c.patients?.map(p=>{
+                            return( 
+                            <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}} >
+                              <ListItemButton>
+                                <ListItemText primary={p.name}/>
+                              </ListItemButton>
+                            </ListItem>
+                          )})}
+                      </List>
+                    </Box>
+                  })}  
+                </Masonry>                           
+            </>}
+          </DialogContent>
+        </Dialog>             
       </>
       }
   </>
@@ -825,7 +886,7 @@ const NewAddViewDialog = React.memo(({addViewItem,patients})=>{
   const classes = useStyles()
   const [openAddViewDialog, setOpenAddViewDialog] = useState(false);
   const [view, setView] = useImmer({name: "", type: "PressureCurve", items:[{hdp:"Plv",label:"左室圧",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}]});
-  const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'), {noSsr: true});
+  const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
 
   return <>
     {isUpMd && <Button onClick={()=>{setOpenAddViewDialog(true)}} startIcon={<Add/>} variant='contained' disableElevation className={classes.neumoButton}>追加する</Button>}
@@ -835,7 +896,7 @@ const NewAddViewDialog = React.memo(({addViewItem,patients})=>{
         </svg>
       </div>
     }
-    <Dialog open={openAddViewDialog} onClose={()=>{setOpenAddViewDialog(false)}}>
+    <Dialog open={openAddViewDialog} onClose={()=>{setOpenAddViewDialog(false)}} sx={{ ".MuiDialog-paper": {m:0}}}>
       <DialogTitle>Viewを追加する</DialogTitle>
       <DialogContent>
         <Stack justifyContent='center' alignItems='flex-start' spacing={2}>
@@ -868,7 +929,7 @@ const NewAddViewDialog = React.memo(({addViewItem,patients})=>{
           addViewItem({...view,id:nanoid()});
           setView({name: "", type: "PressureCurve", items:[]})
           setOpenAddViewDialog(false)
-        }} color="primary" variant="contained">追加する</Button>
+        }} color="primary" variant="contained" className="text-white font-bold">追加する</Button>
       </DialogActions>
     </Dialog>
   </>
