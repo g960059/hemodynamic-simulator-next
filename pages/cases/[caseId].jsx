@@ -34,6 +34,7 @@ import { getRandomColor } from '../../src/styles/chartConstants';
 import Lottie from 'react-lottie-player' 
 import LoadingAnimation from "../../src/lotties/LoadingAnimation.json"
 
+
 const RealTimeChartNext = dynamic(()=>import('../../src/components/RealTimeChartNext'), {ssr: false});
 const PressureVolumeCurveNext = dynamic(()=>import('../../src/components/PressureVolumeCurveNext'), {ssr: false,});
 const CombinedChart = dynamic(()=>import('../../src/components/combined/CombinedChart'), {ssr: false,});

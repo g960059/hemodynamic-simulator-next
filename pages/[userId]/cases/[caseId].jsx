@@ -5,7 +5,6 @@ import Masonry from '@mui/lab/Masonry';
 import {useEngine, user$,cases$, allCases$} from '../../../src/hooks/usePvLoop'
 import { useRouter } from 'next/router'
 import PlaySpeedButtonsNext from '../../../src/components/PlaySpeedButtonsNext'
-import {a11yProps, TabPanel} from '../../../src/components/TabUtils'
 import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../../src/hooks/useTranslation'
 import OutputPanel from '../../../src/components/OutputPanel'
@@ -23,7 +22,6 @@ import {db,StyledAuth,auth} from "../../../src/utils/firebase"
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs, getDoc, query, collectionGroup, orderBy, limit, increment} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import {nanoid,formatDateDiff} from "../../../src/utils/utils"
-import Split from 'react-split'
 import { getRandomColor } from '../../../src/styles/chartConstants';
 import Lottie from 'react-lottie-player' 
 import LoadingAnimation from "../../../src/lotties/LoadingAnimation.json"
@@ -31,6 +29,8 @@ import {format} from "date-fns"
 import { combineLatest, filter, map, mergeMap, of, zip } from 'rxjs';
 import { collectionData, docData } from 'rxfire/firestore';
 import { useLocalStorage } from "../../../src/hooks";
+import { Allotment } from "allotment";
+import "allotment/dist/style.css";
 
 const RealTimeChartNext = dynamic(()=>import('../../../src/components/RealTimeChartNext'), {ssr: false});
 const PressureVolumeCurveNext = dynamic(()=>import('../../../src/components/PressureVolumeCurveNext'), {ssr: false,});
@@ -149,7 +149,6 @@ const CaseReader = () => {
   const [allCases, setAllCases] = useState([]);
   const [selectedView, setSelectedView] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [showController, setShowController] = useState(true );
 
   const uid$ = of(router.query.userId).pipe(
     filter(Boolean),
@@ -237,8 +236,6 @@ const CaseReader = () => {
   const [openAddPatientDialog, setOpenAddPatientDialog] = useState(false);
   const [patientListMode, setPatientListMode] = useState(null);
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'), {noSsr: true});
-  const [sizes, setSizes] = useLocalStorage("circleHeartSizes",(isUpMd ? [30,63,7] : [43,13,44]));
-  const [viewSizes, setViewSizes] = useLocalStorage("circleHeartViewSizes",[70,30]);
   const [heartDiff, setHeartDiff] = useState(0);
   
 
@@ -482,19 +479,8 @@ const CaseReader = () => {
         </Box>
       }
       {!loading && (isUpMd != null && isUpMd != undefined) && caseData &&  <> 
-        <Split 
-          className={classes.split} 
-          sizes={sizes} 
-          gutterSize={12} 
-          minSize={[0,0,0]} 
-          direction={isUpMd? "horizontal":"vertical"} 
-          cursor={isUpMd ? "col-resize" : "row-resize"} 
-          onDragEnd={(newSizes)=>{
-            localStorage.setItem('case-split-sizes', JSON.stringify(newSizes)); 
-            setSizes(newSizes)
-          }}
-        >
-          {isUpMd &&<Box sx={{overflow:"auto",backgroundColor:!isUpMd && "#f1f5f9",zIndex:1000}}>
+        <Allotment vertical={!isUpMd} className='w-full h-[calc(100vh_-_66px)]'>
+          {isUpMd && <div className='overflow-scroll h-[calc(100vh_-_66px)]'>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mx:{xs:2,md:"auto"},mt:{xs:2,md:2},mb:1, maxWidth:"407px"}}>
                 <Typography variant="h5" color="secondary" sx={{cursor: "default"}}>Patients</Typography>
                 <Button onClick={()=>{setOpenAddPatientDialog(true)}} startIcon={<Add/>} variant='contained' disableElevation className={classes.neumoButton}>比較</Button>                                
@@ -536,149 +522,142 @@ const CaseReader = () => {
                   }
                 })}
               </Stack>
-            </Box>
+            </div>
           }
-          <div className={`z-10  ${!isUpMd && "bg-slate-200"}`}>
-            {/* <Box sx={{height: isUpMd && "100%",position: isUpMd &&"relative",display:isUpLg && "flex", flexDirection: isUpLg && "row"}}>     
-              <Box sx={{height: isUpMd && "100%",overflow: isUpMd && "auto",flexGrow:isUpLg && 1,pr:isUpLg&&"88px",pl:isUpLg&& 1, pb:"88px"}}> */}
-                {isUpMd && 
-                  <Split 
-                    sizes={viewSizes} 
-                    gutterSize={12} 
-                    minSize={[0,0]}
-                    direction="vertical"
-                    cursor="row-resize"
-                    onDragEnd={(newSizes)=>{
-                      setViewSizes(newSizes)
-                    } }
-                    className={classes.childSplit}
-                  >
-                    <div className='overflow-y-scroll'>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mx:2,mt:2,mb:1}}>
-                        <Typography variant="h5" color="secondary" sx={{cursor: "default"}}>Views</Typography>
-                        <NewAddViewDialog 
-                          addViewItem={(viewItem)=>{
-                            setCaseData(draft=>{draft.viewIds.push(viewItem.id)})
-                            setViews(draft=>{draft.push(viewItem)})
-                          }} 
-                          patients={patients}
-                        />
-                      </Stack>
-                      <Stack alignItems="center" px={1}>
-                        { caseData.viewIds?.map(viewId=>{
-                          const view = views.find(v=>v.id===viewId);
-                          if(view){ 
-                            return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,py:1,boxShadow:"0 10px 20px #4b57a936", overflow:"auto", maxWidth: "750px", width:1,minWidth:{xs:"auto",md:"400px"}}}>
-                            {view.type === "PressureCurve" && 
-                              <RealTimeChartNext engine={engine} initialView={view} patients={patients}
-                                setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
-                                removeView={()=>{
-                                  setCaseData(draft=>{
-                                    draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
-                                  })
-                                  setViews(draft=>{
-                                    draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                                  })
-                                }}
-                              />
-                            }
-                            {view.type === "PressureVolumeCurve" && 
-                              <PressureVolumeCurveNext engine={engine} initialView={view} 
-                                setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
-                                removeView={()=>{
-                                  setCaseData(draft=>{
-                                    draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
-                                  })
-                                  setViews(draft=>{
-                                    draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                                  })
-                                }}
-                                patients={patients}/>
-                            }
-                          </Box>
-                        }})}
-                      </Stack> 
-                    </div>
-                    <div className='flex justify-center overflow-y-scroll'>
-                      {
-                        patients?.length>0  && 
-                        <div className='overflow-hidden w-full'>
-                          <OutputPanel outputs = {outputs} setOutputs={setOutputs} patients = {patients}/>
-                        </div>
-                      }
-                    </div>
-                  </Split>
-                  }
-                {
-                  !isUpMd && <div>
-                    <div className='flex w-full -mb-px'>
-                      <nav className="flex space-x-8 overflow-x-scroll ">
-                        <div className='flex w-full'>
-                          {caseData.viewIds?.map(viewId=>{
-                            const view = views.find(v=>v.id===viewId);
-                            if(view){ 
-                              return <div key={view.id} className='flex-shrink-0 flex-grow-0'>
-                                <div className={`btn py-2 px-5 text-sm font-bold mr-px text-center transition-all duration-150 ${selectedView.id==view.id ? "bg-white": "text-slate-600"} `} onClick={()=>{
-                                  setSelectedView(view)
-                                }}>
-                                  {view?.name || "無題のグラフ"}
-                                </div>
-                              </div>
-                            }
-                          } )}
-                          <NewAddViewDialog 
-                            addViewItem={(viewItem)=>{
-                              setCaseData(draft=>{draft.viewIds.push(viewItem.id)})
-                              setViews(draft=>{draft.push(viewItem)})
-                            }} 
-                            patients={patients}
-                          />
-                        </div>
-                      </nav>
-                      <div className="flex-grow"></div>
-                      <PlaySpeedButtonsNext engine={engine}/>
-                    </div>
-                    <div>
-                      {selectedView.type === "PressureCurve" && 
-                        <RealTimeChartNext engine={engine} initialView={selectedView} patients={patients}
-                          setInitialView={newView=>{
-                            setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
-                            setSelectedView(newView)
-                          }} 
+          {isUpMd && 
+            <Allotment vertical>
+              <div className='overflow-y-scroll h-[calc(100vh_-_66px)] pb-10'>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mx:2,mt:2,mb:1}}>
+                  <Typography variant="h5" color="secondary" sx={{cursor: "default"}}>Views</Typography>
+                  <NewAddViewDialog 
+                    addViewItem={(viewItem)=>{
+                      setCaseData(draft=>{draft.viewIds.push(viewItem.id)})
+                      setViews(draft=>{draft.push(viewItem)})
+                    }} 
+                    patients={patients}
+                  />
+                </Stack>
+                <Stack alignItems="center" px={1}>
+                  { caseData.viewIds?.map(viewId=>{
+                    const view = views.find(v=>v.id===viewId);
+                    if(view){ 
+                      return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,py:1,boxShadow:"0 10px 20px #4b57a936", overflow:"auto", maxWidth: "750px", width:1,minWidth:{xs:"auto",md:"400px"}}}>
+                      {view.type === "PressureCurve" && 
+                        <RealTimeChartNext engine={engine} initialView={view} patients={patients}
+                          setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
                           removeView={()=>{
                             setCaseData(draft=>{
-                              draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
+                              draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
                             })
                             setViews(draft=>{
-                              draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
+                              draft.splice(draft.findIndex(v=>v.id===view.id),1)
                             })
                           }}
                         />
                       }
-                      {selectedView.type === "PressureVolumeCurve" && 
-                        <PressureVolumeCurveNext engine={engine} initialView={selectedView} 
-                          setInitialView={newView=>{
-                            setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
-                            setSelectedView(newView)
-                          }} 
+                      {view.type === "PressureVolumeCurve" && 
+                        <PressureVolumeCurveNext engine={engine} initialView={view} 
+                          setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
                           removeView={()=>{
                             setCaseData(draft=>{
-                              draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
+                              draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
                             })
                             setViews(draft=>{
-                              draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
+                              draft.splice(draft.findIndex(v=>v.id===view.id),1)
                             })
                           }}
                           patients={patients}/>
                       }
-                    </div>
+                    </Box>
+                  }})}
+                </Stack> 
+              </div>
+              <Allotment.Pane preferredSize={120} className='flex justify-center overflow-y-scroll'>
+                {
+                  patients?.length>0  && 
+                  <div className='overflow-hidden w-full'>
+                    <OutputPanel outputs = {outputs} setOutputs={setOutputs} patients = {patients}/>
                   </div>
                 }
-          </div>
-          {!isUpMd ? <>
-            <div className='z-20 bg-slate-200'>
+              </Allotment.Pane>
+            </Allotment>
+          }
+          {isUpMd && 
+            <Allotment.Pane preferredSize={88} className='pt-5 px-3'>
+              <PlaySpeedButtonsNext engine={engine} vertical/>
+            </Allotment.Pane>
+          }   
+          {!isUpMd && 
+            <Allotment.Pane preferredSize={350}>
+              <div className='flex w-full -mb-px'>
+                <nav className="flex space-x-8 overflow-x-scroll ">
+                  <div className='flex w-full'>
+                    {caseData.viewIds?.map(viewId=>{
+                      const view = views.find(v=>v.id===viewId);
+                      if(view){ 
+                        return <div key={view.id} className='flex-shrink-0 flex-grow-0'>
+                          <div className={`btn py-2 px-5 text-sm font-bold mr-px text-center transition-all duration-150 ${selectedView.id==view.id ? "bg-white": "text-slate-600"} `} onClick={()=>{
+                            setSelectedView(view)
+                          }}>
+                            {view?.name || "無題のグラフ"}
+                          </div>
+                        </div>
+                      }
+                    } )}
+                    <NewAddViewDialog 
+                      addViewItem={(viewItem)=>{
+                        setCaseData(draft=>{draft.viewIds.push(viewItem.id)})
+                        setViews(draft=>{draft.push(viewItem)})
+                      }} 
+                      patients={patients}
+                    />
+                  </div>
+                </nav>
+                <div className="flex-grow"></div>
+                <PlaySpeedButtonsNext engine={engine}/>
+              </div>
+              <div>
+                {selectedView.type === "PressureCurve" && 
+                  <RealTimeChartNext engine={engine} initialView={selectedView} patients={patients}
+                    setInitialView={newView=>{
+                      setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
+                      setSelectedView(newView)
+                    }} 
+                    removeView={()=>{
+                      setCaseData(draft=>{
+                        draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
+                      })
+                      setViews(draft=>{
+                        draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
+                      })
+                    }}
+                  />
+                }
+                {selectedView.type === "PressureVolumeCurve" && 
+                  <PressureVolumeCurveNext engine={engine} initialView={selectedView} 
+                    setInitialView={newView=>{
+                      setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
+                      setSelectedView(newView)
+                    }} 
+                    removeView={()=>{
+                      setCaseData(draft=>{
+                        draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
+                      })
+                      setViews(draft=>{
+                        draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
+                      })
+                    }}
+                    patients={patients}/>
+                }
+              </div>
+            </Allotment.Pane>
+          }
+          {!isUpMd && 
+            <Allotment.Pane preferredSize={88} className='z-20 bg-slate-200'>
               {patients?.length>0 && <OutputPanel outputs = {outputs} patients = {patients} setOutputs={setOutputs}/>}
-            </div>
+            </Allotment.Pane>
+          }
+          {!isUpMd &&
             <div className='z-30'>
               <div className='flex w-full bg-slate-200 -mb-px'>
                 <nav className="flex overflow-x-scroll ">
@@ -734,13 +713,8 @@ const CaseReader = () => {
                 />}
               </div>
             </div>
-            </> : <div className='flex flex-col'>
-              <div className='pt-5 px-3'>
-                <PlaySpeedButtonsNext engine={engine} vertical/>
-              </div>  
-            </div>
-          }              
-        </Split>
+          }                     
+        </Allotment>
         <Dialog open={openAddPatientDialog} onClose={()=>{setOpenAddPatientDialog(false);setPatientListMode(null)}} sx={{minHeight:'340px',"& .MuiPaper-root":{width:"100%"}}} >
           <DialogTitle >
             比較対象を追加する
