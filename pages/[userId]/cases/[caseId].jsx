@@ -175,7 +175,7 @@ const CaseReader = () => {
   )
 
   const {data:caseUser} = useObservable(`user_${router.query.caseId}`,caseUser$)
-  const {data:user} = useObservable("caseData",user$)
+  const {data:user} = useObservable("user",user$)
 
 
   const [dialogOpen, setDialogOpen] = useState(false);
