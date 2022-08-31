@@ -23,6 +23,7 @@ const Metrics = {
 }
 
 const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
+  console.log(patients,outputs)
   const t = useTranslation()
   const [selectedOutputId, setSelectedOutputId] = useState(null);
   const [selectedDialogOutputId, setSelectedDialogOutputId] = useState(null);
@@ -71,7 +72,7 @@ const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
         </div>)}
       </div>
     </div>
-    <Dialog open={openDialog} onClose={()=>{setOpenDialog(false)}} sx={{".MuiDialog-paper": {m:0, minHeight: "540px"}}} fullWidth>
+    <Dialog open={openDialog} onClose={()=>{setOpenDialog(false)}} sx={{".MuiDialog-paper": {m:0, minHeight: "540px"}}} fullWidth maxWidth="sm">
       <DialogContent>
         <nav className="flex ">
           <div className='flex w-full overflow-x-scroll'>
@@ -358,7 +359,11 @@ const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
           }
         </div>
       </DialogContent>
-
+      <DialogActions>
+        <Button onClick={()=>{setOpenDialog(false)}} color="primary" variant="text" disableElevation className="font-bold ml-1">
+          閉じる
+        </Button>
+      </DialogActions>
     </Dialog>       
   </>
 })
@@ -388,7 +393,7 @@ const Output = React.memo(({patient, output}) =>{
   }, [output.metric, output.patientId]);
   return (
     <div className='p-2 px-2.5 mr-px bg-white'>
-      <div className="text-slate-500 text-xs">{output?.label ? output?.label :  patient?.name + t["output_label"][Metrics[output.metric].getLabel()]}</div>
+      <div className="text-slate-500 text-xs whitespace-nowrap">{output?.label ? output?.label :  patient?.name + t["output_label"][Metrics[output.metric].getLabel()]}</div>
       <div className='flex flex-row items-center'>
         <div className='text-sm text-slate-800 font-bold mr-1'>{instancesRef.current?.get()}</div>
         <div className="text-slate-500 text-xs">{Metrics[output.metric]?.getUnit()}</div>

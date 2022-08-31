@@ -127,7 +127,7 @@ const DashBoard = React.memo(() => {
     <Divider flexItem sx={{borderColor:"#5c93bb2b"}}/>
     <div className='w-full max-w-7xl mx-auto mt-5'>
       { !isUpMd &&
-        <Stack direction="row" width={1} justifyContent="center" alignItems="center" spacing={2} pt={3}>
+        <Stack direction="row" width={1} justifyContent="center" alignItems="center" spacing={2} pt={3} className="overflow-x-scroll">
           <Stack onClick={()=>{setTabValue("cases")}} className={`items-center cursor-pointer rounded-xl px-4 py-2 ${tabValue==="cases" ? "bg-blue-50 text-blue-500" : "text-slate-400"}`}>
             <EventNoteOutlined/>
             <Typography variant='subtitle2' fontWeight="bold">Cases</Typography>

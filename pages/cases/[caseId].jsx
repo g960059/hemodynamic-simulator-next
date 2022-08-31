@@ -23,7 +23,7 @@ import {db} from "../../src/utils/firebase"
 import { mergeMap,filter,tap,map} from "rxjs/operators";
 import {forkJoin, combine, combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
-import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc} from 'firebase/firestore';
+import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs, limit, collectionGroup,  query} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
 import isEqual from "lodash/isEqual"
@@ -33,7 +33,7 @@ import Split from 'react-split'
 import { getRandomColor } from '../../src/styles/chartConstants';
 import Lottie from 'react-lottie-player' 
 import LoadingAnimation from "../../src/lotties/LoadingAnimation.json"
-
+import CaseEditor from "../../src/components/CaseEditor"
 
 const RealTimeChartNext = dynamic(()=>import('../../src/components/RealTimeChartNext'), {ssr: false});
 const PressureVolumeCurveNext = dynamic(()=>import('../../src/components/PressureVolumeCurveNext'), {ssr: false,});
@@ -41,10 +41,14 @@ const CombinedChart = dynamic(()=>import('../../src/components/combined/Combined
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 
+
 const useStyles = makeStyles((theme) =>(
   {
     containerBox: {
-      height: `calc(100vh - 56px)`,
+      height: `calc(100vh - 100px)`,
+      [theme.breakpoints.up('md')]: {
+        height : `calc(100vh - 56px)`,
+      },
     },
     subContainerBox: {
       height: `auto`,
@@ -96,33 +100,6 @@ const useStyles = makeStyles((theme) =>(
       boxShadow: "0 10px 20px #4b57a936",
       border: "1px solid rgba(239, 246, 251, 0.6)"
     },   
-    split: {
-      display: "flex",
-      overflow: "hidden",
-      [theme.breakpoints.up('md')]: {
-        height: `calc(100vh - 64px)`,
-        flexDirection: "row",
-        "& .gutter.gutter-horizontal":{
-          backgroundImage: 'url("/vertical.png")',
-          backgroundColor: "rgb(229, 231, 235)",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "50% center",
-          zIndex:1000,
-          cursor: "col-resize",
-        }
-      },
-      [theme.breakpoints.down('md')]: {
-        height: `calc(100vh - 104px)`,
-        flexDirection: "column-reverse",
-        "& .gutter.gutter-vertical":{
-          backgroundImage: 'url("/horizontal.png")',
-          backgroundColor: "rgb(229, 231, 235)",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "50% center",
-          zIndex:1000
-        }
-      },      
-    }     
   })
 );
 
@@ -140,8 +117,9 @@ const App = () => {
     mergeMap(user => user ?  combineLatest({
       caseData: docData(doc(db,'users',user?.uid,"cases",router.query.caseId),{idField:"id"}),
       patients: collectionData(collection(db,'users',user?.uid,"cases",router.query.caseId,"patients"),{idField: 'id'}),
-      views: collectionData(collection(db,'users',user?.uid,"cases",router.query.caseId,"views"),{idField: 'id'})
-    }) : of({caseData:{},patients:[],views:[]})),
+      views: collectionData(collection(db,'users',user?.uid,"cases",router.query.caseId,"views"),{idField: 'id'}),
+      outputs:collectionData(collection(db,'users',user?.uid,"cases",router.query.caseId,"outputs"),{idField: 'id'})
+    }) : of({caseData:{},patients:[],views:[],outputs:[]})),
   ))
   const cases = useObservable("cases", combineLatest([user$,cases$]).pipe(
     filter(([user_])=>!!user_?.uid),
@@ -151,32 +129,27 @@ const App = () => {
       )
     )
   ));
-  const allCases = useObservable("allCases",combineLatest([user$,allCases$]).pipe(
-    mergeMap(([user_,cases_]) =>
-      combineLatest(cases_.map(caseData_ => collectionData(collection(db,'users',caseData_.uid,"cases",caseData_.id,"patients"),{idField: 'id'}))).pipe(
-        map((patients_) =>cases_.map((case_,index)=>({...case_,patients: patients_[index]})))
-      )
-    ))
-  )
   
   const scrollPatientBottomRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
   const engine = useEngine()
   const [patients, setPatients] = useImmer([]);
-  const [defaultPatients, setDefaultPatients] = useState([]);
   const [views, setViews] = useImmer([]);
+  const [outputs, setOutputs] = useImmer([]);
+  const [defaultPatients, setDefaultPatients] = useState([]);
+  const [defaultOutputs, setDefaultOutputs] = useState([]);
   const [defaultViews, setDefaultViews] = useState([]);
   const [caseData, setCaseData] = useImmer({});
   const [defaultCaseData, setDefaultCaseData] = useState({});
+  const [allCases, setAllCases] = useState([]);
 
   const [caseNameEditing, setCaseNameEditing] = useState(false);
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
-  const [openAddPatientDialog, setOpenAddPatientDialog] = useState(false);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
-  const [patientListMode, setPatientListMode] = useState(null);
+
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'), {noSsr: true});
-  const isUpLg = useMediaQuery((theme) => theme.breakpoints.up('lg'), {noSsr: true});
+
   const [sizes, setSizes] = useState((isUpMd ? [40,60] : [50,50]));
 
   const isChanged = (loadedCase.status == "success" && loadedCase.data?.caseData &&
@@ -206,9 +179,11 @@ const App = () => {
       setPatients(engine.getAllPatinets().map(p=>({...p,...loadedCase.data.patients.find(_p=>_p.id==p.id)})));
       setViews(loadedCase.data.views)
       setCaseData(loadedCase.data.caseData)
+      setOutputs(loadedCase.data.outputs)
       engine.setIsPlaying(true);
     }else{
-      if(router.query.newItem){
+      if(router.query.newItem && loadedCase.status == "success"){
+        console.log(loadedCase)
         engine.setIsPlaying(false);
         const newPatientId = nanoid();
         const newPateint = {
@@ -254,6 +229,47 @@ const App = () => {
         }]
         setViews(newViews);
         setDefaultViews(newViews);
+        const newOutputId = nanoid();
+        const newOutputs = [
+          {
+              id: newOutputId,
+              label: "基本",
+              items:[
+                {
+                  id: nanoid(),
+                  label: "大動脈圧",
+                  patientId: newPatientId,
+                  metric: "Aop",
+                },
+                {
+                  id: nanoid(),
+                  label: "中心静脈圧",
+                  patientId: newPatientId,
+                  metric: "Cvp",
+                },
+                {
+                  id: nanoid(),
+                  label: "心拍出量",
+                  patientId: newPatientId,
+                  metric: "Co",
+                },
+                {
+                  id: nanoid(),
+                  label: "EF",
+                  patientId: newPatientId,
+                  metric: "Ef",
+                },
+                {
+                  id: nanoid(),
+                  label: "左室仕事量",
+                  patientId: newPatientId,
+                  metric: "Cpo",
+                }
+              ]
+          }
+        ]
+        setOutputs(newOutputs);
+        setDefaultOutputs(newOutputs);
         const newCaseData = {
           name:"",
           visibility: "private",
@@ -266,6 +282,7 @@ const App = () => {
           photoURL: user?.photoURL,
           patientIds:[newPatientId],
           viewIds:[newViewId],
+          outputIds:[newOutputId],
           updatedAt: serverTimestamp(),
           createdAt: serverTimestamp(),
         }
@@ -274,12 +291,26 @@ const App = () => {
         engine.setIsPlaying(true);
       }
     }
-    const localSizes = localStorage.getItem('case-split-sizes')
-    if(localSizes){
-      setSizes(JSON.parse(localSizes));
-    }
     setLoading(false)
   }, [loadedCase.status]);
+
+  console.log(caseData, patients, views, outputs)
+
+  useEffect(() => {
+    const getAllCases = async () => {
+      const tmpAllCases = []
+      const allCasesSnap = await getDocs(query(collectionGroup(db,'cases'),limit(50)))
+      allCasesSnap.forEach(async d=>{
+        const caseData_ = d.data()
+        const casePatients = []
+        const casePatientsSnap = await getDocs(collection(db,'users',caseData_.uid,'cases',d.id,'patients'))
+        casePatientsSnap.forEach(d=>{casePatients.push({...d.data(),id:d.id})})
+        tmpAllCases.push({...caseData_,patients:casePatients})
+      })
+      setAllCases(tmpAllCases)
+    }
+    getAllCases()
+  }, []);
 
   useLeavePageConfirmation(Boolean(isChanged))
 
@@ -339,6 +370,21 @@ const App = () => {
       }else{
         if(!isEqual(view,v)){
           batch.update(doc(db,'users',user?.uid,"cases",router.query.caseId,"views",v.id),{...v})
+        }
+      }
+    })
+    loadedCase.data?.outputs.forEach(o=>{
+      if(!outputs.some(({id})=>id===o.id)){
+        batch.delete(doc(db,'users',user?.uid,"cases",router.query.caseId,"outputs",o.id))
+      }
+    })
+    outputs.forEach(o=>{
+      const output = loadedCase.data?.outputs.find(({id})=>id===o.id)
+      if(!output){
+        batch.set(doc(db,'users',user?.uid,"cases",router.query.caseId,"outputs",o.id),{...o})
+      }else{
+        if(!isEqual(output,o)){
+          batch.update(doc(db,'users',user?.uid,"cases",router.query.caseId,"outputs",o.id),{...o})
         }
       }
     })
@@ -436,7 +482,8 @@ const App = () => {
       </AppBar>   
       <NextSeo title={t["Simulator"]}/>
       <Box className={classes.background}/>
-      <Box sx={{display:{xs:"block",md:"none"},px:1,pt:2}}>
+      {!isUpMd && <div className="bg-slate-200 h-full w-screen fixed -z-10"/>}
+      <Box sx={{display:{xs:"block",md:"none"},p:1}}>
         {
           caseNameEditing ? 
             <ReactiveInput 
@@ -445,314 +492,17 @@ const App = () => {
                 setCaseData(draft=>{draft.name=newValue})
                 setCaseNameEditing(false)
               }} 
-              type="text" autoFocus allowEmpty
+              type="text" autoFocus allowEmpty fullWidth
             /> : 
-            <Typography variant="h4" fontWeight="bold" onClick={()=>{setCaseNameEditing(true)}} sx={{"&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"},cursor:"pointer",px:1,color:!caseData.name&&"gray"}}>{caseData.name || "Title"}</Typography>                
+            <Typography variant="h6" fontWeight="bold" onClick={()=>{setCaseNameEditing(true)}} sx={{"&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"},cursor:"pointer",px:1,color:!caseData.name&&"gray"}}>{caseData.name || "Title"}</Typography>                
           } 
       </Box>
-      {loading && <Box>
-          <Lottie loop animationData={LoadingAnimation} play style={{ objectFit:"contain" }} />
-        </Box>
-      }
-      {loadedCase.status=="success" && !loading && (isUpMd != null && isUpMd != undefined) && <> 
-        <Split 
-          className={classes.split} 
-          sizes={sizes} 
-          gutterSize={8} 
-          minSize={[0,0]} 
-          direction={isUpMd? "horizontal":"vertical"} 
-          cursor={isUpMd ? "col-resize" : "row-resize"} 
-          onDragEnd={(newSizes_)=>{const newSizes=isUpMd ? newSizes_ : newSizes_.reverse(); localStorage.setItem('case-split-sizes', JSON.stringify(newSizes)); setSizes(newSizes)}}
-        >
-          <Box px={[0,1]} pb={4} sx={{overflow:"auto",backgroundColor:!isUpMd && "#f1f5f9",zIndex:1000}}>
-            <Box >
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mx:2,mt:{xs:1,md:2},mb:{md:1}}}>
-                <Typography variant="h5" color="secondary" sx={{cursor: "default"}}>Patients</Typography>
-                <Button onClick={()=>{setOpenAddPatientDialog(true)}} startIcon={<Add/>} variant='contained' disableElevation className={classes.neumoButton}>比較</Button>
-                <Dialog open={openAddPatientDialog} onClose={()=>{setOpenAddPatientDialog(false);setPatientListMode(null)}} sx={{minHeight:'340px',"& .MuiPaper-root":{width:"100%"}}} >
-                  <DialogTitle >
-                    <span className='font-bold'>比較対象を追加する</span>
-                  </DialogTitle>
-                  <DialogContent>
-                    {
-                      !patientListMode && <>
-                        <Typography variant="h6" fontWeight="bold">My Patients</Typography>
-                        <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
-                          <Box className={classes.shadowBox} minWidth="120px">
-                            <Typography variant="body1" className='font-bold py-2 px-2 border-solid border-0 border-b border-b-slate-200'>{caseData.emoji +" "+ caseData.name}</Typography>
-                            <List>
-                              {
-                                patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
-                                    <ListItemButton>
-                                      <ListItemText primary={p.name || "無題の患者" }/>
-                                    </ListItemButton>
-                                </ListItem>
-                              })}
-                            </List>
-                          </Box>
-                          {console.log(cases.data, caseData)}
-                          {cases.data?.filter(c=>c.id!=caseData.id).sort((a,b)=>a.updatedAt > b.updatedAt ? -1 : 1).slice(0,2).map(c=>{
-                            return <Box className={classes.shadowBox} minWidth="120px">
-                                <Typography variant="body1" className='font-bold py-2 px-2 border-solid border-0 border-b border-b-slate-200'>{c.emoji +" "+ c.name}</Typography>
-                                <List>
-                                  {
-                                    c.patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
-                                        <ListItemButton>
-                                          <ListItemText primary={p.name || "無題の患者"}/>
-                                        </ListItemButton>
-                                    </ListItem>
-                                  })}
-                                </List>
-                              </Box>
-                          })}
-                        </Masonry>
-                        <Link underline="hover" sx={{cursor:"pointer",my:1}} onClick={()=>{setPatientListMode("myPatients")}}>see more my patients →</Link>
-                        <Typography variant="h6" fontWeight="bold" sx={{mt:2}}>Popular</Typography>
-                        <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
-                          {allCases.data?.slice(0,6).map(c=>{
-                            return <Box className={classes.shadowBox} minWidth="120px">
-                                <Stack sx={{backgroundColor:"#edf2f6",px:2,py:1}} >
-                                  <Typography variant="body1" className='font-bold'>{c.emoji +" "+ c.name}</Typography>
-                                  <Stack direction="row" justifyContent="center" alignItems="center">
-                                    <Avatar sx={{ width: 16, height: 16 }}>
-                                      <Image src={c?.photoURL} layout='fill'/>
-                                    </Avatar>
-                                    <Typography variant="caption" sx={{mx:1}} >{c.displayName}</Typography>
-                                    <div style={{flexGrow:1}}/>
-                                    <FavoriteBorder sx={{color:"#6e7b85",fontSize:16}}/>
-                                    <Typography variant="caption" sx={{color:"#6e7b85"}}>{c.favs}</Typography>
-                                  </Stack>
-                                </Stack>
-                                <List>
-                                  {
-                                    c.patients?.map(p=>{
-                                      return( 
-                                      <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}} >
-                                        <ListItemButton>
-                                          <ListItemText primary={p.name || "無題の患者"}/>
-                                        </ListItemButton>
-                                      </ListItem>
-                                    )})}
-                                </List>
-                              </Box>
-                            })}  
-                          </Masonry>                    
-                        <Link underline="hover" sx={{cursor:"pointer",my:1}} onClick={()=>{setPatientListMode("popular")}}>see more public patients →</Link> 
-                      </>
-                    }
-                    {
-                      patientListMode && <>
-                        <ToggleButtonGroup
-                          color="primary"
-                          value={patientListMode}
-                          exclusive
-                          onChange={(e,newValue)=>{setPatientListMode(newValue)}}
-                          sx={{"& .MuiToggleButton-root": { padding:"3px 14px 2px"}}}
-                        >
-                          <ToggleButton value="myPatients">My Patients</ToggleButton>
-                          <ToggleButton value="popular">Popular</ToggleButton>
-                        </ToggleButtonGroup>
-                      </>
-                    }
-                    {patientListMode == "myPatients" && <>
-                      <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
-                        <Box className={classes.shadowBox} minWidth="120px">
-                          <Typography variant="body1" sx={{backgroundColor:"#edf2f6",px:2,py:1}}>{caseData.emoji +" "+ caseData.name}</Typography>
-                          <List>
-                            {
-                              patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
-                                  <ListItemButton>
-                                    <ListItemText primary={p.name || "無題の患者"}/>
-                                  </ListItemButton>
-                              </ListItem>
-                            })}
-                          </List>
-                        </Box>
-                        {cases.data?.filter(c=>c.id!=caseData.id).sort((a,b)=>a.updatedAt > b.updatedAt ? -1 : 1).map(c=>{
-                          return <Box className={classes.shadowBox} minWidth="120px">
-                              <Typography variant="body1" sx={{backgroundColor:"#edf2f6",px:2,py:1}}>{c.emoji +" "+ c.name}</Typography>
-                              <List>
-                                {
-                                  c.patients?.map(p=>{return <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}}> 
-                                      <ListItemButton>
-                                        <ListItemText primary={p.name || "無題の患者" }/>
-                                      </ListItemButton>
-                                  </ListItem>
-                                })}
-                              </List>
-                            </Box>
-                        })}
-                      </Masonry>                        
-                    </>}
-                    {patientListMode == "popular" && <>
-                      <Masonry columns={{xs:1,md:3}} spacing={2} sx={{mt:.5}}>
-                        {allCases.data?.map(c=>{
-                          return <Box className={classes.shadowBox} minWidth="120px">
-                              <Stack sx={{backgroundColor:"#edf2f6",px:2,py:1}} >
-                                <Typography variant="body1">{c.emoji +" "+ c.name}</Typography>
-                                <Stack direction="row" justifyContent="center" alignItems="center">
-                                  <Avatar sx={{ width: 16, height: 16 }}>
-                                    <Image src={c?.photoURL} layout='fill'/>
-                                  </Avatar>
-                                  <Typography variant="caption" sx={{mx:1}} >{c.displayName}</Typography>
-                                  <div style={{flexGrow:1}}/>
-                                  <FavoriteBorder sx={{color:"#6e7b85",fontSize:16}}/>
-                                  <Typography variant="caption" sx={{color:"#6e7b85"}}>{c.favs}</Typography>
-                                </Stack>
-                              </Stack>
-                              <List>
-                                {
-                                  c.patients?.map(p=>{
-                                    return( 
-                                    <ListItem disablePadding onClick={()=>{addPatient(p);setOpenAddPatientDialog(false)}} >
-                                      <ListItemButton>
-                                        <ListItemText primary={p.name || "無題の患者"}/>
-                                      </ListItemButton>
-                                    </ListItem>
-                                  )})}
-                              </List>
-                            </Box>
-                          })}  
-                        </Masonry>                           
-                    </>}
-                  </DialogContent>
-                </Dialog>                                    
-              </Stack>
-              <Stack>
-                {caseData.patientIds?.map((patientId,index)=>{
-                  const patient = patients.find(({id})=>id===patientId);
-                  if(patient){
-                    return <Box ref={(index==patients.length-1)? scrollPatientBottomRef : null} className="px-2">
-                      <ControllerPanelNext
-                        key={patient.id}
-                        patient={patient} 
-                        setPatient={newPatient=>{setPatients(draft=>{draft.findIndex(p=>p.id===patient.id)===-1? draft.push(newPatient) : draft.splice(draft.findIndex(p=>p.id===patient.id),1,newPatient);})}}
-                        removePatient={()=>{
-                          setViews(draft=>{
-                            for(var i=0; i<draft.length; i++){
-                              draft[i].items = draft[i].items.filter(item=>item.patientId != patient.id)
-                            }
-                          })
-                          setCaseData(draft=>{draft.patientIds=draft.patientIds.filter(id=>id!=patient.id)})
-                          engine.unregister(patient.id);
-                          setPatients(patients.filter(p=>p.id!=patient.id));
-                        }}
-                        clonePatient={()=>{
-                          const newPatient = {
-                            ...patient,
-                            id: nanoid(),   
-                            name: patient.name+"の複製",
-                          }
-                          engine.register(newPatient);
-                          setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
-                          setCaseData(draft=>{draft.patientIds.push(newPatient.id)})
-                          setTimeout(()=>{scrollPatientBottomRef.current?.scrollIntoView({behavior: "smooth"});},100)
-                        }}
-                        setViews={setViews} 
-                        patientIndex = {index}
-                      />
-                    </Box>
-                  }
-                })}
-              </Stack>
-            </Box>
-          </Box>
-          <Box sx={{height:"100%",position:"relative",display:isUpLg && "flex", flexDirection: isUpLg && "row"}}>
-            <Box sx={{height:"100%",overflow:"auto",flexGrow:isUpLg && 1,pr:isUpLg&&"88px",pl:isUpLg&& 1, pb:"88px"}}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mx:2,mt:2,mb:{md:1}}}>
-                <Typography variant="h5" color="secondary" sx={{cursor: "default"}}>Views</Typography>
-                <NewAddViewDialog 
-                  addViewItem={(viewItem)=>{
-                    setCaseData(draft=>{draft.viewIds.push(viewItem.id)});
-                    setViews(draft=>{draft.push(viewItem)})
-                  }} 
-                  patients={patients}
-                />
-              </Stack>
-              <Stack>
-                {caseData.viewIds?.map(viewId=>{
-                  const view = views.find(({id})=>id===viewId);
-                  return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,boxShadow:"0 10px 20px #4b57a936", overflow:"auto"}}>
-                    {view.type === "PressureCurve" && 
-                      <RealTimeChartNext engine={engine} initialView={view} patients={patients}
-                        setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
-                        removeView={()=>{
-                          setCaseData(draft=>{draft.viewIds=draft.viewIds.filter(id=>id!=view.id)})
-                          setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1)})
-                        }}
-                      />
-                    }
-                    {view.type === "PressureVolumeCurve" && 
-                      <PressureVolumeCurveNext engine={engine} initialView={view} patients={patients}
-                        setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
-                        removeView={()=>{
-                          setCaseData(draft=>{draft.viewIds=draft.viewIds.filter(id=>id!=view.id)})
-                          setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1)})
-                        }} 
-                      />
-                    }
-                  </Box>
-                })}
-                {!isUpMd && <div className='mt-3'><PlaySpeedButtonsNext engine={engine}/></div>}
-              </Stack>
-            </Box>
-            {isUpLg && <Box pr={2} pl={1} display="flex" justifyContent="center" alignItems="center" position="fixed" sx={{right:0,paddingTop:"60px"}}><PlaySpeedButtonsNext engine={engine} vertical/></Box>}
-            {isUpMd && !isUpLg && <Box width={1} justifyContent="center" alignItems="center" position="absolute" sx={{bottom:"32px"}}>
-              <PlaySpeedButtonsNext engine={engine}/>
-            </Box>}
-          </Box>
-        </Split>
-      </>
+      {loading && <Lottie loop animationData={LoadingAnimation} play style={{ objectFit:"contain" }} />}
+      {!loading && caseData?.createdAt &&  <CaseEditor engine={engine} caseData={caseData} patients={patients} outputs={outputs} views={views} allCases={allCases}/>
       }
   </>
 }
 
 export default App
 
-
-const NewAddViewDialog = React.memo(({addViewItem,patients})=>{
-  const classes = useStyles()
-  const [openAddViewDialog, setOpenAddViewDialog] = useState(false);
-  const [view, setView] = useImmer({name: "", type: "PressureCurve", items:[]});
-  return <>
-    <Button onClick={()=>{setOpenAddViewDialog(true)}} startIcon={<Add/>} variant='contained' disableElevation className={classes.neumoButton}>追加する</Button>
-    <Dialog open={openAddViewDialog} onClose={()=>{setOpenAddViewDialog(false)}}>
-      <DialogTitle>Viewを追加する</DialogTitle>
-      <DialogContent>
-        <Stack justifyContent='center' alignItems='flex-start' spacing={2}>
-          <Stack spacing={.5}>
-            <Typography variant='subtitle1' fontWeight="bold">Title</Typography>
-            <ReactiveInput value={view.name} updateValue={newName=>{setView(draft=>{draft.name=newName});}} type="text" autoFocus placeholder="タイトル"/>
-          </Stack>
-          {console.log(patients)}
-          <Stack spacing={.5}>
-            <Typography variant='subtitle1' fontWeight="bold">グラフの種類</Typography>
-            <ToggleButtonGroup
-              color="primary"
-              value={view.type}
-              exclusive
-              onChange={(e,newValue)=>{setView(draft=>{
-                draft.type=newValue;
-                draft.items = [{hdp:"LV",label:"左室圧",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}];
-              })}}
-              sx={{"& .MuiToggleButton-root": { padding:"3px 14px 2px"}}}
-            >
-              <ToggleButton value="PressureCurve">圧曲線</ToggleButton>
-              <ToggleButton value="PressureVolumeCurve">圧容量曲線</ToggleButton>
-              <ToggleButton value="PressureVolumeVsPressureCurve">圧容量vs圧曲線</ToggleButton>
-            </ToggleButtonGroup>    
-          </Stack>
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={()=>{setOpenAddViewDialog(false)}} color="inherit">キャンセル</Button>
-        <Button onClick={()=>{
-          addViewItem({...view,id:nanoid()});
-          setView({name: "", type: "PressureCurve", items:[]})
-          setOpenAddViewDialog(false)
-        }} color="primary" variant="contained">追加する</Button>
-      </DialogActions>
-    </Dialog>
-  </>
-})
 
