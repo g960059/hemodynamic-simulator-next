@@ -519,7 +519,7 @@ const RealTimeChart = React.memo(({engine,initialView,setInitialView,removeView,
           </Dialog>
 
         </Stack>
-        <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%',aspectRatio: '2 / 1'}}>
+        <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%'}}>
           <div id={"scichart-root"+initialView.id} style={{width: '100%',height:'100%'}}/>
         </Box>
       </Box>
