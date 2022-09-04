@@ -166,7 +166,7 @@ const App = () => {
         const originalPatient = defaultPatients.find(({id})=>id===p.id);
         if(!originalPatient) return false;
         return originalPatient.name === p.name && isEqual(originalPatient.controller,p.controller) && isEqual(originalPatient.initialHdps,p.getHdps())
-      }) || !isEqual(views,defaultViews)) 
+      }) || !isEqual(views,defaultViews) || !isEqual(outputs,defaultOutputs))
     )
 
   useEffect(() => {
@@ -294,7 +294,7 @@ const App = () => {
     setLoading(false)
   }, [loadedCase.status]);
 
-  console.log(caseData, patients, views, outputs)
+  console.log(caseData,defaultCaseData, patients, views, outputs)
 
   useEffect(() => {
     const getAllCases = async () => {
@@ -498,7 +498,7 @@ const App = () => {
           } 
       </Box>
       {loading && <Lottie loop animationData={LoadingAnimation} play style={{ objectFit:"contain" }} />}
-      {!loading && caseData?.createdAt &&  <CaseEditor engine={engine} caseData={caseData} patients={patients} outputs={outputs} views={views} allCases={allCases}/>
+      {!loading && caseData?.createdAt &&  <CaseEditor engine={engine} caseData={caseData} setCaseData={setCaseData} patients={patients} setPatients={setPatients} outputs={outputs} setOutputs={setOutputs} views={views} setViews={setViews} allCases={allCases}/>
       }
   </>
 }

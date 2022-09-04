@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
-import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, IconButton,MenuList,ListItemIcon,Tab, CircularProgress, Button,Dialog,DialogTitle,DialogContent,DialogActions,Select,FormControl,InputLabel, useMediaQuery} from '@mui/material'
+import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, IconButton,MenuList,ListItemIcon,Tab, CircularProgress, Button,Dialog,DialogTitle,DialogContent,DialogActions,Select,FormControl,InputLabel, useMediaQuery, NoSsr} from '@mui/material'
 import {TabContext,TabList,TabPanel} from '@mui/lab';
 import {Tune,Delete,Add,DragIndicator,ExpandMore} from '@mui/icons-material';
 import { makeStyles} from '@mui/styles';
@@ -28,6 +28,7 @@ import { nanoid } from 'nanoid'
 
 const TIME_WINDOW_GAP = 300
 const pressureTypes = ['AoP','Pla','Plv','PAP','Pra','Prv']
+const isClient = () => typeof window !== 'undefined'
 
 const useStyles = makeStyles((theme) =>({
   neumoButton: {
@@ -259,17 +260,19 @@ const RealTimeChart = React.memo(({engine,initialView,setInitialView,removeView,
 
   useEffect(() => {
     (async ()=>{
-      const isEnginePlaying = engine.isPlaying
-      engine.setIsPlaying(false)
-      await initSciChart()
-      
-      setView(initialView)
-      for(let item of initialView.items){
-        addDataSeries(item)
-      }      
-      setLoading(false)
-      if(isEnginePlaying){
-        engine.setIsPlaying(true);
+      if(isClient){
+        const isEnginePlaying = engine.isPlaying
+        engine.setIsPlaying(false)
+        await initSciChart()
+        
+        setView(initialView)
+        for(let item of initialView.items){
+          addDataSeries(item)
+        }      
+        setLoading(false)
+        if(isEnginePlaying){
+          engine.setIsPlaying(true);
+        }
       }
     })();
     return ()=>{
@@ -312,7 +315,7 @@ const RealTimeChart = React.memo(({engine,initialView,setInitialView,removeView,
 
 
   return (
-    <Box display='flex' justifyContent='center' alignItems='center' sx={{position: 'relative',backgroundColor:'white', p:[0.5,2],py:2}}>
+    <Box display='flex' justifyContent='center' alignItems='center' sx={{backgroundColor:'white', p:[0.5,2],py:2}}>
       <Box width={1} style={{opacity: loading ? 0 : 1}}>
         <Stack alignItems='center' sx={{zIndex: 100, position: "relative"}}>
           {isUpMd && <Stack direction="row" pr={1} pl={2} pb={1} justifyContent="center" sx={{width:1}}>
@@ -517,7 +520,7 @@ const RealTimeChart = React.memo(({engine,initialView,setInitialView,removeView,
 
         </Stack>
         <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%',aspectRatio: '2 / 1'}}>
-          <div id={"scichart-root"+initialView.id} style={{width: '100%',height:'100%'}}></div>
+          <div id={"scichart-root"+initialView.id} style={{width: '100%',height:'100%'}}/>
         </Box>
       </Box>
       <Box sx={{display: loading? 'block': 'none', zIndex:100, position: 'absolute'}}>

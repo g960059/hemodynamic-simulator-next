@@ -1,5 +1,5 @@
 import React, {useRef, useState, useEffect, useCallback} from 'react'
-import {Box,Typography,Button,IconButton,Stack,Menu,Dialog,DialogContent,DialogActions,DialogTitle,Popover,MenuItem,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery,} from '@mui/material'
+import {Box,Typography,Button,IconButton,Stack,Menu,Dialog,DialogContent,DialogActions,DialogTitle,Popover,MenuItem,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery,NoSsr} from '@mui/material'
 import {Add,FavoriteBorder,} from '@mui/icons-material';
 import Masonry from '@mui/lab/Masonry';
 import PlaySpeedButtonsNext from './PlaySpeedButtonsNext'
@@ -47,17 +47,8 @@ const useStyles = makeStyles((theme) =>(
 );
 
 
-const CaseEditor = ({engine,caseData:initialCaseData,patients:initialPatients,views:initialViews,outputs:initialOutputs,allCases}) => {
+const CaseEditor = ({engine,caseData,setCaseData,patients,setPatients ,views, setViews, outputs,setOutputs,allCases}) => {
   const classes = useStyles();
-
-  console.log("CaseEditor",initialCaseData,initialPatients,initialViews,initialOutputs,allCases)
-
-  const [patients, setPatients] = useImmer(initialPatients);
-  const [views, setViews] = useImmer(initialViews);
-  const [caseData, setCaseData] = useImmer(initialCaseData);
-  const [outputs, setOutputs] = useImmer(initialOutputs);
-  console.log(caseData, views,patients,outputs)
-
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [selectedView, setSelectedView] = useState(null);
 
@@ -138,40 +129,42 @@ const CaseEditor = ({engine,caseData:initialCaseData,patients:initialPatients,vi
                 patients={patients}
               />
             </Stack>
+              <NoSsr>
             <Stack alignItems="center" px={1}>
-              { caseData.viewIds?.map(viewId=>{
-                const view = views.find(v=>v.id===viewId);
-                if(view){ 
-                  return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,py:1,boxShadow:"0 10px 20px #4b57a936", overflow:"auto", maxWidth: "750px", width:1,minWidth:{xs:"auto",md:"400px"}}}>
-                  {view.type === "PressureCurve" && 
-                    <RealTimeChartNext engine={engine} initialView={view} patients={patients}
-                      setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
-                      removeView={()=>{
-                        setCaseData(draft=>{
-                          draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
-                        })
-                        setViews(draft=>{
-                          draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                        })
-                      }}
-                    />
-                  }
-                  {view.type === "PressureVolumeCurve" && 
-                    <PressureVolumeCurveNext engine={engine} initialView={view} 
-                      setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
-                      removeView={()=>{
-                        setCaseData(draft=>{
-                          draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
-                        })
-                        setViews(draft=>{
-                          draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                        })
-                      }}
-                      patients={patients}/>
-                  }
-                </Box>
-              }})}
+                { caseData.viewIds?.map(viewId=>{
+                  const view = views.find(v=>v.id===viewId);
+                  if(view){ 
+                    return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,py:1,boxShadow:"0 10px 20px #4b57a936", overflow:"auto", maxWidth: "750px", width:1,minWidth:{xs:"auto",md:"400px"}}}>
+                    {view.type === "PressureCurve" && 
+                      <RealTimeChartNext engine={engine} initialView={view} patients={patients}
+                        setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
+                        removeView={()=>{
+                          setCaseData(draft=>{
+                            draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
+                          })
+                          setViews(draft=>{
+                            draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                          })
+                        }}
+                      />
+                    }
+                    {view.type === "PressureVolumeCurve" && 
+                      <PressureVolumeCurveNext engine={engine} initialView={view} 
+                        setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
+                        removeView={()=>{
+                          setCaseData(draft=>{
+                            draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
+                          })
+                          setViews(draft=>{
+                            draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                          })
+                        }}
+                        patients={patients}/>
+                    }
+                  </Box>
+                }})}
             </Stack> 
+              </NoSsr>
           </div>
           <Allotment.Pane preferredSize={120} className='flex justify-center overflow-y-scroll'>
             {
@@ -218,8 +211,10 @@ const CaseEditor = ({engine,caseData:initialCaseData,patients:initialPatients,vi
             <PlaySpeedButtonsNext engine={engine}/>
           </div>
           <div>
-            {selectedView?.type === "PressureCurve" && 
-              <RealTimeChartNext engine={engine} initialView={selectedView} patients={patients}
+          { caseData.viewIds?.map(viewId=>{
+              const view = views.find(v=>v.id===viewId);            
+              return  (view?.type === "PressureCurve" && view.id === selectedView?.id && 
+              <RealTimeChartNext engine={engine} initialView={view} patients={patients}
                 setInitialView={newView=>{
                   setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
                   setSelectedView(newView)
@@ -232,9 +227,7 @@ const CaseEditor = ({engine,caseData:initialCaseData,patients:initialPatients,vi
                     draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
                   })
                 }}
-              />
-            }
-            {selectedView?.type === "PressureVolumeCurve" && 
+              />) || (view?.type === "PressureVolumeCurve" && view.id === selectedView?.id &&
               <PressureVolumeCurveNext engine={engine} initialView={selectedView} 
                 setInitialView={newView=>{
                   setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
@@ -249,7 +242,8 @@ const CaseEditor = ({engine,caseData:initialCaseData,patients:initialPatients,vi
                   })
                 }}
                 patients={patients}/>
-            }
+            )}
+          )}
           </div>
         </Allotment.Pane>
       }
@@ -456,7 +450,7 @@ const CaseEditor = ({engine,caseData:initialCaseData,patients:initialPatients,vi
 export default CaseEditor
 
 
-const NewAddViewDialog = React.memo(({addViewItem,patients})=>{
+const NewAddViewDialog = ({addViewItem,patients})=>{
   const classes = useStyles()
   const [openAddViewDialog, setOpenAddViewDialog] = useState(false);
   const [view, setView] = useImmer({name: "", type: "PressureCurve", items:[{hdp:"Plv",label:"左室圧",color:getRandomColor(),patientId:patients[0]?.id,id:nanoid()}]});
@@ -507,4 +501,4 @@ const NewAddViewDialog = React.memo(({addViewItem,patients})=>{
       </DialogActions>
     </Dialog>
   </>
-})
+}
