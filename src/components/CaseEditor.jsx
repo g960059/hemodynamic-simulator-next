@@ -129,42 +129,40 @@ const CaseEditor = ({engine,caseData,setCaseData,patients,setPatients ,views, se
                 patients={patients}
               />
             </Stack>
-              <NoSsr>
-            <Stack alignItems="center" px={1}>
-                { caseData.viewIds?.map(viewId=>{
-                  const view = views.find(v=>v.id===viewId);
-                  if(view){ 
-                    return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,py:1,boxShadow:"0 10px 20px #4b57a936", overflow:"auto", maxWidth: "750px", width:1,minWidth:{xs:"auto",md:"400px"}}}>
-                    {view.type === "PressureCurve" && 
-                      <RealTimeChartNext engine={engine} initialView={view} patients={patients}
-                        setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
-                        removeView={()=>{
-                          setCaseData(draft=>{
-                            draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
-                          })
-                          setViews(draft=>{
-                            draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                          })
-                        }}
-                      />
-                    }
-                    {view.type === "PressureVolumeCurve" && 
-                      <PressureVolumeCurveNext engine={engine} initialView={view} 
-                        setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
-                        removeView={()=>{
-                          setCaseData(draft=>{
-                            draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
-                          })
-                          setViews(draft=>{
-                            draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                          })
-                        }}
-                        patients={patients}/>
-                    }
-                  </Box>
-                }})}
+            <Stack alignItems="center" px={1} pb={8}>
+              { caseData.viewIds?.map(viewId=>{
+                const view = views.find(v=>v.id===viewId);
+                if(view){ 
+                  return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,pt:1,pb:3,boxShadow:"0 10px 20px #4b57a936", overflow:"auto", maxWidth: "750px", width:1,minWidth:{xs:"auto",md:"400px"}}}>
+                  {view.type === "PressureCurve" && 
+                    <RealTimeChartNext engine={engine} initialView={view} patients={patients}
+                      setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
+                      removeView={()=>{
+                        setCaseData(draft=>{
+                          draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
+                        })
+                        setViews(draft=>{
+                          draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                        })
+                      }}
+                    />
+                  }
+                  {view.type === "PressureVolumeCurve" && 
+                    <PressureVolumeCurveNext engine={engine} initialView={view} 
+                      setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
+                      removeView={()=>{
+                        setCaseData(draft=>{
+                          draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
+                        })
+                        setViews(draft=>{
+                          draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                        })
+                      }}
+                      patients={patients}/>
+                  }
+                </Box>
+              }})}
             </Stack> 
-              </NoSsr>
           </div>
           <Allotment.Pane preferredSize={120} className='flex justify-center overflow-y-scroll'>
             {
