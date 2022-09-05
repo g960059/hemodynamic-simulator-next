@@ -13,7 +13,7 @@ import tocbot from 'tocbot'
 import clsx from 'clsx';
 import { useObservable } from 'reactfire';
 import { docData } from 'rxfire/firestore';
-import {  combineLatest, filter, map, mergeMap, mergeMapTo, of, zip} from 'rxjs';
+import {  combineLatest, filter, map, mergeMap, mergeMapTo, of, tap, zip} from 'rxjs';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { nanoid } from 'nanoid';
 
@@ -122,7 +122,7 @@ const ArticleReader = () => {
   );
   const user$= uid$.pipe(
     filter(Boolean),
-    mergeMap(uid=>docData(doc(db,'users',uid))),
+    mergeMap(uid=>docData(doc(db,'users',uid),{idField:'uid'})),
   )
   const articleId$ = of(router.query.articleId).pipe(filter(Boolean))
   const {data:article} = useObservable(`article_${router.query.userId}_${router.query.articleId}`,combineLatest([uid$,articleId$]).pipe(
@@ -152,7 +152,7 @@ const ArticleReader = () => {
 
 
   const heart = useObservable('/articles/'+article?.id+'/heart', combineLatest([user$,articleId$]).pipe(
-    filter(x=>x[0]&&x[1]),
+    filter(([user,articleId])=>user&&articleId),
     mergeMap(([user,articleId]) => auth.currentUser ? docData(doc(db,'users',user?.uid,'articles',articleId,'hearts',auth.currentUser?.uid)): of(null) ))
   ) 
   const addHeart =async () => {
