@@ -17,7 +17,7 @@ import {following$} from '../src/hooks/usePvLoop'
 import Link from 'next/link';
 
 
-const TopPage = ({articles,books}) => {
+const TopPage = ({cases,articles,books}) => {
   const t = useTranslation();
   const router = useRouter()
   const [tabValue, setTabValue] = useState('home');
@@ -32,6 +32,19 @@ const TopPage = ({articles,books}) => {
         {
           tabValue=="home" && (
             <div className='max-w-4xl w-full mx-auto md:py-4 px-4'>
+              <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Cases</div>
+              <div className="md:grid md:grid-cols-2 md:gap-4">
+                {
+                  cases?.filter(c => c?.visibility=="public")?.map(c=><CaseItem caseItem={c}/>)
+                }
+              </div>
+              <div className='flex justify-center mt-6'>
+                <Link href="/cases">
+                  <a className='cursor-pointer no-underline text-blue-500 mb-[1px] hover:mb-0 hover:border-solid hover:border-0 hover:border-b hover:border-blue-500'>
+                    症例をさらに探す
+                  </a>
+                </Link>                
+              </div>              
               <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Articles</div>
               <div className="md:grid md:grid-cols-2 md:gap-4">
                 {
@@ -96,20 +109,26 @@ export const getStaticProps = async () => {
     return newData
   }
 
-  const articlesSnap = await getDocs(query(collectionGroup(db,'articles'),orderBy("heartCount"),orderBy("updatedAt"),where("visibility", "==", "public"),limit(30)))
+  const articlesSnap = await getDocs(query(collectionGroup(db,'articles'),orderBy("heartCount"),orderBy("updatedAt"),where("visibility", "==", "public"),limit(20)))
   const articles = articlesSnap.docs.map(doc=>{
     const article = convertTimestampToJson(doc.data())
     article.id = doc.id
     return article
   })
-  const booksSnap = await getDocs(query(collectionGroup(db,'books'),orderBy("heartCount"),orderBy("updatedAt"),where("visibility", "==", "public"),limit(30)))
+  const booksSnap = await getDocs(query(collectionGroup(db,'books'),orderBy("heartCount"),orderBy("updatedAt"),where("visibility", "==", "public"),limit(20)))
   const books = booksSnap.docs.map(doc=>{
     const book = convertTimestampToJson(doc.data())
     book.id = doc.id
     return book
   })
+  const casesSnap = await getDocs(query(collectionGroup(db,'cases'),orderBy("heartCount"),orderBy("updatedAt"),where("visibility", "==", "public"),limit(20)))
+  const cases = casesSnap.docs.map(doc=>{
+    const c = convertTimestampToJson(doc.data())
+    c.id = doc.id
+    return c
+  })
   return {
-    props: {articles, books},
+    props: {articles, books, cases},
     revalidate: 1
   }
 }
@@ -165,6 +184,58 @@ export const ArticleItem = ({article})=> {
     </div>
   )
 }
+
+export const CaseItem = ({caseItem}) => {
+  return (
+    <div key={caseItem?.id} className="w-full flex flex-row pb-5">
+      <Link href={`/${caseItem?.userId}/cases/${caseItem?.id}`} >
+        <a className= "text-slate-900 hover:opacity-70 transition-opacity duration-200 cursor-pointer w-24 h-24 no-underline hover:no-underline">
+          {
+            caseItem?.coverURL ? <Image src={caseItem?.coverURL} width={96} height={96}/> :
+            <div className='bg-blue-50 rounded-lg flex justify-center items-center w-24 h-24'>
+              <span className='text-4xl'>{caseItem?.emoji}</span>
+            </div>
+          }
+        </a>
+      </Link>
+      <div className='ml-3 flex flex-col'>
+        <Link href={`/${caseItem?.userId}/cases/${caseItem?.id}`}>
+          <a className='font-bold text-slate-800 no-underline hover:no-underline'>
+            {caseItem?.name || "無題のケース"}
+          </a>
+        </Link>
+        <div style={{flexGrow:1}}/>
+        <div className='flex flex-row items-center'>
+          {caseItem?.photoURL ?
+            <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/users/${caseItem.userId}`)}}>
+              <Image src={caseItem?.photoURL} height="32" width="32"/>
+            </div> :
+            <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${caseItem.userId}`)}}>
+              <span className="text-xs font-medium leading-none text-white">{caseItem?.displayName[0]}</span>
+            </div>
+          }
+          <div className='ml-2 text-slate-500'>
+            <Link href={`/users/${caseItem?.userId}`}>
+              <a className='text-sm font-medium no-underline hover:no-underline text-slate-500'>
+                {caseItem?.displayName}
+              </a>
+            </Link>
+            <div className='flex flex-row items-center justify-between'>
+              <span className=' text-sm font-medium '>{ formatDateDiff(new Date(), new Date(caseItem?.updatedAt?.seconds * 1000)) } </span>
+              <span className=' text-sm ml-3 flex flex-row '>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <span className=' text-sm ml-0.5'>{caseItem?.heartCount || 0}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 
 export const BookItem = ({book}) => {
   return (

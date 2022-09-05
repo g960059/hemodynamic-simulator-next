@@ -134,29 +134,10 @@ const CaseReader = () => {
   const [loading, setLoading] = useState(true);
 
   const engine = useEngine()
-  const [patients, setPatients] = useImmer();
-  const [views, setViews] = useImmer();
+  const [patients, setPatients] = useImmer([]);
+  const [views, setViews] = useImmer([]);
   const [caseData, setCaseData] = useImmer();
-  const [outputs, setOutputs] = useImmer([
-    // {
-    //   id: "safasdf",
-    //   label: "tab1",
-    //   items:[
-    //     {
-    //       id: "tete",
-    //       label: "大動脈圧",
-    //       patientId: "7b819fa14a378b",
-    //       metric: "Aop",
-    //     },
-    //     {
-    //       id: "dsdfaf",
-    //       label: "",
-    //       patientId: "7b819fa14a378b",
-    //       metric: "Co",
-    //     }
-    //   ]
-    // },
-  ]);
+  const [outputs, setOutputs] = useImmer([]);
 
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'), {noSsr: true});
   const [heartDiff, setHeartDiff] = useState(0);
@@ -273,7 +254,6 @@ const CaseReader = () => {
     }
   }, [user]);
 
-  console.log(caseData)
 
   return <>
       <AppBar position="static" elevation={0} className={classes.appBar} >
@@ -394,7 +374,7 @@ const CaseReader = () => {
           <Lottie loop animationData={LoadingAnimation} play style={{ objectFit:"contain" }} />
         </Box>
       }
-      {!loading && caseData &&  <CaseEditor engine={engine} caseData={caseData} patients={patients} outputs={outputs} views={views} allCases={allCases}/>
+      {!loading && caseData &&  <CaseEditor engine={engine} caseData={caseData} setCaseData={setCaseData} patients={patients} setPatients={setPatients} outputs={outputs} setOutputs={setOutputs} views={views} setViews={setViews} allCases={allCases}/>
       }
   </>
 }
