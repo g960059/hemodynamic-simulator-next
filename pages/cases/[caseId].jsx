@@ -261,6 +261,12 @@ const App = () => {
                   label: "左室仕事量",
                   patientId: newPatientId,
                   metric: "Cpo",
+                },
+                {
+                  id: nanoid(),
+                  label: "LMT流量",
+                  patientId: newPatientId,
+                  metric: "Ilmt",
                 }
               ]
           }

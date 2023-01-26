@@ -184,6 +184,7 @@ export class CO {
     return ((this.lvedv - this.lvesv) * this.HR /1000)?.toPrecision(3)
   }
 }
+
 export class LaKickRatio {
   constructor(){
     this.lvedv = -Infinity
@@ -229,6 +230,38 @@ export class LaKickRatio {
   reset(){}
   get() {
     return  ((this.laedv - this.laesv)  / (this.lvedv - this.lvesv) * 100)?.toPrecision(3)
+  }
+}
+export class Ilmt {
+  constructor() {
+    this.flow = 0;
+    this.last_t = 0;
+    this.total = 0;
+  }
+  static getLabel(){
+    return "Ilmt"
+  }
+  static getUnit(){
+    return "ml/min"
+  }
+  update(data, time, hdps){
+    const HR = data['HR'][0]
+    const ts = data['t'].map(_t=> _t % (60000 / HR))
+
+    const ts_diff = ts.map((t, i) => i === 0 ? (ts[0]-this.last_t < 0 ? ts[0]-this.last_t+60000 / HR :  ts[0]-this.last_t) : 
+      ((t-ts[i-1])<0 ? t-ts[i-1]+60000 / HR : t-ts[i-1])
+    )
+
+    if(this.last_t > ts[0] || ts.some((t, i) => i > 0 && t < ts[i-1])){
+      this.flow = this.total * HR/1000;
+      this.total =0;
+    }
+    this.total += data["Ilmca"].reduce((acc, v, i) => acc + v * ts_diff[i], 0)
+    this.last_t = ts[ts.length-1]
+  }
+  reset(){}
+  get() {
+    return this.flow?.toPrecision(3)
   }
 }
 

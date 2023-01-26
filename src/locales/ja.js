@@ -107,7 +107,7 @@ export default {
   Ilad1:"左前下行枝1流量",
   Ilad2:"左前下行枝2流量",
   Ilad3:"左前下行枝3流量",
-  
+  Hb: "血中ヘモグロビン濃度",
   Ilcx:"左回旋枝流量",
   Ilcx1:"左回旋枝1流量",
   Ilcx2:"左回旋枝2流量",
@@ -171,7 +171,9 @@ export default {
     CVP:"CVP",
     LAP:"LAP",
     PVA:"PVA",
-    CPO:"CPO"
+    CPO:"CPO",
+    HR: "HR",
+    Ilmt: "LMT",
   }
 }
 

@@ -130,6 +130,8 @@ export const DEFAULT_HEMODYANMIC_PROPS =  {
   Rz8 : 122000,
   Rz9 : 130100,
   Rz10 :55100,
+
+  Hb:15,
 }
 
 
@@ -137,7 +139,7 @@ export const DEFAULT_CONTROLLER = [
   {
     id: "basic",
     name: "基本",
-    tabs: [{name: "基本",hdps:['Volume','HR','LV_Ees','LV_alpha','Ras']}],
+    tabs: [{name: "基本",hdps:['Volume','HR','LV_Ees','LV_alpha','Ras','Hb']}],
   },
   {
     id:"cardiofunctions",
@@ -182,7 +184,8 @@ export const DEFAULT_CONTROLLER_NEXT = [
       {mode:"basic",hdp:'HR',options:[], id:nanoid()},
       {mode:"basic",hdp:'LV_Ees',options:[], id:nanoid()},
       {mode:"basic",hdp:'LV_alpha',options:[], id:nanoid()},
-      {mode:"basic",hdp:'Ras',options:[], id:nanoid()}
+      {mode:"basic",hdp:'Ras',options:[], id:nanoid()},
+      {mode:"basic",hdp:'Hb',options:[], id:nanoid()},
     ],
     controllers: [],
   },

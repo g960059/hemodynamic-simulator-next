@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, useMediaQuery, Select, MenuItem, Divider, IconButton, Menu} from '@mui/material'
 import {useTranslation} from '../hooks/useTranslation'
-import {AoP,CVP,PAP,LAP,SV,EF,PVA,CPO,LVEDP,HR,CO,LaKickRatio} from '../utils/metrics'
+import {AoP,CVP,PAP,LAP,SV,EF,PVA,CPO,LVEDP,HR,CO,LaKickRatio, Ilmt} from '../utils/metrics'
 import ReactiveInput from './ReactiveInput'
 import { useImmer } from 'use-immer'
 import { nanoid } from '../utils/utils'
@@ -20,6 +20,7 @@ const Metrics = {
   Hr: HR,
   Co: CO,
   Lkr: LaKickRatio,
+  Ilmt: Ilmt,
 }
 
 const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {

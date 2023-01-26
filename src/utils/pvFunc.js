@@ -32,7 +32,7 @@ export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_p
       Clmca, Clad, Clad1, Clad2, Clad3, Clad4, Cdiag, Clcx, Clcx1, Clcx2, Clcx3, Cmarg1, Cmarg2, Cmarg3, Clcv, 
       Rlmca, Rlad, Rlad1, Rlad2, Rlad3, Rlad4, Rdiag, Rlcx, Rlcx1, Rlcx2, Rlcx3, Rmarg1, Rmarg2, Rmarg3, Rlcv, 
       Llmca, Llad, Llad1, Llad2, Llad3, Llad4, Ldiag, Llcx, Llcx1, Llcx2, Llcx3, Lmarg1, Lmarg2, Lmarg3,
-      Rz3, Rz4, Rz5, Rz6, Rz7, Rz8, Rz9, Rz10
+      Rz3, Rz4, Rz5, Rz6, Rz7, Rz8, Rz9, Rz10, Hb
     } ={}
     ,logger =null
     )=>{
@@ -122,14 +122,13 @@ export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_p
       let AoP = Qas_prox/Cas_prox + Iasp*Ras_prox
       let PAP = Qap_prox/Cap_prox + Iapp*Rap_prox
       let Iao = Iasp+Iimp
-      const vals = [t,Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Plv, Pla, Prv, Pra,Ias,Ics,Imv,Ivp,Iap,Icp,Itv,Ivs,Iasp,Iapp, AoP, PAP, HR, Ilmca, Ilad, Ilcx, Iimp, Iao]
+      const vals = [t,Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Plv, Pla, Prv, Pra,Ias,Ics,Imv,Ivp,Iap,Icp,Itv,Ivs,Iasp,Iapp, AoP, PAP, HR, Ilmca, Ilad, Ilcx, Iimp, Iao,]
       for(let i =0; i< keys.length; i++){
         if([ "Ilmca", "Ilad", "Ilcx", "Iimp", "Iao","Ics","Imv","Ivp","Iap","Icp","Itv","Ivs","Iasp","Iapp"].includes(keys[i])){
           vals[i] = vals[i]*1000
         }
         (logger[keys[i]]||(logger[keys[i]]=[])).push(vals[i]);
       }
-      console.log(Ilcx)
     }
 
     // Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Qtube, 
