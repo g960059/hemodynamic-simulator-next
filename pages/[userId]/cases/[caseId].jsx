@@ -28,7 +28,7 @@ import { collectionData, docData } from 'rxfire/firestore';
 const useStyles = makeStyles((theme) =>(
   {
     appBar: {
-      backgroundColor: 'transparent',
+      backgroundColor: 'white',
       color: 'inherit'
     },
     background: {

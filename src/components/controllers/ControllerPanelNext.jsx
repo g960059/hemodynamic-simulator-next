@@ -13,6 +13,7 @@ import DeleteMenuItemWithDialog from "../DeleteMenuItemWithDialog";
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid';
 import produce from "immer"
+import { merge } from 'lodash';
 
 const Severity = ["Trivial","Mild","Moderate","Severe"]
 
@@ -65,14 +66,24 @@ const useStyles = makeStyles((theme) =>({
   }),
 );
 
+const Hdps = [
+  'Volume',"HR",
+  'LV_Ees', 'LV_alpha', 'LV_Tmax', 'LV_tau', 'LV_AV_delay', 'LA_Ees', 'LA_alpha', 'LA_Tmax', 'LA_tau', 'LA_AV_delay', 'RV_Ees', 'RV_alpha', 'RV_Tmax', 'RV_tau', 'RV_AV_delay', 'RA_Ees', 'RA_alpha', 'RA_Tmax', 'RA_tau', 'RA_AV_delay',
+  "Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp",
+  'Ravs', 'Ravr', 'Rmvs', 'Rmvr', 'Rtvs', 'Rtvr', 'Rpvs', 'Rpvr',
+  "ECMO","Impella"
+]
 
 const ControllerPanel = React.memo(({patient, setPatient,removePatient,setViews,patientIndex, clonePatient,readOnly=false}) => {
   const classes = useStyles()
+  const t = useTranslation()
   const {controller} = patient;
   const [patientNameEditing, setPatientNameEditing] = useState(false);
   const [parentControllerId, setParentControllerId] = useState(patient?.controller?.controllers[0]?.id || null);
   const [childControllerId, setChildControllerId] = useState(patient?.controller?.controllers[0]?.controllers[0]?.id || null);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [openInfoDialog, setOpenInfoDialog] = useState(false);
+
 
   return (
     <div className="p-4 md:pb-2 md:my-2 bg-white md:shadow-3xl md:rounded-lg md:max-w-md md:mx-auto">
@@ -95,8 +106,35 @@ const ControllerPanel = React.memo(({patient, setPatient,removePatient,setViews,
               setPatientNameEditing(false)
             }} 
             type="text" autoFocus  allowEmpty/> :
-            <Typography variant="h5" fontWeight="bold" onClick={()=>{setPatientNameEditing(true)}} sx={{"&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"},cursor:"pointer",pr:1, color:!patient.name&&"gray"}}>{patient?.name || "Patient Title"}</Typography>
+            <div className='flex items-center'>
+              <Typography variant="h5" fontWeight="bold" onClick={()=>{setPatientNameEditing(true)}} sx={{"&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"},cursor:"pointer",pr:1, color:!patient.name&&"gray"}}>{patient?.name || "Patient Title"}</Typography>
+              <div className='p-1.5 ml-1 inline-flex items-center cursor-pointer rounded-full transition-all duration-100' onClick={()=>{setOpenInfoDialog(true)}}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 stroke-slate-400 hover:stroke-blue-500">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                </svg>
+              </div>
+            </div>
         }
+        <Dialog open={openInfoDialog} onClose={()=>{setOpenInfoDialog(false)}} maxWidth='md' sx={{"& .MuiDialog-paper":{width: "100%"}}}>
+          <DialogTitle className='font-bold'>{patient?.name || "無題の患者"}のパラメータ</DialogTitle>
+          <DialogContent>
+            <div className='w-full md:grid md:grid-cols-2 md:gap-x-10'>
+              {
+                Object.entries([patient.getInitialHdps(), patient.getHdps()]
+                  .flatMap(Object.entries)
+                  .reduce((o,[k,v])=>( {...o, [k]: (o[k]?[...o[k],v]:[v])}),{})).filter(x=>Hdps.includes(x[0])).sort((a,b)=> Hdps.findIndex(hdp=>hdp===a[0]) - Hdps.findIndex(hdp=>hdp===b[0]))
+                  .map(([k,v])=> (<div className='flex flex-row items-center'>
+                    <div className=' mr-2'>{t[k] || k}</div>
+                    <div className='flex-grow'></div>
+                    {v[0] === v[1] ? 
+                      <div className='text-slate-600'>{v[0]}</div> :
+                      <><div className='text-slate-600'>{v[0]} → </div><div className='font-bold'>{v[1]}</div></>}
+                    <div className='text-xs ml-1 text-slate-600'>{InputRanges[k]?.unit}</div>
+                  </div>))
+              }
+            </div>
+          </DialogContent>
+        </Dialog>
         <div style={{flexGrow:1}}></div>
         {
           !readOnly && <>
@@ -513,13 +551,7 @@ export const EditControllerItem = ({initialItem,updateItem, deleteItem}) => {
               value={controllerItem.hdp} 
               onChange={(event,newValue)=>{setControllerItem(draft=>{draft.hdp=newValue})}}
               options={
-                [
-                  'Volume',"HR",
-                  'LV_Ees', 'LV_alpha', 'LV_Tmax', 'LV_tau', 'LV_AV_delay', 'LA_Ees', 'LA_alpha', 'LA_Tmax', 'LA_tau', 'LA_AV_delay', 'RV_Ees', 'RV_alpha', 'RV_Tmax', 'RV_tau', 'RV_AV_delay', 'RA_Ees', 'RA_alpha', 'RA_Tmax', 'RA_tau', 'RA_AV_delay',
-                  "Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp",
-                  'Ravs', 'Ravr', 'Rmvs', 'Rmvr', 'Rtvs', 'Rtvr', 'Rpvs', 'Rpvr',
-                  "ECMO","Impella"
-                ].map(hdp=>({label:t[hdp],value:hdp}))
+                Hdps.map(hdp=>({label:t[hdp],value:hdp}))
               }
               renderInput={(params) => <TextField {...params} value={t[params.value]} />}
               disableClearable
@@ -626,13 +658,7 @@ export const AddControllerItem = React.memo(({addItem})=>{
               value={controllerItem.hdp} 
               onChange={(event,newValue)=>{setControllerItem(draft=>{draft.hdp=newValue})}}
               options={
-                [
-                  'Volume',"HR",
-                  'LV_Ees', 'LV_alpha', 'LV_Tmax', 'LV_tau', 'LV_AV_delay', 'LA_Ees', 'LA_alpha', 'LA_Tmax', 'LA_tau', 'LA_AV_delay', 'RV_Ees', 'RV_alpha', 'RV_Tmax', 'RV_tau', 'RV_AV_delay', 'RA_Ees', 'RA_alpha', 'RA_Tmax', 'RA_tau', 'RA_AV_delay',
-                  "Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp",
-                  'Ravs', 'Ravr', 'Rmvs', 'Rmvr', 'Rtvs', 'Rtvr', 'Rpvs', 'Rpvr',
-                  "ECMO","Impella"
-                ].map(hdp=>({label:t[hdp],value:hdp}))
+                Hdps.map(hdp=>({label:t[hdp],value:hdp}))
               }
               renderInput={(params) => <TextField {...params} value={t[params.value]} />}
               disableClearable

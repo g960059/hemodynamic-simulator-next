@@ -27,7 +27,6 @@ import { nanoid } from 'nanoid'
 
 
 const TIME_WINDOW_GAP = 300
-const pressureTypes = ['AoP','Pla','Plv','PAP','Pra','Prv']
 const isClient = () => typeof window !== 'undefined'
 
 const useStyles = makeStyles((theme) =>({
@@ -92,26 +91,8 @@ const useStyles = makeStyles((theme) =>({
 }),
 );
 
-const getTimeSeriesFn = ({ 
-  Rcs,Rcp,Ras,Rvs,Rap,Rvp,Ras_prox,Rap_prox,Rmv,Rtv,Cas,Cvs,Cap,Cvp,Cas_prox,Cap_prox,
-  LV_Ees,LV_V0,LV_alpha,LV_beta,LV_Tmax,LV_tau,LV_AV_delay,
-  LA_Ees,LA_V0,LA_alpha,LA_beta,LA_Tmax,LA_tau,LA_AV_delay,
-  RV_Ees,RV_V0,RV_alpha,RV_beta,RV_Tmax,RV_tau,RV_AV_delay,
-  RA_Ees,RA_V0,RA_alpha,RA_beta,RA_Tmax,RA_tau,RA_AV_delay,HR,
-  Ravs, Ravr, Rmvr, Rmvs, Rpvr, Rpvs, Rtvr, Rtvs,
-}) => {
-  const Plv = x => x['Plv']
-  const Pla = x => x['Pla']
-  const Prv = x => x['Prv']
-  const Pra = x => x['Pra']
-  const Iasp = x => x['Iasp']
-  const Iapp = x=> x['Iapp']
-  const AoP = x => x['AoP']
-  const PAP = x=>x['PAP']
-  return {Plv, Pla, Prv, Pra, Iasp,Iapp, AoP, PAP}
-}
 
-const RealTimeChart = React.memo(({engine,initialView,setInitialView,removeView,patients,readOnly=false}) =>{
+const RealTimeChart =  React.memo(({engine,initialView,setInitialView,removeView,patients,hdpTypes, getTimeSeriesFn, readOnly=false}) =>{
   const [view, setView] = useImmer(initialView);
   const [originalView, setOriginalView] = useImmer(initialView);
   const TIME_WINDOW =  6000
@@ -255,7 +236,7 @@ const RealTimeChart = React.memo(({engine,initialView,setInitialView,removeView,
   const getLabel = (patientId, hdp)=> t[hdp]+"("+patients.find(p=>p.id===patientId).name+")"
   const getExcludeHdpList = (patientId)=>{
     const existingItems = subscriptionsRef.current.filter(s=>s.patientId == patientId)
-    return pressureTypes.filter(pt => !existingItems.includes(pt)) 
+    return hdpTypes?.filter(pt => !existingItems.includes(pt)) 
   }
 
   useEffect(() => {
@@ -423,7 +404,7 @@ const RealTimeChart = React.memo(({engine,initialView,setInitialView,removeView,
                                 className={classes.neumoSelect}
                                 sx={{minWidth: '110px'}}
                               >
-                                {pressureTypes.map(hdpOption =><MenuItem value={hdpOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[hdpOption]}</MenuItem>)}
+                                {hdpTypes?.map(hdpOption =><MenuItem value={hdpOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[hdpOption]}</MenuItem>)}
                               </Select> 
                             </Stack>
                             <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
@@ -474,7 +455,7 @@ const RealTimeChart = React.memo(({engine,initialView,setInitialView,removeView,
                                   className={classes.neumoSelectInvert}
                                   sx={{minWidth: '110px'}}
                                 >
-                                  {pressureTypes.map(hdpOption =><MenuItem value={hdpOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[hdpOption]}</MenuItem>)}
+                                  {hdpTypes?.map(hdpOption =><MenuItem value={hdpOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[hdpOption]}</MenuItem>)}
                                 </Select> 
                               </Stack>
                               <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>

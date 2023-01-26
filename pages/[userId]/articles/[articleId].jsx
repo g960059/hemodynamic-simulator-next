@@ -354,6 +354,7 @@ export const serialize = node => {
     default:
       return children
   }
+  
 }
 
 export const convertURLtoEmbedURL = (originalURL) => {

@@ -77,7 +77,6 @@ function UserSummary(){
   const [currentUser] = useAuthState(auth)
   const uid$ = of(router.query.userId).pipe(
     filter(Boolean),
-    tap(userId => {console.log(userId)}),
     mergeMap(userId=> docData(doc(db,'userIds',userId))),
     map(user => user.uid)
   );

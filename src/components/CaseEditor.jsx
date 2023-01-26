@@ -14,6 +14,7 @@ import dynamic from 'next/dynamic'
 import { useImmer } from "use-immer";
 import {nanoid,formatDateDiff} from "../utils/utils"
 import { getRandomColor } from '../styles/chartConstants';
+import {getTimeSeriesPressureFn, pressureTypes, flowTypes, getTimeSeriesFlowFn}  from "../utils/presets"
 
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
@@ -71,7 +72,7 @@ const CaseEditor = ({engine,caseData,setCaseData,patients,setPatients ,views, se
   }, [caseData,patients, views]);
 
   return <> 
-    <Allotment vertical={!isUpMd} className='w-full h-[calc(100vh_-_100px)] md:h-[calc(100vh_-_66px)]'>
+    <Allotment vertical={!isUpMd} className='w-full h-[calc(100vh_-_102px)] md:h-[calc(100vh_-_66px)]'>
       {isUpMd && <div className='overflow-scroll h-[calc(100vh_-_66px)]'>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{mx:{xs:2,md:"auto"},mt:{xs:2,md:2},mb:1, maxWidth:"407px"}}>
             <Typography variant="h5" color="secondary" sx={{cursor: "default"}}>Patients</Typography>
@@ -145,8 +146,25 @@ const CaseEditor = ({engine,caseData,setCaseData,patients,setPatients ,views, se
                           draft.splice(draft.findIndex(v=>v.id===view.id),1)
                         })
                       }}
+                      getTimeSeriesFn = {getTimeSeriesPressureFn}
+                      hdpTypes = {pressureTypes}
                     />
                   }
+                  {view.type === "FlowCurve" && 
+                    <RealTimeChartNext engine={engine} initialView={view} patients={patients}
+                      setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
+                      removeView={()=>{
+                        setCaseData(draft=>{
+                          draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
+                        })
+                        setViews(draft=>{
+                          draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                        })
+                      }}
+                      getTimeSeriesFn = {getTimeSeriesFlowFn}
+                      hdpTypes = {flowTypes}
+                    />
+                  }                  
                   {view.type === "PressureVolumeCurve" && 
                     <PressureVolumeCurveNext engine={engine} initialView={view} 
                       setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
@@ -212,34 +230,55 @@ const CaseEditor = ({engine,caseData,setCaseData,patients,setPatients ,views, se
           { caseData.viewIds?.map(viewId=>{
               const view = views.find(v=>v.id===viewId);            
               return  (view?.type === "PressureCurve" && view.id === selectedView?.id && 
-              <RealTimeChartNext engine={engine} initialView={view} patients={patients}
-                setInitialView={newView=>{
-                  setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
-                  setSelectedView(newView)
-                }} 
-                removeView={()=>{
-                  setCaseData(draft=>{
-                    draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
-                  })
-                  setViews(draft=>{
-                    draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
-                  })
-                }}
-              />) || (view?.type === "PressureVolumeCurve" && view.id === selectedView?.id &&
-              <PressureVolumeCurveNext engine={engine} initialView={selectedView} 
-                setInitialView={newView=>{
-                  setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
-                  setSelectedView(newView)
-                }} 
-                removeView={()=>{
-                  setCaseData(draft=>{
-                    draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
-                  })
-                  setViews(draft=>{
-                    draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
-                  })
-                }}
-                patients={patients}/>
+                <RealTimeChartNext engine={engine} initialView={view} patients={patients}
+                  setInitialView={newView=>{
+                    setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
+                    setSelectedView(newView)
+                  }} 
+                  removeView={()=>{
+                    setCaseData(draft=>{
+                      draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
+                    })
+                    setViews(draft=>{
+                      draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
+                    })
+                  }}
+                  getTimeSeriesFn = {getTimeSeriesPressureFn}
+                  hdpTypes = {pressureTypes}
+                />) || 
+              (view?.type === "FlowCurve" && view.id === selectedView?.id && 
+                <RealTimeChartNext engine={engine} initialView={view} patients={patients}
+                  setInitialView={newView=>{
+                    setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
+                    setSelectedView(newView)
+                  }} 
+                  removeView={()=>{
+                    setCaseData(draft=>{
+                      draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
+                    })
+                    setViews(draft=>{
+                      draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
+                    })
+                  }}
+                  getTimeSeriesFn = {getTimeSeriesFlowFn}
+                  hdpTypes = {flowTypes}
+                />) ||                 
+              (view?.type === "PressureVolumeCurve" && view.id === selectedView?.id &&
+                <PressureVolumeCurveNext engine={engine} initialView={selectedView} 
+                  setInitialView={newView=>{
+                    setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
+                    setSelectedView(newView)
+                  }} 
+                  removeView={()=>{
+                    setCaseData(draft=>{
+                      draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
+                    })
+                    setViews(draft=>{
+                      draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
+                    })
+                  }}
+                  patients={patients}
+                />
             )}
           )}
           </div>
@@ -478,11 +517,12 @@ const NewAddViewDialog = ({addViewItem,patients})=>{
               exclusive
               onChange={(e,newValue)=>{setView(draft=>{
                 draft.type=newValue;
-                draft.items = [{hdp:"LV",label:"左室圧",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}];
+                draft.items = newValue != "FlowCurve" ? [{hdp:"LV",label:"左室圧",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}] : [{hdp:"Ilad",label:"左前下行枝流量",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}]
               })}}
               sx={{"& .MuiToggleButton-root": { padding:"3px 14px 2px"}}}
             >
               <ToggleButton value="PressureCurve">圧曲線</ToggleButton>
+              <ToggleButton value="FlowCurve">流量曲線</ToggleButton>
               <ToggleButton value="PressureVolumeCurve">圧容量曲線</ToggleButton>
               <ToggleButton value="PressureVolumeVsPressureCurve">圧容量vs圧曲線</ToggleButton>
             </ToggleButtonGroup>    

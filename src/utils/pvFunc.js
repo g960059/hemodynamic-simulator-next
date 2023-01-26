@@ -20,15 +20,19 @@ export const P = (V, t,Ees,V0, alpha, beta,Tmax, tau, AV_delay,HR)=>{
   return Ped + e(t-AV_delay,Tmax,tau,HR)*(Pes-Ped)
 }
 
-const keys = ["t","Qvs", "Qas", "Qap", "Qvp", "Qlv", "Qla", "Qrv", "Qra", "Qas_prox","Qap_prox","Plv", "Pla", "Prv", "Pra","Ias","Ics","Imv","Ivp","Iap","Icp","Itv","Ivs","Iasp","Iapp", "AoP", "PAP",'HR']
+const keys = ["t","Qvs", "Qas", "Qap", "Qvp", "Qlv", "Qla", "Qrv", "Qra", "Qas_prox","Qap_prox","Plv", "Pla", "Prv", "Pra","Ias","Ics","Imv","Ivp","Iap","Icp","Itv","Ivs","Iasp","Iapp", "AoP", "PAP", "HR", "Ilmca", "Ilad", "Ilcx", "Iimp", "Iao"]
 
-export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Qtube],
+export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Qtube, Qlmca, Qdiag, Qlad, Qlad1, Qlad2, Qlad3, Qlad4, Qlcx, Qlcx1, Qlcx2, Qlcx3, Qmarg1, Qmarg2, Qmarg3, Qlcv, Ilmca, Idiag, Ilad, Ilad1, Ilad2, Ilad3, Ilad4, Ilcx, Ilcx1, Ilcx2, Ilcx3, Imarg1, Imarg2, Imarg3],
     { Rcs,Rcp,Ras,Rvs,Rap,Rvp,Ras_prox,Rap_prox,Rmv,Rtv,Cas,Cvs,Cap,Cvp,Cas_prox,Cap_prox,
       LV_Ees,LV_V0,LV_alpha,LV_beta,LV_Tmax,LV_tau,LV_AV_delay,
       LA_Ees,LA_V0,LA_alpha,LA_beta,LA_Tmax,LA_tau,LA_AV_delay,
       RV_Ees,RV_V0,RV_alpha,RV_beta,RV_Tmax,RV_tau,RV_AV_delay,
       RA_Ees,RA_V0,RA_alpha,RA_beta,RA_Tmax,RA_tau,RA_AV_delay,HR,
-      Ravs, Ravr, Rmvr, Rmvs, Rpvr, Rpvs, Rtvr, Rtvs, impella_type, impella_aux_level,ecmo_speed,Ctube,Rtube
+      Ravs, Ravr, Rmvr, Rmvs, Rpvr, Rpvs, Rtvr, Rtvs, impella_type, impella_aux_level,ecmo_speed,Ctube,Rtube,
+      Clmca, Clad, Clad1, Clad2, Clad3, Clad4, Cdiag, Clcx, Clcx1, Clcx2, Clcx3, Cmarg1, Cmarg2, Cmarg3, Clcv, 
+      Rlmca, Rlad, Rlad1, Rlad2, Rlad3, Rlad4, Rdiag, Rlcx, Rlcx1, Rlcx2, Rlcx3, Rmarg1, Rmarg2, Rmarg3, Rlcv, 
+      Llmca, Llad, Llad1, Llad2, Llad3, Llad4, Ldiag, Llcx, Llcx1, Llcx2, Llcx3, Lmarg1, Lmarg2, Lmarg3,
+      Rz3, Rz4, Rz5, Rz6, Rz7, Rz8, Rz9, Rz10
     } ={}
     ,logger =null
     )=>{
@@ -68,15 +72,85 @@ export const pvFunc = (t,[Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_p
     const Ip = ecmo_speed ==0 ? 0 : (2.43*10**(-5)*ecmo_speed*deltaP + 2.86*10**(-2)*ecmo_speed - 0.153*deltaP-15.7)/1000;
     const Itube= ecmo_speed ==0 ? 0 : (Qtube/Ctube - Qas_prox/Cas_prox)/Rtube;
 
+    const Klv = 1
+
+
+    // coronary
+    // const Ilmca = (Qas_prox/Cas_prox + Iasp*Ras_prox - Qlmca/Clmca)/Rlmca
+    // const Idiag = (Qlmca/Clmca - Qdiag/Cdiag)/Rdiag
+    // const Ilad  = (Qlmca/Clmca - Qlad/Clad)/Rlad
+    // const Ilad1 = (Qlad/Clad - Qlad1/Clad1)/Rlad1
+    // const Ilad2 = (Qlad/Clad - Qlad2/Clad2)/Rlad2
+    // const Ilad3 = (Qlad2/Clad2 - Qlad3/Clad3)/Rlad3
+    // const Ilad4 = (Qlad2/Clad2 - Qlad4/Clad4)/Rlad4    
+    // const Ilcx  = (Qlmca/Clmca - Qlcx/Clcx)/Rlcx
+    // const Ilcx1 = (Qlcx/Clcx - Qlcx1/Clcx1)/Rlcx1
+    // const Ilcx2 = (Qlcx1/Clcx1- Qlcx2/Clcx2)/Rlcx2
+    // const Ilcx3 = (Qlcx2/Clcx2- Qlcx3/Clcx3)/Rlcx3
+    // const Imarg1 = (Qlcx/Clcx - Qmarg1/Cmarg1)/Rmarg1
+    // const Imarg2 = (Qlcx1/Clcx1 - Qmarg2/Cmarg2)/Rmarg2
+    // const Imarg3 = (Qlcx2/Clcx2 - Qmarg3/Cmarg3)/Rmarg3    
+    // Qlmca = Qlmca < 0 ? 0 : Qlmca
+    // Qdiag = Qdiag < 0 ? 0 : Qdiag
+    // Qlad = Qlad < 0 ? 0 : Qlad
+    // Qlad1 = Qlad1 < 0 ? 0 : Qlad1
+    // Qlad2 = Qlad2 < 0 ? 0 : Qlad2
+    // Qlad3 = Qlad3 < 0 ? 0 : Qlad3
+    // Qlad4 = Qlad4 < 0 ? 0 : Qlad4
+    // Qlcx = Qlcx < 0 ? 0 : Qlcx
+    // Qlcx1 = Qlcx1 < 0 ? 0 : Qlcx1
+    // Qlcx2 = Qlcx2 < 0 ? 0 : Qlcx2
+    // Qlcx3 = Qlcx3 < 0 ? 0 : Qlcx3
+    // Qmarg1 = Qmarg1 < 0 ? 0 : Qmarg1
+    // Qmarg2 = Qmarg2 < 0 ? 0 : Qmarg2
+    // Qmarg3 = Qmarg3 < 0 ? 0 : Qmarg3
+    // Qlcv = Qlcv < 0 ? 0 : Qlcv
+
+
+    const Iz3 = (Qlad1/Clad1 - Klv * Plv) / Rz3
+    const Iz4 = (Qlad3/Clad3 - Klv * Plv) / Rz4
+    const Iz5 = (Qlad4/Clad4 - Klv * Plv) / Rz5
+    const Iz6 = (Qmarg1/Cmarg1 - Klv * Plv ) / Rz6
+    const Iz7 = (Qmarg2/Cmarg2 - Klv * Plv ) / Rz7
+    const Iz8 = (Qmarg3/Cmarg3 - Klv * Plv ) / Rz8
+    const Iz9 = (Qlcx3/Clcx3 - Klv * Plv)/ Rz9
+    const Iz10 = (Qdiag/Cdiag - Klv * Plv) / Rz10
+    const Ilcv = (Qlcv/Clcv - Pra) / Rlcv
+    const Rh_left = 0.07 * Ilmca
+
     if(logger != null){
       let AoP = Qas_prox/Cas_prox + Iasp*Ras_prox
       let PAP = Qap_prox/Cap_prox + Iapp*Rap_prox
-      const vals = [t,Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Plv, Pla, Prv, Pra,Ias,Ics,Imv,Ivp,Iap,Icp,Itv,Ivs,Iasp,Iapp, AoP, PAP, HR]
+      let Iao = Iasp+Iimp
+      const vals = [t,Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Plv, Pla, Prv, Pra,Ias,Ics,Imv,Ivp,Iap,Icp,Itv,Ivs,Iasp,Iapp, AoP, PAP, HR, Ilmca, Ilad, Ilcx, Iimp, Iao]
       for(let i =0; i< keys.length; i++){
+        if([ "Ilmca", "Ilad", "Ilcx", "Iimp", "Iao","Ics","Imv","Ivp","Iap","Icp","Itv","Ivs","Iasp","Iapp"].includes(keys[i])){
+          vals[i] = vals[i]*1000
+        }
         (logger[keys[i]]||(logger[keys[i]]=[])).push(vals[i]);
       }
+      console.log(Ilcx)
     }
-    return [Ias-Ivs-Ip, Ics-Ias, Icp-Iap, Iap-Ivp, Imv-Iasp-Iimp, Ivp-Imv, Itv-Iapp, Ivs-Itv, Iasp-Ics+Iimp+Itube, Iapp-Icp, Ip-Itube]
+
+    // Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox,Qap_prox,Qtube, 
+    // Qlmca, Qdiag, Qlad, Qlad1, Qlad2, Qlad3, Qlad4, Qlcx, Qlcx1, Qlcx2, Qlcx3, Qmarg1, Qmarg2, Qmarg3, Qlcv, Ilmca, Idiag, Ilad, Ilad1, Ilad2, Ilad3, Ilad4, Ilcx, Ilcx1, Ilcx2, Ilcx3, Imarg1, Imarg2, Imarg3
+    return [Ias-Ivs-Ip, Ics-Ias, Icp-Iap, Iap-Ivp, Imv-Iasp-Iimp, Ivp-Imv, Itv-Iapp, Ivs-Itv, Iasp-Ics+Iimp+Itube, Iapp-Icp, Ip-Itube,
+      Ilmca-Idiag-Ilcx-Ilad,Idiag-Iz10,Ilad-Ilad1-Ilad2,Ilad1-Iz3,Ilad2-Ilad3-Ilad4,Ilad3-Iz4, Ilad4-Iz5,Ilcx-Imarg1-Ilcx1,Ilcx1-Imarg2-Ilcx2,Ilcx2-Imarg3-Ilcx3,Ilcx3-Iz9, Imarg1-Iz6,Imarg2-Iz7,Imarg3-Iz8, Iz3+Iz4+Iz5+Iz6+Iz7+Iz8+Iz9+Iz10-Ilcv, 
+      -((Rlmca+Rh_left)*Ilmca + Qlmca/Clmca -(Qas_prox/Cas_prox + Iasp*Ras_prox))/Llmca,
+      -(Rdiag*Idiag + Qdiag/Cdiag - Qlmca/Clmca)/Ldiag,
+      -(Rlad*Ilad + Qlad/Clad - Qlmca/Clmca)/Llad,
+      -(Rlad1*Ilad1 + Qlad1/Clad1 - Qlad/Clad)/Llad1,
+      -(Rlad2*Ilad2 + Qlad2/Clad2 - Qlad/Clad)/Llad2,
+      -(Rlad3*Ilad3 + Qlad3/Clad3 - Qlad2/Clad2)/Llad3,
+      -(Rlad4*Ilad4 + Qlad4/Clad4 - Qlad2/Clad2)/Llad4,
+      -(Rlcx*Ilcx + Qlcx/Clcx - Qlmca/Clmca)/Llcx,
+      -(Rlcx1*Ilcx1 + Qlcx1/Clcx1 - Qlcx/Clcx)/Llcx1,
+      -(Rlcx2*Ilcx2 + Qlcx2/Clcx2 - Qlcx1/Clcx1)/Llcx2,
+      -(Rlcx3*Ilcx3 + Qlcx3/Clcx3 - Qlcx2/Clcx2)/Llcx3,
+      -(Rmarg1*Imarg1 + Qmarg1/Cmarg1 - Qlcx/Clcx)/Lmarg1,
+      -(Rmarg2*Imarg2 + Qmarg2/Cmarg2 - Qlcx1/Clcx1)/Lmarg2,
+      -(Rmarg3*Imarg3 + Qmarg3/Cmarg3 - Qlcx2/Clcx2)/Lmarg3,
+    ]
 }
 
 //0:Qvs, 1:Qas,2:Qap,3:Qvp,4:Qlv,5:Qla,6:Qrv,7:Qra,8:Qas_prox,9:Qap_prox,10:Plv,11:Pla,12:Prv,13:Pra,14:Ias,15:Ics,16:Imv,17:Ivp,18:Iap,19:Icp,20:Itv,21:Ivs,22:Iasp,23:Iapp

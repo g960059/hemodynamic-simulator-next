@@ -221,3 +221,5 @@ const toHalfKata = (text) =>
   text.replace(/[ァ-ヺ]/g, m => HALF_KATA[m.charCodeAt(0) - 12449])
       .replace(/[ぁ-ゖ]/g, m => HALF_KATA[m.charCodeAt(0) - 12353])
       .replace(/[゛゜ー。「」、・]/g, m => 'ﾞﾟｰ｡｢｣､･'.charAt('゛゜ー。「」、・'.indexOf(m)))
+
+

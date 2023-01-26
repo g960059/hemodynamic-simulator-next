@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid'
 
-export const DEFAULT_DATA = [517.0283988780775, 139.6755778937746, 342.074495051476, 114.12917857876639, 138.23726297508844, 72.32261938109193, 92.40876881733028, 59.370961675606274, 7.629709285843546, 17.12302746294433,0]
+export const DEFAULT_DATA = [517.0283988780775, 139.6755778937746, 342.074495051476, 114.12917857876639, 138.23726297508844, 72.32261938109193, 92.40876881733028, 59.370961675606274, 7.629709285843546, 17.12302746294433,0,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 export const DEFAULT_TIME = 8892.826700000003
 
 export const DEFAULT_HEMODYANMIC_PROPS =  {
@@ -71,7 +71,67 @@ export const DEFAULT_HEMODYANMIC_PROPS =  {
   ecmo_speed: 0,
   Ctube:0.1,
   Rtube:20000,
+
+  Clmca: 0.002,
+  Clad: 0.0015,
+  Clad1: 0.0013,
+  Clad2: 0.0012,
+  Clad3: 0.00028,
+  Clad4: 0.0019,
+  Cdiag: 0.0016,
+  Clcx: 0.0011,
+  Clcx1: 0.00065,
+  Clcx2: 0.00075,
+  Clcx3: 0.001,
+  Cmarg1: 0.0012,
+  Cmarg2: 0.00077,
+  Cmarg3: 0.001,
+  Clcv: 0.06,
+  
+  Rlmca: 6000,
+  Rlad: 500,
+  Rlad1: 3100,
+  Rlad2: 870,
+  Rlad3: 6700,
+  Rlad4: 4700,
+  Rdiag: 1900,
+  Rlcx: 300,
+  Rlcx1: 400,
+  Rlcx2: 800,
+  Rlcx3: 270,
+  Rmarg1: 1400,
+  Rmarg2: 2200,
+  Rmarg3: 2400,
+  Rlcv: 10600,
+
+
+  // 3 or 10.6 or 13.6
+
+  Llmca: 20000,
+  Llad: 30000,
+  Llad1: 100000,
+  Llad2: 40000,
+  Llad3: 100000,
+  Llad4: 160000,
+  Ldiag: 80000,
+  Llcx: 20000,
+  Llcx1: 20000,
+  Llcx2: 40000,
+  Llcx3: 90000,
+  Lmarg1: 60000,
+  Lmarg2: 70000,
+  Lmarg3: 80000,
+
+  Rz3 : 115600,
+  Rz4 : 425000,
+  Rz5 : 55200,
+  Rz6 : 115000,
+  Rz7 : 128400,
+  Rz8 : 122000,
+  Rz9 : 130100,
+  Rz10 :55100,
 }
+
 
 export const DEFAULT_CONTROLLER = [
   {
@@ -232,3 +292,39 @@ export const DEFAULT_CONTROLLER_NEXT = [
     controllers:[]
   }
 ]
+
+export const getTimeSeriesPressureFn = () => {
+  const Plv = x => x['Plv']
+  const Pla = x => x['Pla']
+  const Prv = x => x['Prv']
+  const Pra = x => x['Pra']
+  const Iasp = x => x['Iasp']
+  const Iapp = x=> x['Iapp']
+  const AoP = x => x['AoP']
+  const PAP = x=>x['PAP']
+  return {Plv, Pla, Prv, Pra, Iasp,Iapp, AoP, PAP}
+}
+
+export const getTimeSeriesFlowFn = ({ 
+  Rcs,Rcp,Ras,Rvs,Rap,Rvp,Ras_prox,Rap_prox,Rmv,Rtv,Cas,Cvs,Cap,Cvp,Cas_prox,Cap_prox,
+  LV_Ees,LV_V0,LV_alpha,LV_beta,LV_Tmax,LV_tau,LV_AV_delay,
+  LA_Ees,LA_V0,LA_alpha,LA_beta,LA_Tmax,LA_tau,LA_AV_delay,
+  RV_Ees,RV_V0,RV_alpha,RV_beta,RV_Tmax,RV_tau,RV_AV_delay,
+  RA_Ees,RA_V0,RA_alpha,RA_beta,RA_Tmax,RA_tau,RA_AV_delay,HR,
+  Ravs, Ravr, Rmvr, Rmvs, Rpvr, Rpvs, Rtvr, Rtvs,
+}) => {
+  const Imv = x => x['Imv']
+  const Itv = x => x['Itv']
+  // const Iao = x => x['Iasp']+x['Iimp']
+  const Iasp = x => x['Iasp']
+  const Iimp = x => x['Iimp']
+  const Ilad = x => x['Ilad']
+  const Ilcx = x=> x['Ilcx']
+  const Iao = x => x['Iao']
+  return {Imv, Itv,   Ilad, Ilcx, Iasp, Iimp, Iao}
+}
+
+
+
+export const pressureTypes = ['AoP','Pla','Plv','PAP','Pra','Prv']
+export const flowTypes = ['Imv','Itv', 'Ilad', 'Ilcx','Iao', 'Iasp', 'Iimp']

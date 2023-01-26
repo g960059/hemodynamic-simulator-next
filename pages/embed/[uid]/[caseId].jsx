@@ -9,7 +9,7 @@ import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../../src/hooks/useTranslation'
 import OutputPanel from '../../../src/components/OutputPanel'
 import ControllerPanelNext from '../../../src/components/controllers/ControllerPanelNext'
-import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS, DEFAULT_CONTROLLER_NEXT} from '../../../src/utils/presets'
+import {getTimeSeriesPressureFn, pressureTypes} from '../../../src/utils/presets'
 import {COLORS} from '../../../src/styles/chartConstants'
 
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
@@ -134,6 +134,8 @@ const App = () => {
                     <RealTimeChartNext engine={engine} initialView={view} patients={patients}
                       setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
                       removeView={()=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1)})}}
+                      hdpTypes = {pressureTypes}
+                      getTimeSeriesFn = {getTimeSeriesPressureFn}
                       readOnly={true}
                       />
                   }

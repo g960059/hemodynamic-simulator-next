@@ -35,9 +35,6 @@ import Lottie from 'react-lottie-player'
 import LoadingAnimation from "../../src/lotties/LoadingAnimation.json"
 import CaseEditor from "../../src/components/CaseEditor"
 
-const RealTimeChartNext = dynamic(()=>import('../../src/components/RealTimeChartNext'), {ssr: false});
-const PressureVolumeCurveNext = dynamic(()=>import('../../src/components/PressureVolumeCurveNext'), {ssr: false,});
-const CombinedChart = dynamic(()=>import('../../src/components/combined/CombinedChart'), {ssr: false,});
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 
