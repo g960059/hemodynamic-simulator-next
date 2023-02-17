@@ -868,6 +868,7 @@ export const InputItem =  React.memo(({patient, controllerItem, forceUpdate}) =>
   const setHdps = (k,v) => {setHdps_(k,v); setTimeout(()=>{forceUpdate()},100)}
   if(hdp == "Impella") return <ImpellaButton hdps={hdps} setHdps={setHdps} key={hdp}/>;
   if(hdp == "ECMO") return <Box sx={{mb:1,width:1}} key={hdp}><EcmoButton hdps={hdps} setHdps={setHdps} /></Box>;
+  if(hdp == "IABP") return <Box sx={{mb:1,width:1}} key={hdp}><IabpButton hdps={hdps} setHdps={setHdps} /></Box>;
   if(["Ravs","Rmvs","Rtvs","Rpvs","Ravr","Rmvr","Rtvr","Rpvr"].includes(hdp)) return <Box sx={{mt:1,width:1}} key={hdp}><BasicToggleButtons hdp={hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps}/></Box>
   return <>
     {mode=="basic" && <BasicInputs hdp={hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} key={hdp}/>}
@@ -1145,6 +1146,51 @@ export const EcmoButton = React.memo(({hdps,setHdps}) => {
             </Select>
           </Grid>
         }              
+      </Grid>
+    </Grid>
+  </>
+})
+
+export const IabpButton = React.memo(({hdps,setHdps}) => {
+  const t = useTranslation();
+  const [iabpFreq, setIabpFreq] = useState(hdps["IabpFreq"]);
+  const [delayInflation, setDelayInflation] = useState(hdps["DelayInflation"]);
+  const [delayDeflation, setDelayDeflation] = useState(hdps["DelayDeflation"]);
+  const [qDrive, setQDrive] = useState(hdps["Qdrive"]);
+  const [radiusAorta, setRadiusAorta] = useState(hdps["RadiusDscAorta"]);
+  const [lengthIabp, setLengthIabp] = useState(hdps["LengthIabp"]);
+
+ 
+  const handleFreq = (e, v) =>{
+    if(0<=v && v<=3){
+      setIabpFreq(v);
+      setHdps("IabpFreq",v);
+    }else{
+      setIabpFreq(0);
+      setHdps("IabpFreq",0);
+    }
+  }
+
+
+  return <>
+    <Grid container justifyContent="space-between" alignItems="center" display='flex' sx={{mb:1}}>
+      <Grid item xs={12} justifyContent="space-between" alignItems="center" display='flex' sx={{mb:.5}}>
+        <Typography variant='subtitle1'>アシスト比</Typography>
+      </Grid>
+      <Grid itex xs={12}  justifyContent="space-between" alignItems="center" display='flex'>
+        <ToggleButtonGroup
+          color="primary"
+          value={iabpFreq}
+          exclusive
+          onChange={handleFreq}
+          size="small"
+          sx={{"& .MuiToggleButton-root": { padding:"3px 14px 2px"}}}
+        >
+          <ToggleButton value={0}>Off</ToggleButton>
+          <ToggleButton value={1}>1:1</ToggleButton>
+          <ToggleButton value={2}>2:1</ToggleButton>
+          <ToggleButton value={3}>3:1</ToggleButton>
+        </ToggleButtonGroup>   
       </Grid>
     </Grid>
   </>

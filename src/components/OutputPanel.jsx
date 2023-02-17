@@ -24,7 +24,6 @@ const Metrics = {
 }
 
 const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
-  console.log(patients,outputs)
   const t = useTranslation()
   const [selectedOutputId, setSelectedOutputId] = useState(null);
   const [selectedDialogOutputId, setSelectedDialogOutputId] = useState(null);

@@ -1,13 +1,13 @@
 import { nanoid } from 'nanoid'
 
-export const DEFAULT_DATA = [517.0283988780775, 139.6755778937746, 342.074495051476, 114.12917857876639, 138.23726297508844, 72.32261938109193, 92.40876881733028, 59.370961675606274, 7.629709285843546, 17.12302746294433,0,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-export const DEFAULT_TIME = 8892.826700000003
+export const DEFAULT_DATA = [749.9842973712131, 149.3527787113375, 405.08061599015554, 135.97317102061024, 144.32186565319813, 75.34345155268299, 117.70495107318685, 73.76400781737635, 68.42882775454605, 42.75963410693713, 20.28639894876003, 10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,]
+export const DEFAULT_TIME = 954.931700000081
 
 export const DEFAULT_HEMODYANMIC_PROPS =  {
-  Rcs : 20,
-  Ras: 830,
+  Ras : 20,
+  Rcs: 830,
   Rvs : 25,
-  Ras_prox : 24,
+  Ras_prox : 4,
   Rcp : 10,
   Rap : 13,
   Rvp : 15,
@@ -18,16 +18,32 @@ export const DEFAULT_HEMODYANMIC_PROPS =  {
 
   Cas : 1.83,
   Cvs : 70,
-  Cas_prox : 0.1,
+  Cas_prox : 0.54,
   Cap : 20,
   Cvp : 7,  
   Cap_prox : 1.0,
+
+  Las_prox: 2,
+  Las : 1700,
+  Lap_prox: 52,
+  Lap : 1700,
+
+  Ciabp: 1.5,
+  Rda: 3,
+  Cda: 0.52,
+  Qdrive: 40,
+  Qbase:4,
+  RadiusDscAorta: 1,
+  LengthIabp: 18,
+  DelayInflation: 100,
+  DelayDeflation: 0,
+  IabpFreq: 0,
 
   LV_Ees : 2.21,
   LV_V0 : 5,
   LV_alpha : 0.029,
   LV_beta : 0.34,
-  LV_Tmax : 250,
+  LV_Tmax : 300,
   LV_tau : 25,
   LV_AV_delay : 160,
 
@@ -288,11 +304,24 @@ export const DEFAULT_CONTROLLER_NEXT = [
   {
     id:"assisted_circulation",
     name:"補助循環",
-    items:[
-      {mode:"basic",hdp:"Impella",options:[], id:nanoid()},
-      {mode:"basic",hdp:"ECMO",options:[], id:nanoid()},
-    ],
-    controllers:[]
+    items:[],
+    controllers:[
+      {
+        id:"impella&ecmo",
+        name:"Impella・ECMO",
+        items:[
+          {mode:"basic",hdp:"Impella",options:[], id:nanoid()},
+          {mode:"basic",hdp:"ECMO",options:[], id:nanoid()},
+        ]
+      },
+      {
+        id:"iabp",
+        name:"IABP",
+        items:[
+          {mode:"basic",hdp:"IABP",options:[], id:nanoid()},
+        ]
+      },
+    ]
   }
 ]
 

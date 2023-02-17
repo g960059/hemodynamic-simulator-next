@@ -234,9 +234,9 @@ export class LaKickRatio {
 }
 export class Ilmt {
   constructor() {
-    this.flow = 0;
     this.last_t = 0;
     this.total = 0;
+    this.flows = [];
   }
   static getLabel(){
     return "Ilmt"
@@ -253,7 +253,12 @@ export class Ilmt {
     )
 
     if(this.last_t > ts[0] || ts.some((t, i) => i > 0 && t < ts[i-1])){
-      this.flow = this.total * HR/1000;
+      if(this.flows.length > 10){
+        this.flows.shift()
+      }
+      if(this.total>0 ){
+        this.flows.push(this.total * HR/1000)
+      }
       this.total =0;
     }
     this.total += data["Ilmca"].reduce((acc, v, i) => acc + v * ts_diff[i], 0)
@@ -261,7 +266,7 @@ export class Ilmt {
   }
   reset(){}
   get() {
-    return this.flow?.toPrecision(3)
+    return (this.flows.reduce((acc, v) => acc + v, 0) / this.flows.length)?.toPrecision(3) || 0
   }
 }
 
