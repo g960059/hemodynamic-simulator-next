@@ -387,7 +387,7 @@ const RealTimeChart =  React.memo(({engine,initialView,setInitialView,removeView
                                   })}}
                                 className={classes.neumoSelect}
                               >
-                                {patients.map(p=><MenuItem value={p.id} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{p.name}</MenuItem>)}
+                                {patients.map(p=><MenuItem value={p.id} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{p.name || "無題の患者"}</MenuItem>)}
                               </Select>
                             </Stack>
                             <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>

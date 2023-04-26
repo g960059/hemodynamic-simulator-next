@@ -1,3 +1,4 @@
+
 export class SV {
   constructor(){
     this.lvedv = -Infinity
@@ -29,6 +30,9 @@ export class SV {
   get() {
     return (this.lvedv - this.lvesv)?.toPrecision(3)
   }
+  getMetric(){
+    return (this.lvedv - this.lvesv)
+  }
 }
 export class EF extends SV{
   constructor(){
@@ -42,6 +46,9 @@ export class EF extends SV{
   }
   get(){
     return ((this.lvedv - this.lvesv)/this.lvedv*100)?.toFixed(2)
+  }
+  getMetric(){
+    return ((this.lvedv - this.lvesv)/this.lvedv*100)
   }
 }
 export class LVEDP{
@@ -67,6 +74,9 @@ export class LVEDP{
   }
   get(){
     return this.lvedp?.toPrecision(3)
+  }
+  getMetric(){
+    return this.lvedp
   }
 }
 export class AoP{
@@ -101,6 +111,9 @@ export class AoP{
   get(){
     return Math.floor(this.max) + "/" + Math.floor(this.min)
   }
+  getMetric(){
+    return this.max
+  }
 }
 export class PAP extends AoP {
   constructor(){
@@ -109,6 +122,9 @@ export class PAP extends AoP {
   }
   static getLabel(){
     return "PAP"
+  }
+  getMetric(){
+    return (this.max+this.min*2)/3
   }
 }
 export class CVP extends AoP {
@@ -119,6 +135,9 @@ export class CVP extends AoP {
   static getLabel(){
     return "CVP"
   }
+  getMetric(){
+    return (this.max+this.min*2)/3
+  }
 }
 export class LAP extends AoP {
   constructor(){
@@ -127,6 +146,9 @@ export class LAP extends AoP {
   }
   static getLabel(){
     return "LAP"
+  }
+  getMetric(){
+    return (this.max+this.min*2)/3
   }
 }
 export class HR {
@@ -148,42 +170,11 @@ export class HR {
   get(){
     return this.HR?.toPrecision(3)
   }
-}
-export class CO {
-  constructor(){
-    this.lvedv = null
-    this.lvesv = null
-    this.HR = null
-  }
-  static getLabel(){
-    return "CO"
-  }
-  static getUnit(){
-    return "L/min"
-  }
-  update(data, time, hdps){
-    this.HR= data['HR'][0]
-    const HR = data['HR'][0]
-    const ts = data['t'].map(_t=> (_t - hdps['LV_AV_delay']) % (60000 / HR))
-    const _ts = ts.map(_t=> _t< hdps["LV_Tmax"] ? 10000 : _t - hdps["LV_Tmax"])
-    const tes = Math.min(..._ts)
-    if(tes < 5 ){
-      const tesIndex = _ts.findIndex(_t => _t === tes)
-      this.lvesv = data['Qlv'][tesIndex];
-    }else{
-      const ted = Math.max(...ts)
-      if(60000/HR - ted  < 5){
-        const tedIndex = ts.findIndex(_t => _t === ted)
-        this.lvedv = data['Qlv'][tedIndex];
-      }
-    } 
-  }
-  reset(){
-  }
-  get() {
-    return ((this.lvedv - this.lvesv) * this.HR /1000)?.toPrecision(3)
+  getMetric(){
+    return this.HR
   }
 }
+
 
 export class LaKickRatio {
   constructor(){
@@ -231,7 +222,100 @@ export class LaKickRatio {
   get() {
     return  ((this.laedv - this.laesv)  / (this.lvedv - this.lvesv) * 100)?.toPrecision(3)
   }
+  getMetric(){
+    return ((this.laedv - this.laesv)  / (this.lvedv - this.lvesv) * 100)
+  }
 }
+export class CO {
+  constructor() {
+    this.last_t = 0;
+    this.total = 0;
+    this.flows = [];
+    this.HR = null
+  }
+  static getLabel(){
+    return "CO"
+  }
+  static getUnit(){
+    return "L/min"
+  }
+  update(data, time, hdps){
+    const HR = data['HR'][0]
+    this.HR = HR
+    const ts = data['t'].map(_t=> _t % (60000 / HR))
+
+    const ts_diff = ts.map((t, i) => i === 0 ? (ts[0]-this.last_t < 0 ? ts[0]-this.last_t+60000 / HR :  ts[0]-this.last_t) : 
+      ((t-ts[i-1])<0 ? t-ts[i-1]+60000 / HR : t-ts[i-1])
+    )
+
+    if(this.last_t > ts[0] || ts.some((t, i) => i > 0 && t < ts[i-1])){
+      if(this.flows.length > 10){
+        this.flows.shift()
+      }
+      if(this.total>0 ){
+        this.flows.push(this.total * HR/1000)
+      }
+      this.total =0;
+    }
+    this.total += data["Iasp"].reduce((acc, v, i) => acc + v * ts_diff[i], 0)
+    this.last_t = ts[ts.length-1]
+  }
+  reset(){}
+  get() {
+    return (this.flows.reduce((acc, v) => acc + v, 0) /1000 / this.flows.length)?.toPrecision(3) || 0
+  }
+  getMetric(){
+    return (this.flows.reduce((acc, v) => acc + v, 0) /1000 / this.flows.length) || 0
+  }
+}
+
+export class SVO2 {
+  constructor() {
+    this.last_t = 0;
+    this.total = 0;
+    this.flows = [];
+    this.HR = null
+    this.Hb = null
+    this.VO2 = null
+  }
+  static getLabel(){
+    return "Svo2"
+  }
+  static getUnit(){
+    return "%"
+  }
+  update(data, time, hdps){
+    const HR = data['HR'][0]
+    this.HR = HR
+    this.Hb = hdps['Hb']
+    this.VO2 = hdps['VO2']
+    const ts = data['t'].map(_t=> _t % (60000 / HR))
+
+    const ts_diff = ts.map((t, i) => i === 0 ? (ts[0]-this.last_t < 0 ? ts[0]-this.last_t+60000 / HR :  ts[0]-this.last_t) : 
+      ((t-ts[i-1])<0 ? t-ts[i-1]+60000 / HR : t-ts[i-1])
+    )
+
+    if(this.last_t > ts[0] || ts.some((t, i) => i > 0 && t < ts[i-1])){
+      if(this.flows.length > 10){
+        this.flows.shift()
+      }
+      if(this.total>0 ){
+        this.flows.push(this.total * HR/1000)
+      }
+      this.total =0;
+    }
+    this.total += data["Iasp"].reduce((acc, v, i) => acc + v * ts_diff[i], 0)
+    this.last_t = ts[ts.length-1]
+  }
+  reset(){}
+  get() {
+    return ((1 - this.VO2 / (1.34*this.Hb * this.flows.reduce((acc, v) => acc + v, 0) /100 / this.flows.length))*100)?.toPrecision(3) || 0
+  }
+  getMetric(){
+    return ((1 - this.VO2 / (1.34*this.Hb * this.flows.reduce((acc, v) => acc + v, 0) /100 / this.flows.length))*100) || 0
+  }
+}
+
 export class Ilmt {
   constructor() {
     this.last_t = 0;
@@ -267,6 +351,9 @@ export class Ilmt {
   reset(){}
   get() {
     return (this.flows.reduce((acc, v) => acc + v, 0) / this.flows.length)?.toPrecision(3) || 0
+  }
+  getMetric(){
+    return (this.flows.reduce((acc, v) => acc + v, 0) / this.flows.length) || 0
   }
 }
 
@@ -325,6 +412,9 @@ export class PVA {
   get() {
     return Math.round(this.area)
   }
+  getMetric(){
+    return this.area
+  }
 }
 
 export class CPO {
@@ -382,7 +472,124 @@ export class CPO {
   get() {
     return this.area.toPrecision(3);
   }
+  getMetric(){ 
+    return this.area
+  }
 }
+
+
+
+export class CSSVO2 {
+  constructor(){
+    this.area=0;
+    this.pressures=[];
+    this.volumes=[];
+    this.tc=0;
+    this.areas=[];
+    this.HR =null
+    this.Hb = null;
+
+    this.last_t = 0;
+    this.total = 0;
+    this.flows = [];
+  }
+  static getLabel(){
+    return "Cssvo2"
+  }
+  static getUnit(){
+    return "%"
+  }
+  update(data, time, hdps){
+    const HR = data['HR'][0];
+    this.HR = HR;
+    this.Hb = hdps['Hb'];
+    const len = data['t'].length;
+    let pressures = [...data["Plv"]];
+    let volumes = [...data["Qlv"]];
+    let next_pressures=[];
+    let next_volumes=[];
+    const ts_ = data['t'].map(_t=> _t % (60000 / HR))
+    let ts = data["t"].map(x=>Math.floor(x/(60000/HR)))
+
+    if(this.tc==0){
+      this.tc= Math.floor(data['t'][0]/(60000/HR));
+    }
+    for(let i =0; i<len;i++){
+      if(ts[i]===this.tc){
+        this.pressures.push(pressures[i]);
+        this.volumes.push(volumes[i]);
+      }else{
+        next_pressures.push(pressures[i]);
+        next_volumes.push(volumes[i]);
+      }
+    }
+    if(ts[len-1]!=this.tc){
+      let total=0;
+      const len_ = this.pressures.length
+      for(let i=0;i<len_-5;i+=3){
+        total += (this.pressures[i+1]+this.pressures[i+2]+this.pressures[i+3])*(this.volumes[i]+this.volumes[i+1]+this.volumes[i+2]-this.volumes[i+3]-this.volumes[i+4]-this.volumes[i+5])/9;
+      }
+      this.areas.push(total);
+      if(this.areas.length>10){
+        this.areas.shift();
+      }
+      let areas = [...this.areas].sort((a,b)=>a-b);
+      this.area = areas[Math.floor(areas.length/2)];
+      this.pressures = next_pressures;
+      this.volumes = next_volumes;
+      this.tc = ts[len-1];
+    }
+
+    const ts_diff = ts_.map((t, i) => i === 0 ? (ts_[0]-this.last_t < 0 ? ts_[0]-this.last_t+60000 / HR :  ts_[0]-this.last_t) : 
+      ((t-ts_[i-1])<0 ? t-ts_[i-1]+60000 / HR : t-ts_[i-1])
+    )
+
+    if(this.last_t > ts_[0] || ts_.some((t, i) => i > 0 && t < ts_[i-1])){
+      if(this.flows.length > 10){
+        this.flows.shift()
+      }
+      if(this.total>0 ){
+        this.flows.push(this.total * HR/1000)
+      }
+      this.total =0;
+    }
+    this.total += data["Ilmca"].reduce((acc, v, i) => acc + v * ts_diff[i], 0)
+    this.last_t = ts_[ts_.length-1]
+  }
+  reset(){}
+  get() {
+    const mvo2 = (2.4*this.area+1.0)*1.33*this.HR/10000/20 
+    const res = (1 - mvo2 / (1.34*this.Hb * this.flows.reduce((acc, v) => acc + v, 0) /100 / this.flows.length))*100
+    console.log(this.flows.reduce((acc, v) => acc + v, 0) /100 / this.flows.length)
+    console.log(mvo2,res )
+    return res.toPrecision(3)
+  }
+  getMetric(){
+    const mvo2 = (2.4*this.area+1.0)*1.33*this.HR/10000/20 
+    const res = ((1 - mvo2 / (1.34*this.Hb * this.flows.reduce((acc, v) => acc + v, 0) /100 / this.flows.length))*100)
+    return res
+  }
+} 
+
+export const metrics = {
+  Aop: AoP,
+  Cvp: CVP,
+  Pap: PAP,
+  Lap: LAP,
+  Sv: SV,
+  Ef: EF,
+  Pv: PVA,
+  Cpo: CPO,
+  Lvedp: LVEDP,
+  Hr: HR,
+  Co: CO,
+  Lkr: LaKickRatio,
+  Ilmt: Ilmt,
+  Svo2 : SVO2,
+  Cssvo2: CSSVO2
+}
+export const metricsList = ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "Pv", "Cpo", "Lvedp", "Hr", "Co", "Lkr", "Ilmt", "Svo2", "Cssvo2"]
+
 
 
 // export class PVA {

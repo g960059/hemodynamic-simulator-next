@@ -108,6 +108,7 @@ export default {
   Ilad2:"左前下行枝2流量",
   Ilad3:"左前下行枝3流量",
   Hb: "血中ヘモグロビン濃度",
+  VO2: "酸素消費量",
   Ilcx:"左回旋枝流量",
   Ilcx1:"左回旋枝1流量",
   Ilcx2:"左回旋枝2流量",
@@ -160,6 +161,23 @@ export default {
   SharedPatients:"Popular",
   Add:"新規作成",
   MakeANewCase:"最初の症例を作成しよう",
+
+  Aop:"動脈圧",
+  Cvp:"CVP",
+  Pap:"肺動脈圧",
+  Lap:"左房圧",
+  Sv:"Stroke Volume",
+  Ef:"Ejection Fraction",
+  Pv:"左室PVA",
+  Cpo:"左室CPO",
+  Lvedp:"左室拡張末期圧",
+  Hr:"心拍数",
+  Co:"心拍出量",
+  Lkr:"左房キック率",
+  Ilmt:"左冠動脈主幹部流量",
+  Svo2:"中心静脈血酸素飽和度",
+  Cssvo2:"冠静脈洞血酸素飽和度",
+
   output_label: {
     AoP: "AoP",
     CO: "CO",
@@ -174,6 +192,8 @@ export default {
     CPO:"CPO",
     HR: "HR",
     Ilmt: "LMT",
+    Svo2: "SvO2",
+    Cssvo2: "CS-SvO2",
   }
 }
 

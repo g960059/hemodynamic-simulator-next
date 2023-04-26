@@ -7,7 +7,7 @@ export const DEFAULT_HEMODYANMIC_PROPS =  {
   Ras : 20,
   Rcs: 830,
   Rvs : 25,
-  Ras_prox : 4,
+  Ras_prox : 30, //4
   Rcp : 10,
   Rap : 13,
   Rvp : 15,
@@ -148,6 +148,7 @@ export const DEFAULT_HEMODYANMIC_PROPS =  {
   Rz10 :55100,
 
   Hb:15,
+  VO2: 250,
 }
 
 
@@ -200,8 +201,9 @@ export const DEFAULT_CONTROLLER_NEXT = [
       {mode:"basic",hdp:'HR',options:[], id:nanoid()},
       {mode:"basic",hdp:'LV_Ees',options:[], id:nanoid()},
       {mode:"basic",hdp:'LV_alpha',options:[], id:nanoid()},
-      {mode:"basic",hdp:'Ras',options:[], id:nanoid()},
-      {mode:"basic",hdp:'Hb',options:[], id:nanoid()},
+      {mode:"basic",hdp:'Rcs',options:[], id:nanoid()},
+      {mode:"advanced",hdp:'Hb',options:[], id:nanoid()},
+      {mode:"advanced",hdp:'VO2',options:[], id:nanoid()},
     ],
     controllers: [],
   },

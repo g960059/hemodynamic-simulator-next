@@ -155,6 +155,12 @@ export const InputRanges = {
   Rtvs:{
     min: 0, max: 100, step:10, unit: "mmHg·ms/ml",
   },
+  Hb: {
+    min: 0, max: 20, step: 0.1, unit: "g/dl",
+  },
+  VO2:{
+    min: 0, max: 1000, step: 10, unit: "ml/min",
+  }
 }
 
 export const MutationTimings = {

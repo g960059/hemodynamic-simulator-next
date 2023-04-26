@@ -21,6 +21,7 @@ import "allotment/dist/style.css";
 
 const RealTimeChartNext = dynamic(()=>import('./RealTimeChartNext'), {ssr: false});
 const PressureVolumeCurveNext = dynamic(()=>import('./PressureVolumeCurveNext'), {ssr: false,});
+const Tracker = dynamic (()=>import('./Tracker'), {ssr: false,});
 const CombinedChart = dynamic(()=>import('./combined/CombinedChart'), {ssr: false,});
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
@@ -134,7 +135,7 @@ const CaseEditor = ({engine,caseData,setCaseData,patients,setPatients ,views, se
               { caseData.viewIds?.map(viewId=>{
                 const view = views.find(v=>v.id===viewId);
                 if(view){ 
-                  return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,pt:1,pb:3,boxShadow:"0 10px 20px #4b57a936", overflow:"auto", maxWidth: "750px", width:1,minWidth:{xs:"auto",md:"400px"}}}>
+                  return <Box key={view.id} sx={{border:"1px solid #5c93bb2b", borderRadius:"8px",backgroundColor:"white",my:1,mx:1,pt:1,pb:3,boxShadow:"0 10px 20px #4b57a936", overflow:"auto", maxWidth: "1600px", width:1,minWidth:{xs:"auto",md:"400px"}}}>
                   {view.type === "PressureCurve" && 
                     <RealTimeChartNext engine={engine} initialView={view} patients={patients}
                       setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
@@ -177,6 +178,20 @@ const CaseEditor = ({engine,caseData,setCaseData,patients,setPatients ,views, se
                         })
                       }}
                       patients={patients}/>
+                  }
+                  {
+                    view.type === "Tracker" &&
+                    <Tracker engine={engine} initialView={view} patients = {patients}
+                      setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
+                      removeView={()=>{
+                        setCaseData(draft=>{
+                          draft.viewIds=draft.viewIds.filter(id=>id!=view.id)
+                        })
+                        setViews(draft=>{
+                          draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                        })
+                      }
+                    }/>
                   }
                 </Box>
               }})}
@@ -279,7 +294,23 @@ const CaseEditor = ({engine,caseData,setCaseData,patients,setPatients ,views, se
                   }}
                   patients={patients}
                 />
-            )}
+              )  || 
+              (view?.type === "Tracker" && view.id !== selectedView?.id &&
+                  <Tracker engine={engine} initialView={view} patients={patients}
+                    setInitialView={newView=>{
+                      setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===selectedView.id),1,newView)})
+                      setSelectedView(newView)
+                    }}
+                    removeView={()=>{
+                      setCaseData(draft=>{
+                        draft.viewIds=draft.viewIds.filter(id=>id!=selectedView.id)
+                      })
+                      setViews(draft=>{
+                        draft.splice(draft.findIndex(v=>v.id===selectedView.id),1)
+                      })
+                    }}
+                />) || null
+            }
           )}
           </div>
         </Allotment.Pane>
@@ -516,15 +547,22 @@ const NewAddViewDialog = ({addViewItem,patients})=>{
               value={view.type}
               exclusive
               onChange={(e,newValue)=>{setView(draft=>{
-                draft.type=newValue;
-                draft.items = newValue != "FlowCurve" ? [{hdp:"LV",label:"左室圧",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}] : [{hdp:"Ilad",label:"左前下行枝流量",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}]
+                draft.type= newValue;
+                switch (newValue) {
+                  case "FlowCurve": draft.items =[{hdp:"Ilad",label:"左前下行枝流量",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}] ; break;
+                  case "PressureCurve": draft.items =[{hdp:"Plv",label:"左室圧",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}]; break;
+                  case "PressureVolumeCurve": draft.items =[{hdp:"LV",label:"左室",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}]; break;
+                  case "Tracker" : draft.items =[{xMetric:"Lvedp",yMetric: "Sv",label:"LVEDP vs SV",recordingFrequency :3, color:getRandomColor(),patientId:patients[0].id,id:nanoid()}]; break;
+                  default: draft.items = [{hdp:"Plv",label:"左室圧",color:getRandomColor(),patientId:patients[0].id,id:nanoid()}];
+                }
               })}}
               sx={{"& .MuiToggleButton-root": { padding:"3px 14px 2px"}}}
             >
               <ToggleButton value="PressureCurve">圧曲線</ToggleButton>
               <ToggleButton value="FlowCurve">流量曲線</ToggleButton>
               <ToggleButton value="PressureVolumeCurve">圧容量曲線</ToggleButton>
-              <ToggleButton value="PressureVolumeVsPressureCurve">圧容量vs圧曲線</ToggleButton>
+              {/* <ToggleButton value="PressureVolumeVsPressureCurve">圧容量vs圧曲線</ToggleButton> */}
+              <ToggleButton value="Tracker">実験・記録</ToggleButton>
             </ToggleButtonGroup>    
           </Stack>
         </Stack>

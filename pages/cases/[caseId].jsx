@@ -8,10 +8,7 @@ import PlaySpeedButtonsNext from '../../src/components/PlaySpeedButtonsNext'
 import {a11yProps, TabPanel} from '../../src/components/TabUtils'
 import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../src/hooks/useTranslation'
-import OutputPanel from '../../src/components/OutputPanel'
-import ControllerPanelNext from '../../src/components/controllers/ControllerPanelNext'
 import ReactiveInput from "../../src/components/ReactiveInput";
-import Image from 'next/image'
 import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS, DEFAULT_CONTROLLER_NEXT} from '../../src/utils/presets'
 import {COLORS} from '../../src/styles/chartConstants'
 
@@ -29,7 +26,6 @@ import { nanoid } from 'nanoid'
 import isEqual from "lodash/isEqual"
 import {objectWithoutKey,objectWithoutKeys,getRandomEmoji,useLeavePageConfirmation} from "../../src/utils/utils"
 import { Picker } from 'emoji-mart'
-import Split from 'react-split'
 import { getRandomColor } from '../../src/styles/chartConstants';
 import Lottie from 'react-lottie-player' 
 import LoadingAnimation from "../../src/lotties/LoadingAnimation.json"
@@ -267,6 +263,18 @@ const App = () => {
                   label: "LMT流量",
                   patientId: newPatientId,
                   metric: "Ilmt",
+                },
+                {
+                  id: nanoid(),
+                  label: "SVO2",
+                  patientId: newPatientId,
+                  metric: "Svo2",
+                },
+                {
+                  id: nanoid(),
+                  label: "CS-SVO2",
+                  patientId: newPatientId,
+                  metric: "Cssvo2",
                 }
               ]
           }
@@ -297,7 +305,6 @@ const App = () => {
     setLoading(false)
   }, [loadedCase.status]);
 
-  console.log(caseData,defaultCaseData, patients, views, outputs)
 
   useEffect(() => {
     const getAllCases = async () => {

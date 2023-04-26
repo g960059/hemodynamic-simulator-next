@@ -1,27 +1,13 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, useMediaQuery, Select, MenuItem, Divider, IconButton, Menu} from '@mui/material'
 import {useTranslation} from '../hooks/useTranslation'
-import {AoP,CVP,PAP,LAP,SV,EF,PVA,CPO,LVEDP,HR,CO,LaKickRatio, Ilmt} from '../utils/metrics'
+import {metrics} from '../utils/metrics'
 import ReactiveInput from './ReactiveInput'
 import { useImmer } from 'use-immer'
 import { nanoid } from '../utils/utils'
 import DeleteMenuItemWithDialog from './DeleteMenuItemWithDialog'
 
-const Metrics = {
-  Aop: AoP,
-  Cvp: CVP,
-  Pap: PAP,
-  Lap: LAP,
-  Sv: SV,
-  Ef: EF,
-  Pv: PVA,
-  Cpo: CPO,
-  Lvedp: LVEDP,
-  Hr: HR,
-  Co: CO,
-  Lkr: LaKickRatio,
-  Ilmt: Ilmt,
-}
+
 
 const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
   const t = useTranslation()
@@ -162,7 +148,7 @@ const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
                           });
                         }}
                         type="text" 
-                        placeholder={patients.find(p=>p.id ===  openOutputFormItem.patientId).name + t["output_label"][Metrics[openOutputFormItem.metric].getLabel()]}
+                        placeholder={patients.find(p=>p.id ===  openOutputFormItem.patientId).name + t["output_label"][metrics[openOutputFormItem.metric].getLabel()]}
                       />
                     </div>
                     <div className='mb-2'>
@@ -214,7 +200,7 @@ const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
                             "& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input":{paddingTop:"8px",paddingBottom:"8px"}
                           }}
                       >
-                        {Object.entries(Metrics).map(([key,metric])=><MenuItem value={key} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{ t["output_label"][metric.getLabel()] || "無題の項目"}</MenuItem>)}
+                        {Object.entries(metrics).map(([key,metric])=><MenuItem value={key} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{ t["output_label"][metric.getLabel()] || "無題の項目"}</MenuItem>)}
                       </Select>
                     </div>
                     <div className='flex mt-2'>
@@ -245,7 +231,7 @@ const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
                   </div>
                 </> : 
                 <div className='py-2 border-solid border-0 border-b border-slate-200 w-full cursor-pointer'>
-                  <div onClick={()=>{setOpenOutputFormItem(item);setOpenNewOutputItem(null)}}>{item.label || patients.find(p=>p.id ===  item.patientId).name + t["output_label"][Metrics[item.metric].getLabel()]}</div>
+                  <div onClick={()=>{setOpenOutputFormItem(item);setOpenNewOutputItem(null)}}>{item.label || patients.find(p=>p.id ===  item.patientId).name + t["output_label"][metrics[item.metric].getLabel()]}</div>
                 </div>
                 }
               </>
@@ -264,7 +250,7 @@ const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
                     })
                   }}
                   type="text"
-                  placeholder={t["output_label"][Metrics[openNewOutputItem.metric].getLabel()]}
+                  placeholder={t["output_label"][metrics[openNewOutputItem.metric].getLabel()]}
                 />
               </div>
               <div className='mb-2'>
@@ -317,7 +303,7 @@ const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
                     "& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input":{paddingTop:"8px",paddingBottom:"8px"}
                   }}
                 >
-                  {Object.entries(Metrics).map(([key,metric])=><MenuItem value={key} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{ t["output_label"][metric.getLabel()] || "無題の項目"}</MenuItem>)}
+                  {Object.entries(metrics).map(([key,metric])=><MenuItem value={key} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{ t["output_label"][metric.getLabel()] || "無題の項目"}</MenuItem>)}
                 </Select>
               </div>
               <div className='flex justify-between mt-2'>
@@ -348,7 +334,7 @@ const OutputPanel = React.memo(({patients, outputs, setOutputs}) => {
                   setOpenNewOutputItem({
                     id: nanoid(),
                     patientId: patients[0].id,
-                    metric: Object.keys(Metrics)[0],
+                    metric: Object.keys(metrics)[0],
                     label: ""
                   });
                 }} className="text-sm">
@@ -383,7 +369,7 @@ const Output = React.memo(({patient, output}) =>{
     }
   }
   useEffect(() => {
-    let instance = new Metrics[output.metric]();
+    let instance = new metrics[output.metric]();
     instancesRef.current = instance;
     subscriptionIdRef.current = subscribe(update);
     return ()=>{
@@ -393,10 +379,10 @@ const Output = React.memo(({patient, output}) =>{
   }, [output.metric, output.patientId]);
   return (
     <div className='p-2 px-2.5 mr-px bg-white'>
-      <div className="text-slate-500 text-xs whitespace-nowrap">{output?.label ? output?.label :  patient?.name + t["output_label"][Metrics[output.metric].getLabel()]}</div>
+      <div className="text-slate-500 text-xs whitespace-nowrap">{output?.label ? output?.label :  patient?.name + t["output_label"][metrics[output.metric].getLabel()]}</div>
       <div className='flex flex-row items-center'>
         <div className='text-sm text-slate-800 font-bold mr-1'>{instancesRef.current?.get()}</div>
-        <div className="text-slate-500 text-xs">{Metrics[output.metric]?.getUnit()}</div>
+        <div className="text-slate-500 text-xs">{metrics[output.metric]?.getUnit()}</div>
       </div>
     </div>
   )

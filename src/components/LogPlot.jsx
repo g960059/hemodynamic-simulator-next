@@ -278,9 +278,10 @@ const LogPlot = React.memo(({subscribe,unsubscribe, setIsPlaying,isPlaying,setHd
                 <ToggleButton value={10}>{t['NormalSpeed']}</ToggleButton>
                 <ToggleButton value={50}>{t['HighSpeed']}</ToggleButton>
               </ToggleButtonGroup>
-              {isPlaying ? <Button variant='contained' onClick={()=>{setIsPlaying(false);setSpeed(1)}}>{t['StopRecording']}</Button> :
+              {isPlaying ? 
+                <Button variant='contained' onClick={()=>{setIsPlaying(false);setSpeed(1)}}>{t['StopRecording']}</Button> :
                 <Button  variant='contained' onClick={()=>{startRecording()}}>{t['StartRecording']}</Button>
-                }
+              }
             </Stack>
           </Box>
         </Stack>
