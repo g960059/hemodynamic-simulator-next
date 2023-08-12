@@ -1,8 +1,8 @@
 import { nanoid } from 'nanoid'
+import {metricOptions} from './metrics'
 
 export const DEFAULT_DATA = [749.9842973712131, 149.3527787113375, 405.08061599015554, 135.97317102061024, 144.32186565319813, 75.34345155268299, 117.70495107318685, 73.76400781737635, 68.42882775454605, 42.75963410693713, 20.28639894876003, 10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,0,0,0,0,0,0,0,0,0,0,0,0,0,0,]
 export const DEFAULT_TIME = 954.931700000081
-
 export const DEFAULT_HEMODYANMIC_PROPS =  {
   Ras : 20,
   Rcs: 830,
@@ -151,6 +151,20 @@ export const DEFAULT_HEMODYANMIC_PROPS =  {
   VO2: 250,
 }
 
+export const NORMAL_PRESETS = {          
+  initialHdps: DEFAULT_HEMODYANMIC_PROPS,
+  initialData: DEFAULT_DATA,
+  initialTime: DEFAULT_TIME
+}
+
+export const HFREF_PRESETS = {          
+  initialHdps: {
+    ...DEFAULT_HEMODYANMIC_PROPS,
+
+  },
+  initialData: DEFAULT_DATA,
+  initialTime: DEFAULT_TIME
+}
 
 export const DEFAULT_CONTROLLER = [
   {
@@ -362,3 +376,64 @@ export const getTimeSeriesFlowFn = ({
 
 export const pressureTypes = ['AoP','Pla','Plv','PAP','Pra','Prv']
 export const flowTypes = ['Imv','Itv', 'Ilad', 'Ilcx','Iao', 'Iasp', 'Iimp']
+export const pressureVolumeTypes = ['LV','LA','RV','RA']
+export const controllableHdpTypes = [
+  'Volume',"HR",
+  'LV_Ees', 'LV_alpha','LV_beta', 'LV_V0', 'LV_Tmax', 'LV_tau', 'LV_AV_delay', 'LA_Ees', 'LA_alpha','LA_beta', 'LA_V0', 'LA_Tmax', 'LA_tau', 'LA_AV_delay', 'RV_Ees', 'RV_alpha','RV_beta', 'RV_V0', 'RV_Tmax', 'RV_tau', 'RV_AV_delay', 'RA_Ees', 'RA_alpha','RA_beta', 'RA_V0', 'RA_Tmax', 'RA_tau', 'RA_AV_delay',
+  "Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp",
+  'Ravs', 'Ravr', 'Rmvs', 'Rmvr', 'Rtvs', 'Rtvr', 'Rpvs', 'Rpvr',
+  "ECMO","Impella","IABP","Hb","VO2"
+]
+
+export const paramPresets = {
+  Normal: {
+    name: "Normal",
+    baseParamSet: "Normal",
+    initialHdps: DEFAULT_HEMODYANMIC_PROPS,
+    initialData: DEFAULT_DATA,
+    initialTime: DEFAULT_TIME,
+  },
+  HFrEF: {
+    name: "HFrEF",
+    baseParamSet: "HFrEF",
+    initialHdps: {
+      ...DEFAULT_HEMODYANMIC_PROPS,
+      LV_Ees: 1.064,
+      LV_V0: -19,
+      LV_alpha: 0.018,
+      LV_beta: 0.7,
+      LV_Tmax: 300,
+      LV_tau: 39,
+      LV_AV_delay: 160,
+      HR: 70,
+    },
+    initialData: DEFAULT_DATA,
+    initialTime: DEFAULT_TIME,
+  },
+  HFpEF: {
+    name: "HFpEF",
+    baseParamSet: "HFpEF",
+    initialHdps: {
+      ...DEFAULT_HEMODYANMIC_PROPS,
+      LV_Ees: 1.85,
+      LV_V0: -28,
+      LV_alpha: 0.032,
+      LV_beta: 0.34,
+      LV_Tmax: 300,
+      LV_tau: 36,
+      LV_AV_delay: 160,
+      HR: 70,
+    },
+    initialData: DEFAULT_DATA,
+    initialTime: DEFAULT_TIME,
+  },
+}
+
+
+export const AllHdpOptions = {
+  "FlowCurve" : flowTypes,
+  "PressureCurve" : pressureTypes,
+  "PressureVolumeCurve" : pressureVolumeTypes,
+  "Metrics":  metricOptions
+}
+

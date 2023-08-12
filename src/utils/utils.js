@@ -222,4 +222,25 @@ const toHalfKata = (text) =>
       .replace(/[ぁ-ゖ]/g, m => HALF_KATA[m.charCodeAt(0) - 12353])
       .replace(/[゛゜ー。「」、・]/g, m => 'ﾞﾟｰ｡｢｣､･'.charAt('゛゜ー。「」、・'.indexOf(m)))
 
+export const calculatePosition= (positions, newItem) => {
+  let maxYAtX = new Array(12).fill(0);
+  for (let position of positions) {
+      for (let x = position.x; x < position.x + position.w; x++) {
+          maxYAtX[x] = Math.max(maxYAtX[x], position.y + position.h);
+      }
+  }
 
+  // 次に、新しいアイテムを配置できる最初の位置を探します。
+  let bestPosition = {x: 0, y: Infinity};
+  for (let x = 0; x <= 12 - newItem.w; x++) {
+      // x座標から新しいアイテムの幅だけ右に移動した範囲での最大のy座標を計算します。
+      let maxY = Math.max(...maxYAtX.slice(x, x + newItem.w));
+      // 新しいアイテムが配置できるかどうかを確認します。
+      if (maxY < bestPosition.y) {
+          bestPosition = {x: x, y: maxY};
+      }
+  }
+
+  // 最適な位置を返します。
+  return bestPosition;
+}

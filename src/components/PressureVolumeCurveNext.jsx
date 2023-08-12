@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
-import {Box,Grid, Typography, Stack,MenuItem,Tab,Divider,useMediaQuery, IconButton, CircularProgress,Button, alpha, Dialog,DialogActions,DialogContent,DialogTitle, Select, Menu} from '@mui/material'
+import {Box,Grid, Typography, Popover,useMediaQuery, IconButton, CircularProgress,Button, alpha, Dialog,DialogActions,DialogContent,DialogTitle, Select, Menu} from '@mui/material'
 import {TabContext,TabList,TabPanel} from '@mui/lab';
 import { makeStyles } from '@mui/styles';
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
@@ -16,8 +16,7 @@ import {FiberManualRecord,Tune, Delete, Add, DragIndicator, ExpandMore} from "@m
 import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS,getRandomColor} from '../styles/chartConstants'
 import {useTranslation} from '../hooks/useTranslation'
 import { useImmer } from "use-immer";
-import ReactiveInput from "../components/ReactiveInput";
-import {PopoverPicker} from "../components/PopoverPicker"
+import ChartDialog from './ChartDialog';
 import  DeleteMenuItemWithDialog from "../components/DeleteMenuItemWithDialog"
 import { nanoid } from 'nanoid'
 
@@ -40,75 +39,13 @@ const getHdProps = {
   RV: x=>({Ees: x["RV_Ees"],V0:x["RV_V0"],alpha:x["RV_alpha"],beta:x["RV_beta"]}),
   RA: x=>({Ees: x["RA_Ees"],V0:x["RA_V0"],alpha:x["RA_alpha"],beta:x["RA_beta"]}),
 }
-const useStyles = makeStyles((theme) =>({
-  neumoButton: {
-    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-    color: "rgb(69, 90, 100)",
-    boxShadow: "0 2px 4px -2px #21253840",
-    backgroundColor: "white",
-    border: "1px solid rgba(92, 147, 187, 0.17)",
-    fontWeight:"bold",
-    "&:hover":{
-      backgroundColor: "rgba(239, 246, 251, 0.6)",
-      borderColor: "rgb(207, 220, 230)"
-    }
-  },
-  neumoIconButton:{
-    color:"#93a5b1",
-    boxShadow:"0 0 2px #4b57a926, 0 10px 12px -4px #0009651a",
-    width:"44px",
-    height:"44px",
-    backgroundColor:"white",
-    borderRadius:"50%",
-    transition:".3s",
-    "&:hover":{
-      boxShadow:"0 25px 25px -10px #00096540",
-      transform: "translateY(-2px)",
-      color: "#f76685",
-      backgroundColor:"white",
-    }
-  },
-  neumoSelect: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: '4px',
-    border: '1px solid #5c93bb2b',
-    '&:hover': {
-        borderColor: '#3ea8ff',
-    }, 
-    "& .MuiOutlinedInput-notchedOutline":{border:"none"},
-    "& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input":{paddingTop:"8px",paddingBottom:"8px"}
-  },
-  neumoSelectInvert: {
-    backgroundColor: '#ffffff',
-    borderRadius: '4px',
-    border: '1px solid #5c93bb2b',
-    '&:hover': {
-        borderColor: '#3ea8ff',
-    }, 
-    "& .MuiOutlinedInput-notchedOutline":{border:"none"},
-    "& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input":{paddingTop:"8px",paddingBottom:"8px"}
-  },
-  faintNeumoButton: {
-    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-    color: "#b3b3b3",
-    backgroundColor: "#f1f4f9",
-    border: "none",
-    "&:hover":{
-      backgroundColor: "#fff2f2",
-      color: "#ec407a"
-    },
-    "& .MuiOutlinedInput-notchedOutline": {border:"none"}
-  },
-}),
-);
 
-const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patients,readOnly=false}) =>{
+const PVPlot = React.memo(({engine,view,updateView,removeView,patients,readOnly=false}) =>{
 
-  const [view, setView] = useImmer(initialView);
-  const [originalView, setOriginalView] = useImmer(initialView);
+  const [originalView, setOriginalView] = useImmer(view);
 
   const t = useTranslation();
-  const classes = useStyles();
+
   const [loading, setLoading] = useState(true);
 
   const dataRef = useRef({})
@@ -128,7 +65,6 @@ const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patient
   const sciChartSurfaceRef = useRef();
   const wasmContextRef = useRef();
   const subscriptionsRef = useRef([]);
-  const changingRef = useRef(null);
 
   const xAxisRef = useRef();
   const yAxisRef = useRef();
@@ -140,13 +76,11 @@ const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patient
   const changedVisibleRange = useRef(false);
   const [autoScale, setAutoScale] = useState(true);
   const autoScaleRef = useRef(true);
-  const [viewNameEditing, setViewNameEditing] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState();
+
   const updateCounterRef = useRef(0);
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
-  const [tabValue, setTabValue] = useState("0");
-  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
-
 
   const addDataSeries = (item)=>{
     const {id,color} = item
@@ -224,7 +158,7 @@ const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patient
       wasmUrl: "/scichart2d.wasm"
     })
     const { sciChartSurface, wasmContext } = await SciChartSurface.create(
-      "scichart-pv-root"+initialView.id
+      "scichart-pv-root"+view.id
     );
     sciChartSurfaceRef.current = sciChartSurface
     wasmContextRef.current = wasmContext
@@ -343,26 +277,7 @@ const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patient
       }      
     }
   }  
-  const onDialogClose = () => {
-    setDialogOpen(false);
-    if(changingRef.current){
-      engine.setIsPlaying(true)
-    };
-    changingRef.current=null;
-  }
-  const getLabel = (patientId, hdp)=> t[hdp]+"("+patients.find(p=>p.id===patientId).name+")"
-  const getExcludeHdpList = (patientId)=>{
-    const existingItems = subscriptionsRef.current.filter(s=>s.patientId == patientId)
-    return PVTypes.filter(pt => !existingItems.includes(pt)) 
-  }
-  const addNewItem = ()=>{
-    const patientId = patients[0].id
-    const hdp = getExcludeHdpList(patientId)[0];
-    const label = getLabel(patientId,hdp);
-    const id = nanoid()
-    const newItem = {id,patientId,hdp,label,color: getRandomColor()}
-    setView(draft => {draft.items.push(newItem)});
-  }
+
 
   useEffect(() => {
     const intervalId = setInterval(()=>{
@@ -391,41 +306,17 @@ const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patient
 
   useEffect(() => {
     (async ()=>{
-      const isEnginePlaying = engine.isPlaying
-      engine.setIsPlaying(false)
-      const oldItems = originalView.items.filter(oldItem => !initialView.items.some(item=> item.id===oldItem.id && item.hdp === oldItem.hdp && item.patientId === oldItem.patientId && item.color === oldItem.color))
-      const newItems = initialView.items.filter(item => !originalView.items.some(oldItem=> oldItem.id==item.id && item.hdp === oldItem.hdp && item.patientId === oldItem.patientId && item.color === oldItem.color))
-      for(let item of oldItems){
-        deleteDataSeries(item.id)
-      }
-      for(let item of newItems){
-        addDataSeries(item)
-      }
-      updateCounterRef.current=0;
-      setOriginalView(initialView)
-      setView(initialView)
-      setLoading(false)
-      if(isEnginePlaying){
-        engine.setIsPlaying(true);
-      }
-      
-    })();
-  }, [initialView.items]);
-
-
-  useEffect(() => {
-    (async ()=>{
-      const isEnginePlaying = engine.isPlaying
-      engine.setIsPlaying(false)
-      await initSciChart()
-      
-      setView(initialView)
-      for(let item of initialView.items){
-        addDataSeries(item)
-      }      
-      setLoading(false)
-      if(isEnginePlaying){
-        engine.setIsPlaying(true);
+      if(typeof window !== 'undefined'){
+        const isEnginePlaying = engine.isPlaying
+        engine.setIsPlaying(false)
+        await initSciChart()
+        for(let item of view.items){
+          addDataSeries(item)
+        }      
+        setLoading(false)
+        if(isEnginePlaying){
+          engine.setIsPlaying(true);
+        }
       }
     })();
     return ()=>{
@@ -440,177 +331,98 @@ const PVPlot = React.memo(({engine,initialView,setInitialView,removeView,patient
   }, []);
 
 
-  return (
-    <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{position: 'relative',backgroundColor:'white', p:[0.5,2],py:2}}>
-      <Box width={1} style={{opacity: loading ? 0 : 1}}>
-        <Stack alignItems='center' sx={{zIndex: 100, position: "relative"}}>
-          {isUpMd && <Stack direction="row" pr={1} pl={2} pb={{xs:1,md:1}} justifyContent="center" sx={{width:1}}>
-            {
-              viewNameEditing && !readOnly ? 
-                <ReactiveInput 
-                  value={view.name} 
-                  updateValue={(newValue)=>{
-                    setInitialView({...view, name: newValue})
-                    setView(draft=>{draft.name=newValue})
-                    setViewNameEditing(false)
-                  }} 
-                  type="text"
-                  autoFocus
-                /> : 
-                <Typography variant="h6" fontWeight={isUpMd&&"bold"} onClick={()=>{setViewNameEditing(true)}} sx={{cursor: "pointer"}}>{view.name || "無題のグラフ"}</Typography>                
-            }
-            <div style={{flexGrow:1}}></div>   
-            {!readOnly && <>
-              <IconButton size="small" className={classes.faintNeumoButton} onClick={e=>{setDialogOpen(true);changingRef.current=engine.isPlaying;engine.setIsPlaying(false)}}>
-                <Tune/>
-              </IconButton>
-              <IconButton onClick={e=>{setMenuAnchorEl(e.currentTarget)}} size="small" className={classes.faintNeumoButton} sx={{ml:1,backgroundColor:"transparent !important"}}><ExpandMore/></IconButton>
-              <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={()=>{setMenuAnchorEl(null)}} MenuListProps={{dense:true}}>
-                <DeleteMenuItemWithDialog onDelete={()=>{removeView();setMenuAnchorEl(null)}} onClose={()=>{setMenuAnchorEl(null)}} message={"グラフ「"+view?.name +"」を削除しようとしています。この操作は戻すことができません。"}/>
-              </Menu>
-            </>}
-          </Stack> }
-          <div className='flex w-full'>
-            <Grid container xs={12} spacing={1} justifyContent='flex-start' display='flex' sx={{pl:2}} className="flex-grow">
-              {initialView.items.map((item,i)=>(
-                <Grid item justifyContent='center' alignItems='center' display='flex' key={item} style={{marginBottom:'-4px'}}> 
-                  <FiberManualRecord sx={{color:item.color}} />
-                  <Typography variant='subtitle2' noWrap>{item.label}</Typography>
-                </Grid>
-              ))}
-            </Grid>
-            {!readOnly && !isUpMd &&  <>
-              <IconButton size="small" className={classes.faintNeumoButton} onClick={e=>{setDialogOpen(true);changingRef.current=engine.isPlaying;engine.setIsPlaying(false)}}>
-                <Tune/>
-              </IconButton>
-              <IconButton onClick={e=>{setMenuAnchorEl(e.currentTarget)}} size="small" className={classes.faintNeumoButton} sx={{ml:1,backgroundColor:"transparent !important"}}><ExpandMore/></IconButton>
-              <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={()=>{setMenuAnchorEl(null)}} MenuListProps={{dense:true}}>
-                <DeleteMenuItemWithDialog onDelete={()=>{removeView();setMenuAnchorEl(null)}} onClose={()=>{setMenuAnchorEl(null)}} message={"グラフ「"+view?.name +"」を削除しようとしています。この操作は戻すことができません。"}/>
-              </Menu>
-            </>}
-          </div>
-          <Dialog open={dialogOpen} onClose={onDialogClose} maxWidth='md' sx={{minHeight:'340px',"& .MuiDialog-paper":{minWidth : isUpMd ? "800px": "100%"}}} >
-            <DialogTitle  sx={{ borderBottom: isUpMd ? 1:0, borderColor: 'divider',"& .MuiOutlinedInput-input.MuiInputBase-input":{fontWeight:"bold"}}}>
-              {
-                viewNameEditing ? 
-                  <ReactiveInput 
-                    value={view.name} 
-                    updateValue={(newValue)=>{
-                      setView(draft=>{draft.name=newValue})
-                      setViewNameEditing(false)
-                    }} 
-                    type="text" autoFocus
-                  /> : 
-                  <Typography variant="h5" fontWeight="bold" onClick={()=>{setViewNameEditing(true)}} sx={{cursor: "pointer"}}>{view.name}</Typography>                
-              }
-            </DialogTitle>
-            <DialogContent>
-              <Box display={isUpMd && 'flex'}>
-                <TabContext value={tabValue}>
-                  <TabList onChange={(e,v)=>{setTabValue(v)}} orientation={isUpMd ? "vertical" : "horizontal"} sx={{mt:{xs:0,md:2}}}>
-                    <Tab label="項目選択" value="0"/>
-                    <Tab label="表示設定" value="1"/>
-                  </TabList>
-                  <Divider sx={{mb:2}}/>
-                  <TabPanel value="0" sx={{p:{xs:0,md:3},pt:{md:1}}}>
-                    <Box>
-                      <Stack spacing={1}>
-                        {view.items.map((item,index)=><>
-                          <Stack direction={isUpMd ?'row':'column'} justifyContent='center' alignItems='flex-start' spacing={1} p={1}>
-                            {isUpMd && <DragIndicator sx={{alignSelf:"center", mr:2,cursor:"pointer"}}/>}
-                            <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
-                              <Typography variant={isUpMd ?'caption':'subtitle1'} fontWeight="bold" ml="3px" width={70} >患者</Typography>
-                              <Select
-                                id={item.patientId + "_" + item.hdp}
-                                value={item.patientId}
-                                required
-                                onChange={(e)=>{
-                                  setView(draft=>{
-                                    const newItem = {...draft.items[index],id:nanoid(), patientId: e.target.value, label: getLabel(e.target.value,draft.items[index].hdp) }
-                                    draft.items[index] = newItem
-                                  })}}
-                                className={classes.neumoSelect}
-                              >
-                                {patients.map(p=><MenuItem value={p.id} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{p.name || "無題の患者"}</MenuItem>)}
-                              </Select>
-                            </Stack>
-                            <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
-                              <Typography variant={isUpMd ?'caption':'subtitle1'} fontWeight="bold" ml="3px" width={70}>表示項目</Typography>
-                              <Select
-                                id={item.id}
-                                value={item.hdp}
-                                required
-                                onChange={(e)=>{
-                                  setView(draft=>{
-                                    const newItem = {...draft.items[index],id:nanoid(), hdp: e.target.value, label: getLabel(draft.items[index].patientId,e.target.value) }
-                                    draft.items[index] = newItem
-                                  })}}
-                                className={classes.neumoSelect}
-                                sx={{minWidth: '110px'}}
-                              >
-                                {PVTypes.map(hdpOption =><MenuItem value={hdpOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[hdpOption]}</MenuItem>)}
-                              </Select> 
-                            </Stack>
-                            <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
-                              <Typography variant={isUpMd ?'caption':'subtitle1'} fontWeight="bold" ml="3px" width={70}>ラベル</Typography>
-                              <ReactiveInput value={item.label} 
-                                updateValue={(newValue)=>{
-                                  setView(draft=>{draft.items[index].label=newValue})
-                                }} 
-                                type="text" 
-                                required
-                              />  
-                            </Stack>
-                            <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
-                              <Typography variant={isUpMd ?'caption':'subtitle1'} fontWeight="bold" ml="3px" width={70}>カラー</Typography>
-                              <PopoverPicker 
-                                color={item.color} 
-                                onChange={newColor=>{
-                                  setView(draft=>{
-                                    draft.items[index] = {...draft.items[index], id:nanoid(), color:newColor}
-                                  })
-                                }} 
-                              />
-                            </Stack>
-                            <IconButton sx={{ alignSelf: 'center'}} onClick={()=>{setView(draft=>{draft.items.splice(index,1)});}}>
-                              <Delete/>
-                            </IconButton>                                                     
-                          </Stack>
-                          <Divider light/>
-                        </>)}
-                        <Box width={1} display="flex" p={1}>
-                          <Button onClick={addNewItem} startIcon={<Add/>} className={classes.neumoButton}>追加する</Button>
-                        </Box>            
-                      </Stack>
-                    </Box>
-                  </TabPanel>
-                  <TabPanel value="1">
-                  </TabPanel>
-                </TabContext>
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={async ()=>{
-                setInitialView(view);
-                onDialogClose()
-              }} >
-                {t["Save"]}
-              </Button>              
-              <Button onClick={()=>{setView(initialView);onDialogClose()}} >
-                Cancel
-              </Button>
-            </DialogActions>
-          </Dialog>
+  useEffect(() => {
+    (async ()=>{
+      if(sciChartSurfaceRef.current &&  wasmContextRef.current){
+        const isEnginePlaying = engine.isPlaying
+        engine.setIsPlaying(false)
+        const oldItems = originalView.items.filter(oldItem => !view.items.some(item=> item.id===oldItem.id && item.hdp === oldItem.hdp && item.patientId === oldItem.patientId && item.color === oldItem.color))
+        const newItems = view.items.filter(item => !originalView.items.some(oldItem=> oldItem.id==item.id && item.hdp === oldItem.hdp && item.patientId === oldItem.patientId && item.color === oldItem.color))
+        for(let item of oldItems){
+          deleteDataSeries(item.id)
+        }
+        for(let item of newItems){
+          addDataSeries(item)
+        }
+        updateCounterRef.current=0;
+        setOriginalView(view)
+        setLoading(false)
+        if(isEnginePlaying){
+          engine.setIsPlaying(true);
+        }
+      }
+    })();
+  }, [view.items]);
 
-        </Stack>
-        <Box display='flex' justifyContent='center' alignItems='center' style={{ width: '100%',aspectRatio: '2 / 1.3'}}>
-          <div id={"scichart-pv-root"+initialView.id} style={{width: '100%',height:'100%'}}></div>
-        </Box>
-      </Box>
+
+
+
+  return (
+    <div className="w-full h-full">
+      <div className="w-full h-full" style={{opacity: loading ? 0 : 1}}>
+        <div className='flex p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200'>
+          <div className='draggable cursor-move font-bold text-lg pl-1'>{view?.name || ""}</div>
+          <div className='draggable cursor-move flex-grow'></div>
+          <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
+            <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+            </svg>
+          </div>
+        </div>
+        <Popover 
+          open={Boolean(anchorEl)}
+          anchorEl={anchorEl}
+          onClose={(e)=>{setAnchorEl(null)}}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          elevation={0}
+          marginThreshold={0}
+          PaperProps={{style: {backgroundColor: 'transparent'}}}
+        >
+          <div className='flex flex-col items-center justify-center py-2 bg-white  border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
+            <div onClick={()=> {setDialogOpen(true); setAnchorEl(null)}} 
+              className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
+            >
+              <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+              </svg>
+              Edit
+            </div>
+            <DeleteMenuItemWithDialog raw onDelete={()=>{removeView()}} onClose={()=>setAnchorEl(null)} message ={"「"+(view?.name || "Chart") + "」を削除しようとしています。この操作は戻すことができません。"}>
+              <div className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1  text-red-500 hover:bg-red-500 hover:text-white">
+                <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                </svg>                                
+                Delete
+              </div>
+            </DeleteMenuItemWithDialog>
+          </div>
+        </Popover>
+        <ChartDialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} initialView={view} updateView={(newView)=>{updateView({id:view.id, ...newView});}} patients={patients}/>
+        
+        <div className='flex w-full'>
+          <div className='flex flex-row px-4 pt-2'>
+            {view.items.map((item,i)=>(
+              <div className='flex flex-row' key={item} > 
+                <FiberManualRecord sx={{color:item.color}} />
+                <Typography variant='subtitle2' noWrap>{item.label}</Typography>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div id={"scichart-pv-root"+view.id} style={{width: '100%',height:"calc(100% - 86px)", aspectRatio : "auto"}}/>
+      </div>
       <Box sx={{display: loading  ? 'block': 'none', zIndex:100, position: 'absolute'}}>
         <CircularProgress/>
       </Box>
-    </Box>
+    </div>
   )
 })
 

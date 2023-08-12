@@ -560,8 +560,6 @@ export class CSSVO2 {
   get() {
     const mvo2 = (2.4*this.area+1.0)*1.33*this.HR/10000/20 
     const res = (1 - mvo2 / (1.34*this.Hb * this.flows.reduce((acc, v) => acc + v, 0) /100 / this.flows.length))*100
-    console.log(this.flows.reduce((acc, v) => acc + v, 0) /100 / this.flows.length)
-    console.log(mvo2,res )
     return res.toPrecision(3)
   }
   getMetric(){
@@ -588,7 +586,7 @@ export const metrics = {
   Svo2 : SVO2,
   Cssvo2: CSSVO2
 }
-export const metricsList = ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "Pv", "Cpo", "Lvedp", "Hr", "Co", "Lkr", "Ilmt", "Svo2", "Cssvo2"]
+export const metricOptions = ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "Pv", "Cpo", "Lvedp", "Hr", "Co", "Lkr", "Ilmt", "Svo2", "Cssvo2"]
 
 
 

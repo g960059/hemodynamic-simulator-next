@@ -45,7 +45,7 @@ const TopPage = ({cases,articles,books}) => {
                   </a>
                 </Link>                
               </div>              
-              <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Articles</div>
+              {/* <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Articles</div>
               <div className="md:grid md:grid-cols-2 md:gap-4">
                 {
                   articles?.filter(article=>article?.visibility=="public")?.map(article=><ArticleItem article={article}/>)
@@ -70,7 +70,7 @@ const TopPage = ({cases,articles,books}) => {
                     本をさらに探す
                   </a>
                 </Link>                
-              </div>       
+              </div>        */}
             </div>            
           )
         }

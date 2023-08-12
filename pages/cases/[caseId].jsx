@@ -9,7 +9,7 @@ import {a11yProps, TabPanel} from '../../src/components/TabUtils'
 import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../src/hooks/useTranslation'
 import ReactiveInput from "../../src/components/ReactiveInput";
-import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS, DEFAULT_CONTROLLER_NEXT} from '../../src/utils/presets'
+import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS, DEFAULT_CONTROLLER_NEXT, paramPresets} from '../../src/utils/presets'
 import {COLORS} from '../../src/styles/chartConstants'
 
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
@@ -29,8 +29,8 @@ import { Picker } from 'emoji-mart'
 import { getRandomColor } from '../../src/styles/chartConstants';
 import Lottie from 'react-lottie-player' 
 import LoadingAnimation from "../../src/lotties/LoadingAnimation.json"
-import CaseEditor from "../../src/components/CaseEditor"
 
+const CaseEditor = dynamic(() => import('../../src/components/CaseEditor'),{ssr:false})
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 
@@ -49,17 +49,8 @@ const useStyles = makeStyles((theme) =>(
         maxHeight : `calc(100vh - 174px)`,
       },
     },
-    appBar: {
-      [theme.breakpoints.up('xs')]: {
-        backgroundColor: 'transparent',
-        color: 'inherit'
-      },
-    },
     appBarRoot: {
-      [theme.breakpoints.up('xs')]: {
-        backgroundColor: 'transparent',
-        color: 'inherit'
-      },
+      backgroundColor: 'white',
       boxShadow: "rgba(31, 25, 60, 0.1) 0px 0px 8px",
     },
     background: {
@@ -123,15 +114,15 @@ const App = () => {
     )
   ));
   
-  const scrollPatientBottomRef = useRef(null);
+
   const [loading, setLoading] = useState(true);
 
   const engine = useEngine()
   const [patients, setPatients] = useImmer([]);
   const [views, setViews] = useImmer([]);
-  const [outputs, setOutputs] = useImmer([]);
+  // const [outputs, setOutputs] = useImmer([]);
   const [defaultPatients, setDefaultPatients] = useState([]);
-  const [defaultOutputs, setDefaultOutputs] = useState([]);
+  // const [defaultOutputs, setDefaultOutputs] = useState([]);
   const [defaultViews, setDefaultViews] = useState([]);
   const [caseData, setCaseData] = useImmer({});
   const [defaultCaseData, setDefaultCaseData] = useState({});
@@ -150,7 +141,7 @@ const App = () => {
     !patients.every(p=>{
       const originalPatient = loadedCase.data?.patients.find(({id})=>id===p.id);
       if(!originalPatient) return false;
-      return originalPatient.name === p.name && isEqual(originalPatient.controller,p.controller) && isEqual(originalPatient.initialHdps,p.getHdps())
+      return originalPatient.name === p.name  && isEqual(originalPatient.initialHdps,p.getHdps())
     }) || !isEqual(views,loadedCase.data.views))) || 
     (
       !loadedCase.data?.caseData &&
@@ -158,8 +149,8 @@ const App = () => {
       !patients.every(p=>{
         const originalPatient = defaultPatients.find(({id})=>id===p.id);
         if(!originalPatient) return false;
-        return originalPatient.name === p.name && isEqual(originalPatient.controller,p.controller) && isEqual(originalPatient.initialHdps,p.getHdps())
-      }) || !isEqual(views,defaultViews) || !isEqual(outputs,defaultOutputs))
+        return originalPatient.name === p.name  && isEqual(originalPatient.initialHdps,p.getHdps())
+      }) || !isEqual(views,defaultViews) )
     )
 
   useEffect(() => {
@@ -172,115 +163,128 @@ const App = () => {
       setPatients(engine.getAllPatinets().map(p=>({...p,...loadedCase.data.patients.find(_p=>_p.id==p.id)})));
       setViews(loadedCase.data.views)
       setCaseData(loadedCase.data.caseData)
-      setOutputs(loadedCase.data.outputs)
+      // setOutputs(loadedCase.data.outputs)
       engine.setIsPlaying(true);
     }else{
       if(router.query.newItem && loadedCase.status == "success"){
-        console.log(loadedCase)
         engine.setIsPlaying(false);
         const newPatientId = nanoid();
         const newPateint = {
           id: newPatientId,
-          name: "",
-          initialHdps: DEFAULT_HEMODYANMIC_PROPS,
-          initialData: DEFAULT_DATA,
-          initialTime: DEFAULT_TIME,
-          controller:{ id:nanoid(), controllers: DEFAULT_CONTROLLER_NEXT, items:[],name:""},
+          ...paramPresets["Normal"]
         }
         engine.register(newPateint);
         setPatients([{...engine.getPatient(newPatientId),...newPateint}]);
         setDefaultPatients([{...engine.getPatient(newPatientId),...newPateint}]);
         const newViewId = nanoid();
-        const newViews = [{
-          id: newViewId,
-          name: "",
-          type: "PressureCurve",
-          items: [
-            {
-              patientId:newPatientId,
-              id:nanoid(),
-              hdp:"Plv",
-              label:"左室圧",
-              color: COLORS[0]
-            },{
-              patientId:newPatientId,
-              id:nanoid(),
-              hdp:"AoP",
-              label:"大動脈圧",
-              color: COLORS[1]
-            },{
-              patientId:newPatientId,
-              id:nanoid(),
-              hdp:"Pla",
-              label:"左房圧",
-              color: COLORS[2]
-            },
-          ],
-          options: {
-            timescale: 6,
-          },
-        }]
-        setViews(newViews);
-        setDefaultViews(newViews);
+        const newPlaySpeedId = nanoid();
         const newOutputId = nanoid();
-        const newOutputs = [
+        const newControllerId = nanoid();
+        const newViews = [
           {
-              id: newOutputId,
-              label: "基本",
-              items:[
-                {
-                  id: nanoid(),
-                  label: "大動脈圧",
-                  patientId: newPatientId,
-                  metric: "Aop",
-                },
-                {
-                  id: nanoid(),
-                  label: "中心静脈圧",
-                  patientId: newPatientId,
-                  metric: "Cvp",
-                },
-                {
-                  id: nanoid(),
-                  label: "心拍出量",
-                  patientId: newPatientId,
-                  metric: "Co",
-                },
-                {
-                  id: nanoid(),
-                  label: "EF",
-                  patientId: newPatientId,
-                  metric: "Ef",
-                },
-                {
-                  id: nanoid(),
-                  label: "左室仕事量",
-                  patientId: newPatientId,
-                  metric: "Cpo",
-                },
-                {
-                  id: nanoid(),
-                  label: "LMT流量",
-                  patientId: newPatientId,
-                  metric: "Ilmt",
-                },
-                {
-                  id: nanoid(),
-                  label: "SVO2",
-                  patientId: newPatientId,
-                  metric: "Svo2",
-                },
-                {
-                  id: nanoid(),
-                  label: "CS-SVO2",
-                  patientId: newPatientId,
-                  metric: "Cssvo2",
-                }
-              ]
+            id: newControllerId,
+            name: "Basic Parameters",
+            type: "Controller",
+            patientId: newPatientId,
+            items: [
+              {mode:"basic",label: t["Volume"],hdp:'Volume',options:[], id:nanoid()},
+              {mode:"basic",label: t["HR"],hdp:'HR',options:[], id:nanoid()},
+              {mode:"basic",label: t["LV_Ees"],hdp:'LV_Ees',options:[], id:nanoid()},
+              {mode:"basic",label: t["LV_alpha"],hdp:'LV_alpha',options:[], id:nanoid()},
+              {mode:"basic",label: t["Rcs"],hdp:'Rcs',options:[], id:nanoid()},
+              {mode:"advanced",label: t["Hb"],hdp:'Hb',options:[], id:nanoid()},
+              {mode:"advanced",label: t["VO2"],hdp:'VO2',options:[], id:nanoid()}
+            ],
+          },
+          {
+            id: newViewId,
+            name: "Pressure Chart",
+            type: "PressureCurve",
+            items: [
+              {
+                patientId:newPatientId,
+                id:nanoid(),
+                hdp:"Plv",
+                label:"左室圧",
+                color: getRandomColor()
+              },{
+                patientId:newPatientId,
+                id:nanoid(),
+                hdp:"AoP",
+                label:"大動脈圧",
+                color: getRandomColor()
+              },{
+                patientId:newPatientId,
+                id:nanoid(),
+                hdp:"Pla",
+                label:"左房圧",
+                color: getRandomColor()
+              },
+            ],
+            options: {
+              timeWindow: 6,
+            },
+          },{
+            id: newPlaySpeedId,
+            type: "PlaySpeed",
+          },{
+            id: newOutputId,
+            name: "Metrics",
+            type: "Metrics",
+            items:[
+              {
+                id: nanoid(),
+                label: "大動脈圧",
+                patientId: newPatientId,
+                hdp: "Aop",
+              },
+              {
+                id: nanoid(),
+                label: "中心静脈圧",
+                patientId: newPatientId,
+                hdp: "Cvp",
+              },
+              {
+                id: nanoid(),
+                label: "心拍出量",
+                patientId: newPatientId,
+                hdp: "Co",
+              },
+              {
+                id: nanoid(),
+                label: "EF",
+                patientId: newPatientId,
+                hdp: "Ef",
+              },
+              {
+                id: nanoid(),
+                label: "左室仕事量",
+                patientId: newPatientId,
+                hdp: "Cpo",
+              },
+              {
+                id: nanoid(),
+                label: "LMT流量",
+                patientId: newPatientId,
+                hdp: "Ilmt",
+              },
+              {
+                id: nanoid(),
+                label: "SVO2",
+                patientId: newPatientId,
+                hdp: "Svo2",
+              },
+              {
+                id: nanoid(),
+                label: "CS-SVO2",
+                patientId: newPatientId,
+                hdp: "Cssvo2",
+              }
+            ]
           }
         ]
-        setOutputs(newOutputs);
-        setDefaultOutputs(newOutputs);
+        setViews(newViews);
+        setDefaultViews(newViews);
         const newCaseData = {
           name:"",
           visibility: "private",
@@ -291,9 +295,10 @@ const App = () => {
           uid: user?.uid,
           displayName: user?.displayName,
           photoURL: user?.photoURL,
-          patientIds:[newPatientId],
-          viewIds:[newViewId],
-          outputIds:[newOutputId],
+          layouts:{
+            xs: [{i:newControllerId,x:0,y:0,w:12,h:12, minW:3},{i:newViewId,x:0,y:1,w:12,h:10,minW:3},{i: newOutputId, x:0,y:2,w:12,h:7}, {i:newPlaySpeedId,x:0,y:2,w:12,h:2},], 
+            md:[{i:newControllerId,x:0,y:0,w:4,h:10, minW:3},{i:newViewId,x:4,y:0,w:7,h:9,minW:3}, {i:newPlaySpeedId,x:11,y:0,w:1,h:4},{i: newOutputId, x:4,y:9,w:8,h:3}],
+          },
           updatedAt: serverTimestamp(),
           createdAt: serverTimestamp(),
         }
@@ -324,13 +329,13 @@ const App = () => {
 
   useLeavePageConfirmation(Boolean(isChanged))
 
-  const addPatient = patient =>{
-    const newPatient = {...patient,id:nanoid()}
-    engine.register(newPatient);
-    setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
-    setCaseData(draft=>{draft.patientIds.push(newPatient.id)})
-    setTimeout(()=>{scrollPatientBottomRef.current?.scrollIntoView({behavior: "smooth"});},100)
-  }
+  // const addPatient = patient =>{
+  //   const newPatient = {...patient,id:nanoid()}
+  //   engine.register(newPatient);
+  //   setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
+  //   setCaseData(draft=>{draft.patientIds.push(newPatient.id)})
+  //   setTimeout(()=>{scrollPatientBottomRef.current?.scrollIntoView({behavior: "smooth"});},100)
+  // }
 
   const updateCase = async () =>{
     const batch = writeBatch(db);
@@ -351,16 +356,14 @@ const App = () => {
       if(!patient){
         batch.set(doc(db,'users',user?.uid,"cases",router.query.caseId,"patients",p.id),{
           name: p.name,
-          controller:p.controller,
           initialHdps:p.getHdps(),
           initialData: p.getDataSnapshot(),
           initialTime: p.getTimeSnapshot(),
         })
       }else{
-        if(patient.name !== p.name || !isEqual(patient.controller,p.controller) || !isEqual(p.initialHdps,p.getHdps())){
+        if(patient.name !== p.name || !isEqual(p.initialHdps,p.getHdps())){
           batch.update(doc(db,'users',user?.uid,"cases",router.query.caseId,"patients",p.id),{
             name: p.name,
-            controller:p.controller,
             initialHdps:p.getHdps(),
             initialData: p.getDataSnapshot(),
             initialTime: p.getTimeSnapshot(),
@@ -383,26 +386,26 @@ const App = () => {
         }
       }
     })
-    loadedCase.data?.outputs.forEach(o=>{
-      if(!outputs.some(({id})=>id===o.id)){
-        batch.delete(doc(db,'users',user?.uid,"cases",router.query.caseId,"outputs",o.id))
-      }
-    })
-    outputs.forEach(o=>{
-      const output = loadedCase.data?.outputs.find(({id})=>id===o.id)
-      if(!output){
-        batch.set(doc(db,'users',user?.uid,"cases",router.query.caseId,"outputs",o.id),{...o})
-      }else{
-        if(!isEqual(output,o)){
-          batch.update(doc(db,'users',user?.uid,"cases",router.query.caseId,"outputs",o.id),{...o})
-        }
-      }
-    })
+    // loadedCase.data?.outputs.forEach(o=>{
+    //   if(!outputs.some(({id})=>id===o.id)){
+    //     batch.delete(doc(db,'users',user?.uid,"cases",router.query.caseId,"outputs",o.id))
+    //   }
+    // })
+    // outputs.forEach(o=>{
+    //   const output = loadedCase.data?.outputs.find(({id})=>id===o.id)
+    //   if(!output){
+    //     batch.set(doc(db,'users',user?.uid,"cases",router.query.caseId,"outputs",o.id),{...o})
+    //   }else{
+    //     if(!isEqual(output,o)){
+    //       batch.update(doc(db,'users',user?.uid,"cases",router.query.caseId,"outputs",o.id),{...o})
+    //     }
+    //   }
+    // })
     await batch.commit()
   }
 
   return <>
-      <AppBar position="static" elevation={0} className={classes.appBar} classes={{root:classes.appBarRoot}}>
+      <AppBar position="sticky" elevation={0} className={classes.appBar} classes={{root:classes.appBarRoot}}>
         <Toolbar>
           <Box onClick={()=>{router.push("/dashboard/cases")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex",ml:{xs:0,md:2}}}>
             <IconButton><ArrowBack/></IconButton>
@@ -492,7 +495,7 @@ const App = () => {
       </AppBar>   
       <NextSeo title={t["Simulator"]}/>
       <Box className={classes.background}/>
-      {!isUpMd && <div className="bg-slate-200 h-full w-screen fixed -z-10"/>}
+      {/* {!isUpMd && <div className="bg-slate-200 h-full w-screen fixed -z-10"/>} */}
       <Box sx={{display:{xs:"block",md:"none"},p:1}}>
         {
           caseNameEditing ? 
@@ -508,7 +511,7 @@ const App = () => {
           } 
       </Box>
       {loading && <Lottie loop animationData={LoadingAnimation} play style={{ objectFit:"contain" }} />}
-      {!loading && caseData?.createdAt &&  <CaseEditor engine={engine} caseData={caseData} setCaseData={setCaseData} patients={patients} setPatients={setPatients} outputs={outputs} setOutputs={setOutputs} views={views} setViews={setViews} allCases={allCases}/>
+      {!loading && caseData?.createdAt &&  <CaseEditor engine={engine} caseData={caseData} setCaseData={setCaseData} patients={patients} setPatients={setPatients} views={views} setViews={setViews} allCases={allCases} user={user}/>
       }
   </>
 }

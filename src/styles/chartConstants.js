@@ -12,23 +12,27 @@ function changeColor(color, amount) {
 }
 
 export const CHART_COLORS = {
-  red: '#ff6384',
+  red: '#e95e51',
   orange: '#ff9f40',
   yellow: '#ffcd56',
   green: '#4bc0c0',
   blue: '#36a2eb',
+  peacock: "#4882ab",
   purple: '#9966ff',
-  grey: '#c9cbcf'
+  pink: '#f75496',
+  brown: '#a0744c',
 };
 
 export const COLORS = [
-  CHART_COLORS.red,
+  CHART_COLORS.purple,
+  CHART_COLORS.peacock,
   CHART_COLORS.blue,
   CHART_COLORS.green,
-  CHART_COLORS.orange,
-  CHART_COLORS.purple,
   CHART_COLORS.yellow,
-  CHART_COLORS.grey,
+  CHART_COLORS.pink,
+  CHART_COLORS.red,
+  CHART_COLORS.orange,
+  CHART_COLORS.brown,
 ];
 
 export const getRandomColor = () =>{
@@ -36,23 +40,27 @@ export const getRandomColor = () =>{
 }
 
 export const ALPHA_COLORS = [
-  alpha(CHART_COLORS.red,0.4),
+  alpha(CHART_COLORS.purple,0.4),
+  alpha(CHART_COLORS.peacock,0.4),
   alpha(CHART_COLORS.blue,0.4),
   alpha(CHART_COLORS.green,0.4),
-  alpha(CHART_COLORS.orange,0.4),
-  alpha(CHART_COLORS.purple,0.4),
   alpha(CHART_COLORS.yellow,0.4),
-  alpha(CHART_COLORS.grey,0.4),
+  alpha(CHART_COLORS.pink,0.4),
+  alpha(CHART_COLORS.red,0.4),
+  alpha(CHART_COLORS.orange,0.4),
+  alpha(CHART_COLORS.brown,0.4),  
 ]
 
 export const DARKEN_COLORS = [
-  changeColor(CHART_COLORS.red,-10),
+  changeColor(CHART_COLORS.purple,-10),
+  changeColor(CHART_COLORS.peacock,-10),
   changeColor(CHART_COLORS.blue,-10),
   changeColor(CHART_COLORS.green,-10),
-  changeColor(CHART_COLORS.orange,-10),
-  changeColor(CHART_COLORS.purple,-10),
   changeColor(CHART_COLORS.yellow,-10),
-  changeColor(CHART_COLORS.grey,-10),  
+  changeColor(CHART_COLORS.pink,-10),
+  changeColor(CHART_COLORS.red,-10),
+  changeColor(CHART_COLORS.orange,-10),
+  changeColor(CHART_COLORS.brown,-10),
 ]
 
 export const LightTheme = {

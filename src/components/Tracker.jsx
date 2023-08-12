@@ -25,7 +25,7 @@ import ReactiveInput from "../components/ReactiveInput";
 import {PopoverPicker} from "../components/PopoverPicker"
 import  DeleteMenuItemWithDialog from "../components/DeleteMenuItemWithDialog"
 import { nanoid } from 'nanoid'
-import { metrics, metricsList } from '../utils/metrics'
+import { metrics, metricOptions } from '../utils/metrics'
 
 
 const TIME_WINDOW_GAP = 300
@@ -254,7 +254,7 @@ const Tracker =  React.memo(({engine,initialView,setInitialView, removeView,pati
   const getLabel = (patientId, hdp)=> t[hdp]+"("+patients.find(p=>p.id===patientId).name+")"
   const getExcludeHdpList = (patientId)=>{
     const existingItems = subscriptionsRef.current.filter(s=>s.patientId == patientId)
-    return metricsList.filter(pt => !existingItems.includes(pt)) 
+    return metricOptions.filter(pt => !existingItems.includes(pt)) 
   }
 
   useEffect(() => {
@@ -420,7 +420,7 @@ const Tracker =  React.memo(({engine,initialView,setInitialView, removeView,pati
                   className={classes.neumoSelect}
                   sx={{minWidth: '110px'}}
                 >
-                  {metricsList?.map(metricOption =><MenuItem value={metricOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[metricOption]}</MenuItem>)}
+                  {metricOptions?.map(metricOption =><MenuItem value={metricOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[metricOption]}</MenuItem>)}
                 </Select> 
               </Stack>
               <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
@@ -438,7 +438,7 @@ const Tracker =  React.memo(({engine,initialView,setInitialView, removeView,pati
                   className={classes.neumoSelect}
                   sx={{minWidth: '110px'}}
                 >
-                  {metricsList?.map(metricOption =><MenuItem value={metricOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[metricOption]}</MenuItem>)}
+                  {metricOptions?.map(metricOption =><MenuItem value={metricOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[metricOption]}</MenuItem>)}
                 </Select> 
               </Stack>              
               <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>

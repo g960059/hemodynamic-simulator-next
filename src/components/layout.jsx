@@ -125,9 +125,9 @@ function Layout(props) {
       <CssBaseline />
       <AppBar position="static" elevation={0} className={classes.appBar} >
         <Toolbar className="py-1">
-          <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex", alignItems:"center"}}>
-            <Image src="/HeaderIcon.png" width={32} height={32}/>
-            <Typography variant="h5" noWrap component="div" fontWeight="bold" sx={{fontFamily: "'Josefin Sans', sans-serif", mb:-1}}>
+          <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex", alignItems:"center" ,justifyContent:"center"}}>
+            <Image src="/favicons/favicon_256x256.png" width={32} height={32}/>
+            <Typography variant="h5" noWrap component="div" fontWeight="bold" sx={{fontFamily: "'Josefin Sans', sans-serif", mb:-0.5,ml:1}}>
               {t['Title']}
             </Typography>
           </Box>

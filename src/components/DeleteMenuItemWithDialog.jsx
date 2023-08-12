@@ -2,7 +2,7 @@ import React,{useState} from 'react';
 import {Button,Dialog,DialogContent,DialogActions,DialogTitle,ListItemText,MenuItem,DialogContentText} from '@mui/material'
 
 
-const DeleteMenuItemWithDialog = React.memo(({onDelete,message,onClose,messageTitle="削除しますか"}) => {
+const DeleteMenuItemWithDialog = React.memo(({onDelete,message,onClose,messageTitle="削除しますか", raw=false, children}) => {
   const [open, setOpen] = useState(false);
   const handleClose = () => {
     setOpen(false);
@@ -12,9 +12,14 @@ const DeleteMenuItemWithDialog = React.memo(({onDelete,message,onClose,messageTi
     setOpen(true);
   };
   return <>
-    <MenuItem onClick={handleOpen} >
-      <ListItemText primary="削除する" />
-    </MenuItem>
+    {!raw ?
+      <MenuItem onClick={handleOpen} >
+        <ListItemText primary="削除する" />
+      </MenuItem> :
+      <div onClick={handleOpen} className='w-full'>
+        {children}
+      </div>
+    }
     <Dialog open={open} onClose={handleClose} maxWidth="xs">
       <DialogTitle sx={{fontWeight:"bold", display:"flex", justifyContent:"center",pt:3}}>{messageTitle}</DialogTitle>
       <DialogContent>

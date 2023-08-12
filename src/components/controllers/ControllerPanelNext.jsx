@@ -9,11 +9,13 @@ import {InputRanges,VDOptions} from '../../constants/InputSettings'
 import {DEFAULT_HEMODYANMIC_PROPS} from '../../utils/presets'
 import {Refresh,Delete,EditOutlined,ChevronRight,Add,DragIndicator,NavigateNext,ExpandMore,ContentCopy} from '@mui/icons-material';
 import ReactiveInput from "../ReactiveInput";
+import EditableText from "../EditableText";
 import DeleteMenuItemWithDialog from "../DeleteMenuItemWithDialog";
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid';
 import produce from "immer"
-import { merge } from 'lodash';
+import ControllerDialog from '../ControllerDialog';
+
 
 const Severity = ["Trivial","Mild","Moderate","Severe"]
 
@@ -74,140 +76,98 @@ const Hdps = [
   "ECMO","Impella"
 ]
 
-const ControllerPanel = React.memo(({patient, setPatient,removePatient,setViews,patientIndex, clonePatient,readOnly=false}) => {
+const ControllerPanel = React.memo(({view,updateView,removeView, patient, setPatient,patients,readOnly=false}) => {
   const classes = useStyles()
   const t = useTranslation()
-  const {controller} = patient;
-  const [patientNameEditing, setPatientNameEditing] = useState(false);
-  const [parentControllerId, setParentControllerId] = useState(patient?.controller?.controllers[0]?.id || null);
-  const [childControllerId, setChildControllerId] = useState(patient?.controller?.controllers[0]?.controllers[0]?.id || null);
-  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [openInfoDialog, setOpenInfoDialog] = useState(false);
-
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   return (
-    <div className="p-4 md:pb-2 md:my-2 bg-white md:shadow-3xl md:rounded-lg md:max-w-md md:mx-auto">
-      <Stack direction="row" justifyContent="flex-start" alignItems="center" px={1}>
-        <Typography variant="h6" fontWeight="bold" color="primary" sx={{mr:2}} className="hidden md:inline-block">{String(patientIndex+1).padStart(2,'0')}</Typography>
-        {
-          patientNameEditing && !readOnly ? 
-            <ReactiveInput 
-            value={patient?.name} 
-            updateValue={newName=>{
-              setViews(draft=>{
-                for(let i=0; i<draft.length; i++){
-                  for(let j=0; j<draft[i].items.length; j++){
-                    if(patient.id === draft[i].items[j].patientId){
-                      draft[i].items[j].label = draft[i].items[j].label.replace(patient.name,newName);
-                    }
-                  }
-              }})
-              setPatient({...patient,name:newName});
-              setPatientNameEditing(false)
-            }} 
-            type="text" autoFocus  allowEmpty/> :
-            <div className='flex items-center'>
-              <Typography variant="h5" fontWeight="bold" onClick={()=>{setPatientNameEditing(true)}} sx={{"&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"},cursor:"pointer",pr:1, color:!patient.name&&"gray"}}>{patient?.name || "Patient Title"}</Typography>
-              <div className='p-1.5 ml-1 inline-flex items-center cursor-pointer rounded-full transition-all duration-100' onClick={()=>{setOpenInfoDialog(true)}}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 stroke-slate-400 hover:stroke-blue-500">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                </svg>
-              </div>
+    <div className='w-full'>
+      <div className=' flex p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200'>
+        <div className='draggable cursor-move font-bold text-lg pl-1'>{view?.name || "Controller Panel"}</div>
+        <div className='draggable cursor-move flex-grow'></div>
+        <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget);}}>
+          <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+          </svg>
+        </div>
+      </div>
+      <Popover 
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={(e)=>{setAnchorEl(null)}}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'right',
+        }}
+        elevation={0}
+        marginThreshold={0}
+        PaperProps={{style: {backgroundColor: 'transparent'}}}
+      >
+        <div className='flex flex-col items-center justify-start py-2 bg-white  border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
+          <div onClick={()=> {setDialogOpen(true); setAnchorEl(null)}} 
+            className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
+          >
+            <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            </svg>
+            Edit
+          </div>
+          <div onClick={()=> {setOpenInfoDialog(true); setAnchorEl(null)}} 
+            className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
+          >
+            <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+            </svg>
+              All Parameters
+          </div>
+          <DeleteMenuItemWithDialog raw onDelete={()=>{removeView(); setAnchorEl();}} onClose={()=>setAnchorEl(null)} message ={"「"+(view?.name || "Metrics") + "」を削除しようとしています。この操作は戻すことができません。"}>
+            <div className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1  text-red-500 hover:bg-red-500 hover:text-white">
+              <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+              </svg>                                
+              Delete
             </div>
-        }
-        <Dialog open={openInfoDialog} onClose={()=>{setOpenInfoDialog(false)}} maxWidth='md' sx={{"& .MuiDialog-paper":{width: "100%"}}}>
-          <DialogTitle className='font-bold'>{patient?.name || "無題の患者"}のパラメータ</DialogTitle>
-          <DialogContent>
-            <div className='w-full md:grid md:grid-cols-2 md:gap-x-10'>
-              {
-                Object.entries([patient.getInitialHdps(), patient.getHdps()]
-                  .flatMap(Object.entries)
-                  .reduce((o,[k,v])=>( {...o, [k]: (o[k]?[...o[k],v]:[v])}),{})).filter(x=>Hdps.includes(x[0])).sort((a,b)=> Hdps.findIndex(hdp=>hdp===a[0]) - Hdps.findIndex(hdp=>hdp===b[0]))
-                  .map(([k,v])=> (<div className='flex flex-row items-center'>
-                    <div className=' mr-2'>{t[k] || k}</div>
-                    <div className='flex-grow'></div>
-                    {v[0] === v[1] ? 
-                      <div className='text-slate-600'>{v[0]}</div> :
-                      <><div className='text-slate-600'>{v[0]} → </div><div className='font-bold'>{v[1]}</div></>}
-                    <div className='text-xs ml-1 text-slate-600'>{InputRanges[k]?.unit}</div>
-                  </div>))
-              }
-            </div>
-          </DialogContent>
-        </Dialog>
-        <div style={{flexGrow:1}}></div>
-        {
-          !readOnly && <>
-            <ControllerEditor initialController={controller} updateController={newController =>{setPatient(produce(patient,draft=>{draft.controller=newController}))}}/>
-            <Tooltip title={patient?.name+"を複製する"}>
-              <IconButton onClick={clonePatient} size="small" className={classes.faintNeumoButton}><ContentCopy/></IconButton>
-            </Tooltip>
-            <IconButton onClick={e=>{setMenuAnchorEl(e.currentTarget)}} size="small" className={classes.faintNeumoButton} sx={{ml:1,backgroundColor:"transparent !important"}}><ExpandMore/></IconButton>
-            <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={()=>{setMenuAnchorEl(null)}} MenuListProps={{dense:true}}>
-              <DeleteMenuItemWithDialog onDelete={()=>{removePatient();setMenuAnchorEl(null)}} message={"患者「"+patient?.name +"」を削除しようとしています。この操作は戻すことができません。"} onClose={()=>{setMenuAnchorEl(null)}}/>
-            </Menu>
-          </>
-        }
-      </Stack>
-      {controller.controllers.length>0 && 
-        <TabContext value={parentControllerId}>
-          <TabList 
-            onChange={(e,v)=>{setParentControllerId(v);setChildControllerId(controller.controllers.find(c=>c.id==v)?.controllers[0]?.id)}}
-            variant="scrollable"
-            scrollButtons
-            allowScrollButtonsMobile
-            sx={{mx:-2,"& .MuiTabs-scrollButtons.Mui-disabled": {opacity: 0.3}}}
-            >
-            {controller.controllers.map(item=><Tab label={item.name} value={item.id} />)}
-          </TabList>
-          <Box width={1} sx={{borderTop: 1, borderColor: 'divider',my:'-1px',mx:1}}/>
-          {controller.controllers.map(subController=>
-            <TabPanel value={subController.id} sx={{px:1,pt:2}}>
-              <Box>
-                {
-                  subController.controllers.length>0 && 
-                    <ToggleButtonGroup
-                      color="primary"
-                      value={childControllerId}
-                      exclusive
-                      onChange={(e,v)=>{setChildControllerId(v)}}
-                      size="small"
-                      sx ={{width:1,'& .MuiToggleButton-root':{pb:'2px',pt:'3px',flexGrow:1}, mb:2}}
-                    >
-                      {subController.controllers.map(controllerItem =>(
-                        <ToggleButton value={controllerItem.id}>{controllerItem.name}</ToggleButton>
-                      ))}
-                    </ToggleButtonGroup>
-                }
-                {
-                  subController.controllers.find(({id})=>childControllerId ==id)?.items?.map(controllerItem => (
-                    <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
-                  ))
-                }
-                { subController.items?.length>0 && <>
-                    { subController.controllers?.length>0 && <Divider light  sx={{my:2, fontSize:"smaller",color:"gray"}}>{subController.name}共通</Divider>}
-                    <Box width={1} pt={1}>
-                      {subController.items?.map(controllerItem => (
-                        <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
-                      ))}
-                    </Box>
-                  </>
-                }
-              </Box>
-            </TabPanel>
-          )}
-        </TabContext>      
-      }
-      {controller.items?.length>0 && (controller.controllers?.length>0 ? <Divider light sx={{mt:-1.5,mb:1,fontSize:"smaller",color:"gray"}}>{patient.name}共通</Divider> : <Divider light sx={{my:1,}}/>)}
-      {controller.items?.length>0 &&
-        <Box width={1} px={1} pt={1}>
+          </DeleteMenuItemWithDialog>
+        </div>
+      </Popover>   
+      {view.items?.length>0 &&
+        <div className='w-full px-4 py-2'>
           {
-            controller.items?.map(controllerItem=> (
+            view.items?.map(controllerItem=> (
               <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
             ))
           }
-        </Box>
+        </div>
       }
+      <Dialog open={openInfoDialog} onClose={()=>{setOpenInfoDialog(false)}} maxWidth='md' sx={{"& .MuiDialog-paper":{width: "100%"}}}>
+        <DialogTitle className='font-bold'>{patient?.name || "無題の患者"}のパラメータ</DialogTitle>
+        <DialogContent>
+          <div className='w-full md:grid md:grid-cols-2 md:gap-x-10'>
+            {
+              Object.entries([patient.getInitialHdps(), patient.getHdps()]
+                .flatMap(Object.entries)
+                .reduce((o,[k,v])=>( {...o, [k]: (o[k]?[...o[k],v]:[v])}),{})).filter(x=>Hdps.includes(x[0])).sort((a,b)=> Hdps.findIndex(hdp=>hdp===a[0]) - Hdps.findIndex(hdp=>hdp===b[0]))
+                .map(([k,v])=> (<div className='flex flex-row items-center'>
+                  <div className=' mr-2'>{t[k] || k}</div>
+                  <div className='flex-grow'></div>
+                  {v[0] === v[1] ? 
+                    <div className='text-slate-600'>{v[0]}</div> :
+                    <><div className='text-slate-600'>{v[0]} → </div><div className='font-bold'>{v[1]}</div></>}
+                  <div className='text-xs ml-1 text-slate-600'>{InputRanges[k]?.unit}</div>
+                </div>))
+            }
+          </div>
+        </DialogContent>
+      </Dialog>
+      <ControllerDialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} initialView={view} updateView={(newView)=>{updateView({id:view.id, ...newView});}} patients={patients} />
+
     </div>
   )
 })

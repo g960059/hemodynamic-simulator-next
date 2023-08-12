@@ -262,7 +262,7 @@ const CaseReader = () => {
             <Box mb={-1} mr={1}><Image src="/HeaderIcon.png" width={32} height={32}/></Box>
             <div className='overflow-x-scroll'>
               <Typography variant={isUpMd ? 'h5':'subtitle1'} fontWeight="bold" textAlign="left" className='whitespace-nowrap'>{caseData?.name || "無題の症例"}</Typography>
-              {!isUpMd && <Typography variant="subtitle2" sx={{cursor:"pointer", mt:-.5}} className="text-gray-500" onClick={()=>{router.push(`/users/${caseUser?.userId}`)}}>{caseUser?.displayName}</Typography>}
+              {!isUpMd && <div sx={{cursor:"pointer", mt:-.5}} className="text-gray-500" onClick={()=>{router.push(`/users/${caseUser?.userId}`)}}>{caseUser?.displayName}</div>}
             </div>
           </Box>
           {isUpMd && !loading && caseData && <NoSsr>
@@ -369,7 +369,7 @@ const CaseReader = () => {
       <Divider sx={{borderColor:"#5c93bb2b"}}/>
       <NextSeo title={"症例"+caseData?.name}/>
       <div className={classes.background}/> 
-      {!isUpMd && <div className="bg-slate-200 h-screen w-screen fixed -z-10"/>}
+      {/* {!isUpMd && <div className="bg-slate-200 h-screen w-screen fixed -z-10"/>} */}
       {loading && <Box>
           <Lottie loop animationData={LoadingAnimation} play style={{ objectFit:"contain" }} />
         </Box>
