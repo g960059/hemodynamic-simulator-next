@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, IconButton,MenuList,ListItemIcon,Tab, CircularProgress,Select,FormControl,InputLabel, useMediaQuery, ToggleButtonGroup, ToggleButton} from '@mui/material'
 import {TabContext,TabList,TabPanel} from '@mui/lab';
 import {Tune,Delete,Add,DragIndicator,ExpandMore} from '@mui/icons-material';
-import { makeStyles} from '@mui/styles';
 import { alpha } from '@mui/material/styles';
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { chartBuilder } from "scichart/Builder/chartBuilder";
@@ -22,83 +21,21 @@ import { useTranslation } from '../hooks/useTranslation';
 import {doc,updateDoc} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import ReactiveInput from "../components/ReactiveInput";
-import {PopoverPicker} from "../components/PopoverPicker"
 import  DeleteMenuItemWithDialog from "../components/DeleteMenuItemWithDialog"
 import { nanoid } from 'nanoid'
 import { metrics, metricOptions } from '../utils/metrics'
+import NeumoSelect from '../elements/NeumoSelect';
+import FaintNeumoButton from '../elements/FaintNeumoButton';
 
 
 const TIME_WINDOW_GAP = 300
 const isClient = () => typeof window !== 'undefined'
-
-const useStyles = makeStyles((theme) =>({
-  neumoButton: {
-    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-    color: "rgb(69, 90, 100)",
-    boxShadow: "0 2px 4px -2px #21253840",
-    backgroundColor: "white",
-    border: "1px solid rgba(92, 147, 187, 0.17)",
-    fontWeight:"bold",
-    "&:hover":{
-      backgroundColor: "rgba(239, 246, 251, 0.6)",
-      borderColor: "rgb(207, 220, 230)"
-    }
-  },
-  neumoIconButton:{
-    color:"#93a5b1",
-    boxShadow:"0 0 2px #4b57a926, 0 10px 12px -4px #0009651a",
-    width:"44px",
-    height:"44px",
-    backgroundColor:"white",
-    borderRadius:"50%",
-    transition:".3s",
-    "&:hover":{
-      boxShadow:"0 25px 25px -10px #00096540",
-      transform: "translateY(-2px)",
-      color: "#f76685",
-      backgroundColor:"white",
-    }
-  },
-  neumoSelect: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: '4px',
-    border: '1px solid #5c93bb2b',
-    '&:hover': {
-        borderColor: '#3ea8ff',
-    }, 
-    "& .MuiOutlinedInput-notchedOutline":{border:"none"},
-    "& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input":{paddingTop:"8px",paddingBottom:"8px"}
-  },
-  neumoSelectInvert: {
-    backgroundColor: '#ffffff',
-    borderRadius: '4px',
-    border: '1px solid #5c93bb2b',
-    '&:hover': {
-        borderColor: '#3ea8ff',
-    }, 
-    "& .MuiOutlinedInput-notchedOutline":{border:"none"},
-    "& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input":{paddingTop:"8px",paddingBottom:"8px"}
-  },
-  faintNeumoButton: {
-    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-    color: "#b3b3b3",
-    backgroundColor: "#f1f4f9",
-    border: "none",
-    "&:hover":{
-      backgroundColor: "#fff2f2",
-      color: "#ec407a"
-    },
-    "& .MuiOutlinedInput-notchedOutline": {border:"none"}
-  },
-}),
-);
 
 
 const Tracker =  React.memo(({engine,initialView,setInitialView, removeView,patients,readOnly=false}) =>{
   const [view, setView] = useImmer(initialView);
   const [originalView, setOriginalView] = useImmer(initialView);
   const t = useTranslation();
-  const classes = useStyles();
   const [loading, setLoading] = useState(true);
   const dataRef = useRef({})
   const scatterSeriesRef = useRef({})
@@ -350,10 +287,10 @@ const Tracker =  React.memo(({engine,initialView,setInitialView, removeView,pati
               ))}
             </Grid>
             {!readOnly && !isUpMd && <>
-              <IconButton size="small" className={classes.faintNeumoButton} onClick={e=>{setDialogOpen(true);changingRef.current=engine.isPlaying;engine.setIsPlaying(false)}} >
+              <FaintNeumoButton size="small" onClick={e=>{setDialogOpen(true);changingRef.current=engine.isPlaying;engine.setIsPlaying(false)}} >
                 <Tune/>
-              </IconButton>
-              <IconButton onClick={e=>{setMenuAnchorEl(e.currentTarget)}} size="small" className={classes.faintNeumoButton} sx={{ml:1,backgroundColor:"transparent !important"}}><ExpandMore/></IconButton>
+              </FaintNeumoButton>
+              <FaintNeumoButton onClick={e=>{setMenuAnchorEl(e.currentTarget)}} size="small" sx={{ml:1,backgroundColor:"transparent !important"}}><ExpandMore/></FaintNeumoButton>
               <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={()=>{setMenuAnchorEl(null)}} MenuListProps={{dense:true}}>
                 <DeleteMenuItemWithDialog onDelete={()=>{removeView();setMenuAnchorEl(null)}} onClose={()=>{setMenuAnchorEl(null)}} message={"グラフ「"+view?.name +"」を削除しようとしています。この操作は戻すことができません。"}/>
               </Menu>      
@@ -390,7 +327,7 @@ const Tracker =  React.memo(({engine,initialView,setInitialView, removeView,pati
               </Stack>              
               <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
                 <Typography variant={isUpMd ?'caption':'subtitle1'} fontWeight="bold" ml="3px" width={70} >患者</Typography>
-                <Select
+                <NeumoSelect
                   id={item.patientId + "_" + item.hdp}
                   value={item.patientId}
                   required
@@ -400,14 +337,14 @@ const Tracker =  React.memo(({engine,initialView,setInitialView, removeView,pati
                       draft.items[index] = newItem
                       changeSubscription(newItem)
                     }); }}
-                  className={classes.neumoSelect}
+                 
                 >
                   {patients.map(p=><MenuItem value={p.id} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{p.name || "無題の患者"}</MenuItem>)}
-                </Select>
+                </NeumoSelect>
               </Stack>
               <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
                 <Typography variant={isUpMd ?'caption':'subtitle1'} fontWeight="bold" ml="3px" width={70}>x軸</Typography>
-                <Select
+                <NeumoSelect
                   id={item.id}
                   value={item.xMetric}
                   required
@@ -417,15 +354,15 @@ const Tracker =  React.memo(({engine,initialView,setInitialView, removeView,pati
                       draft.items[index] = newItem
                       xMetricsRef.current[item.id] = new metrics[e.target.value](); 
                     })}}
-                  className={classes.neumoSelect}
+                  
                   sx={{minWidth: '110px'}}
                 >
                   {metricOptions?.map(metricOption =><MenuItem value={metricOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[metricOption]}</MenuItem>)}
-                </Select> 
+                </NeumoSelect> 
               </Stack>
               <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
                 <Typography variant={isUpMd ?'caption':'subtitle1'} fontWeight="bold" ml="3px" width={70}>y軸</Typography>
-                <Select
+                <NeumoSelect
                   id={item.id}
                   value={item.yMetric}
                   required
@@ -435,11 +372,11 @@ const Tracker =  React.memo(({engine,initialView,setInitialView, removeView,pati
                       yMetricsRef.current[item.id] = new metrics[e.target.value](); 
                       draft.items[index] = newItem
                     })}}
-                  className={classes.neumoSelect}
+                  
                   sx={{minWidth: '110px'}}
                 >
                   {metricOptions?.map(metricOption =><MenuItem value={metricOption} sx={{"&.MuiMenuItem-root.Mui-selected":{backgroundColor:'#e0efff'}}}>{t[metricOption]}</MenuItem>)}
-                </Select> 
+                </NeumoSelect> 
               </Stack>              
               <Stack direction={!isUpMd ?'row':'column'} justifyContent='flex-start' alignItems={isUpMd ? 'flex-start': 'center'} spacing={!isUpMd && 1}>
                 <Typography variant={isUpMd ?'caption':'subtitle1'} fontWeight="bold" ml="3px" width={70}>カラー</Typography>

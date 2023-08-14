@@ -1,7 +1,7 @@
 // import { getAnalytics  } from "firebase/analytics";
 import { getAuth,GoogleAuthProvider, connectAuthEmulator } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
-import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
+import StyledFirebaseAuth from "../components/StyledFirebaseAuth";
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';

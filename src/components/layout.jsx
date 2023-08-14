@@ -1,7 +1,7 @@
 import React,{useState,useEffect} from 'react';
 import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline, Button,Dialog, DialogContent,Avatar,DialogContentText, Menu, MenuItem,Divider,alpha} from '@mui/material';
 import {Logout,SettingsOutlined, FavoriteBorder,FeedOutlined,EventNoteOutlined,Feed,EventNote,Edit, MenuBookOutlined, StoreOutlined, PaidOutlined } from '@mui/icons-material';
-import { makeStyles} from '@mui/styles';
+import { makeStyles} from '@mui/material/styles';
 import {useTranslation} from '../hooks/useTranslation'
 import Image from 'next/image'
 import {user$,} from '../hooks/usePvLoop'
@@ -14,81 +14,60 @@ import {nanoid} from '../utils/utils'
 import {Elements} from '@stripe/react-stripe-js';
 import {loadStripe} from '@stripe/stripe-js';
 import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
+import Background from '../elements/Background'
+
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
 
-const useStyles = makeStyles((theme) =>({
-    root: {
-      display: 'flex',
-    },
-    appBar: { 
-      width: "100%",
-      backgroundColor: 'transparent',
-      color: 'inherit'
-    },
-    menuButton: {
-      marginRight: theme.spacing(2),
-      [theme.breakpoints.up('xs')]: {
-        display: 'none',
-      },
-    },
-    responsiveIcon:{
-      [theme.breakpoints.up('xs')]: {
-        width: "34px",
-        height: "34px",
-      },
-      [theme.breakpoints.up('md')]: {
-        width: "40px",
-        height: "40px",
-      }
-    },
-    toolbar: theme.mixins.toolbar,
-    content: {
-      flexGrow: 1,
-      // padding: theme.spacing(3),
-    },
-    background: {
-      position: "fixed",
-      zIndex: -1,
-      top: "0px",
-      left: "0px",
-      width: "100%",
-      overflow: "hidden",
-      transform: "translate3d(0px, 0px, 0px)",
-      height: "-webkit-fill-available",
-      // background: "radial-gradient(50% 50% at 50% 50%, rgb(62 168 255) 0%, rgb(247, 248, 250) 100%)",
-      opacity: 0.15,
-      userSelect: "none",
-      pointerEvents: "none"
-    },
-    headerIcon:{
-      width: '32px',
-      height: '32px'
-    },
-    menuList: {
-      '& .MuiMenu-list': {
-        padding: '0',
-      },
-      '& .MuiMenuItem-root': {
-        '& .MuiSvgIcon-root': {
-          fontSize: 18,
-          color: theme.palette.text.secondary,
-          marginRight: theme.spacing(1.5),
-        },
-        '&:active': {
-          backgroundColor: alpha(
-            theme.palette.primary.main,
-            theme.palette.action.selectedOpacity,
-          ),
-        },
-      },
-    }
-  }),
-);
+// const useStyles = makeStyles((theme) =>({
+//     root: {
+//       display: 'flex',
+//     },
+//     appBar: { 
+//       width: "100%",
+//       backgroundColor: 'transparent',
+//       color: 'inherit'
+//     },
+//     menuButton: {
+//       marginRight: theme.spacing(2),
+//       [theme.breakpoints.up('xs')]: {
+//         display: 'none',
+//       },
+    // },
+    // responsiveIcon:{
+    //   [theme.breakpoints.up('xs')]: {
+    //     width: "34px",
+    //     height: "34px",
+    //   },
+    //   [theme.breakpoints.up('md')]: {
+    //     width: "40px",
+    //     height: "40px",
+    //   }
+    // },
+    // menuList: {
+    //   '& .MuiMenu-list': {
+    //     padding: '0',
+    //   },
+    //   '& .MuiMenuItem-root': {
+    //     '& .MuiSvgIcon-root': {
+    //       fontSize: 18,
+    //       color: theme.palette.text.secondary,
+    //       marginRight: theme.spacing(1.5),
+    //     },
+    //     '&:active': {
+    //       backgroundColor: alpha(
+    //         theme.palette.primary.main,
+    //         theme.palette.action.selectedOpacity,
+    //       ),
+    //     },
+    //   },
+    // }
+//   }),
+// );
 
 function Layout(props) {
   const t = useTranslation();
-  const classes = useStyles();
+  // const classes = useStyles();
   const router = useRouter()
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
   console.log(user)
@@ -123,7 +102,7 @@ function Layout(props) {
   return (
     <>
       <CssBaseline />
-      <AppBar position="static" elevation={0} className={classes.appBar} >
+      <AppBar position="static" elevation={0} >
         <Toolbar className="py-1">
           <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex", alignItems:"center" ,justifyContent:"center"}}>
             <Image src="/favicons/favicon_256x256.png" width={32} height={32}/>
@@ -134,7 +113,7 @@ function Layout(props) {
           <div style={{flexGrow:1}}></div>
           {
             user && <>
-              <IconButton size="small" id="profile-button" aria-controls="profile-menu" aria-haspopup="true"  onClick={e=>setAnchorEl(e.currentTarget)}><Avatar src={user?.photoURL} sx={{border:'1px solid lightgray'}} className={classes.responsiveIcon}>{user?.displayName[0]}</Avatar></IconButton> 
+              <IconButton size="small" id="profile-button" aria-controls="profile-menu" aria-haspopup="true"  onClick={e=>setAnchorEl(e.currentTarget)}><Avatar src={user?.photoURL} sx={{border:'1px solid lightgray'}}>{user?.displayName[0]}</Avatar></IconButton> 
               <Button disableElevation variant='contained' className="text-white font-bold ml-4 hidden md:inline-flex" onClick={e=>setNewItemAnchorEl(e.currentTarget)} startIcon={<Edit/>}>投稿</Button>
               <Button disableElevation size="small" variant='contained' className="text-white" onClick={e=>setNewItemAnchorEl(e.currentTarget)} sx={{ml:1.2,display:{xs:"inherit",md:"none"},minWidth:"34px", padding:"4px 0"}}><Edit fontSize='small'/></Button>
             </>
@@ -169,7 +148,7 @@ function Layout(props) {
             MenuListProps={{
               'aria-labelledby': 'profile-button',
             }}
-            className={classes.menuList}
+            // className={classes.menuList}
           >
             <MenuItem onClick={()=>{router.push("/users/" + user?.userId);setAnchorEl(null)}} disableRipple sx={{fontWeight:"bold",height:"50px"}}>{user?.displayName}</MenuItem>
             <hr className='border-solid border-0 border-b border-slate-200 my-0'/>
@@ -199,7 +178,7 @@ function Layout(props) {
           </Menu>                      
         </Toolbar>
       </AppBar>
-      <Box className={classes.background}></Box>
+      <Background/>
       <Elements stripe={stripePromise} >
         {props.children}
       </Elements>

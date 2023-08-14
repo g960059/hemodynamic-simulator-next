@@ -1,7 +1,6 @@
 import React, {useRef, useState, useEffect, useCallback} from 'react'
 import {Button,IconButton,Stack,Menu,Dialog,DialogContent,Grow,DialogTitle,Popover,MenuItem,Select,Avatar,useMediaQuery} from '@mui/material'
 import PlaySpeedButtonsNext from './PlaySpeedButtonsNext'
-import { makeStyles } from '@mui/styles';
 import MetricsPanel from './MetricsPanel'
 import ControllerPanelNext from './controllers/ControllerPanelNext'
 
@@ -15,6 +14,7 @@ import EditableText from './EditableText';
 import ChartDialog from './ChartDialog';
 import MetricsDialog from './MetricsDialog';
 import ControllerDialog from './ControllerDialog';
+import { styled } from '@mui/material/styles';
 
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
@@ -28,36 +28,16 @@ const Tracker = dynamic (()=>import('./Tracker'), {ssr: false,});
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 
-const useStyles = makeStyles((theme) =>(
-  {
-    neumoButton: {
-      transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-      color: "rgb(69, 90, 100)",
-      boxShadow: "0 2px 4px -2px #21253840",
-      backgroundColor: "white",
-      border: "1px solid rgba(92, 147, 187, 0.17)",
-      fontWeight:"bold",
-      "&:hover":{
-        backgroundColor: "rgba(239, 246, 251, 0.6)",
-        borderColor: "rgb(207, 220, 230)"
-      }
-    },
-    shadowBox: {
-      backgroundColor: "white",
-      boxShadow: "0 10px 20px #4b57a936",
-      border: "1px solid rgba(239, 246, 251, 0.6)"
-    },  
-    layout: {
-      "& .react-grid-item.react-grid-placeholder" : {
-          background: '#3ea8ff !important',
-      },
-    }     
-  })
-);
+
+const StyledReactGridLayout = styled(ResponsiveReactGridLayout)`
+  & .react-grid-item.react-grid-placeholder {
+    background: #3ea8ff !important;
+  }
+`;
+
 
 
 const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients ,views, setViews, user}) => {
-  const classes = useStyles();
 
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const [mounted, setMounted] = useState(false);
@@ -129,8 +109,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
         }}
       />
     </div>
-    <ResponsiveReactGridLayout
-      className={classes.layout}
+    <StyledReactGridLayout
       layouts={caseData?.layouts}
       breakpoints={{ md: 960, xs: 0 }}
       cols={{ md: 12, xs: 12 }}
@@ -243,6 +222,22 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               }}
             />
           }
+          {
+            view.type == "Note" && 
+            <NotePanel
+              view={view}
+              updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
+              removeView = {()=>{
+                setCaseData(draft=>{
+                  draft.layouts.md = draft.layouts.md.filter(layoutItem => layoutItem.i != view.id )
+                  draft.layouts.xs = draft.layouts.xs.filter(layoutItem => layoutItem.i != view.id )
+                })
+                setViews(draft=>{
+                  draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                })
+              }}
+            />
+          }
         </div>
       )}      
       {
@@ -263,7 +258,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
           </div>
         )
       }
-    </ResponsiveReactGridLayout>
+    </StyledReactGridLayout>
   </div>
 })
 

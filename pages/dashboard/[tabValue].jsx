@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect,} from 'react'
 import {Box, NoSsr, Grid, Tab,Tabs, Divider,Typography,Stack,Tooltip, Button, Avatar, Menu, IconButton, useMediaQuery} from '@mui/material'
 import {Add,FavoriteBorder,ExpandMore,EditOutlined,FeedOutlined,EventNoteOutlined,MenuBookOutlined,PlayArrowOutlined, StoreOutlined, PaidOutlined} from "@mui/icons-material";
 import {user$, articles$,cases$,books$, purchases$, salesDetail$, payableHistory$, withdrawals$, favorites$} from '../../src/hooks/usePvLoop'
-import { makeStyles } from '@mui/styles';
+// import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../src/hooks/useTranslation'
 import { FaintNeumoIconButton } from '../../src/components/StyledComponents';
 import { useRouter } from 'next/router'
@@ -19,55 +19,40 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ja } from 'date-fns/locale';
 
-const useStyles = makeStyles((theme) =>(
-  {
-    background: {
-      position: "fixed",
-      zIndex: -1,
-      top: "0px",
-      left: "0px",
-      width: "100%",
-      overflow: "hidden",
-      transform: "translate3d(0px, 0px, 0px)",
-      height: "-webkit-fill-available",
-      background: "radial-gradient(50% 50% at 50% 50%, rgb(255, 0, 122) 0%, rgb(247, 248, 250) 100%)",
-      opacity: 0.15,
-      userSelect: "none",
-      pointerEvents: "none"
-    },
-    neumoButton: {
-      transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-      color: "rgb(69, 90, 100)",
-      boxShadow: "0 2px 4px -2px #21253840",
-      backgroundColor: "white",
-      border: "1px solid rgba(92, 147, 187, 0.17)",
-      "&:hover":{
-        backgroundColor: "rgba(239, 246, 251, 0.6)",
-        borderColor: "rgb(207, 220, 230)"
-      }
-    },
-    bookCover: {
-      boxShadow: "-6px 6px 10px -2px #001b4440, 0 0 3px #8f9aaf1a",
-      position: "relative",
-      maxWidth: "100%",
-      width: "100px",
-      height: "140px",
-      "&::after": {
-        bottom: 0,
-        content: '""',
-        height: "100%",
-        left: "0",
-        position: "absolute",
-        width: "100%",
-        borderRadius: "5px",
-        background: "linear-gradient(-90deg,#fff0,#ffffff1a 80%,#ffffff4d 95%,#fff6 96.5%,#cbcbcb14 98%,#6a6a6a1a)",
-      }
-    }
-  })
-);
+// const useStyles = makeStyles((theme) =>(
+//   {
+//     neumoButton: {
+//       transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+//       color: "rgb(69, 90, 100)",
+//       boxShadow: "0 2px 4px -2px #21253840",
+//       backgroundColor: "white",
+//       border: "1px solid rgba(92, 147, 187, 0.17)",
+//       "&:hover":{
+//         backgroundColor: "rgba(239, 246, 251, 0.6)",
+//         borderColor: "rgb(207, 220, 230)"
+//       }
+//     },
+//     bookCover: {
+//       boxShadow: "-6px 6px 10px -2px #001b4440, 0 0 3px #8f9aaf1a",
+//       position: "relative",
+//       maxWidth: "100%",
+//       width: "100px",
+//       height: "140px",
+//       "&::after": {
+//         bottom: 0,
+//         content: '""',
+//         height: "100%",
+//         left: "0",
+//         position: "absolute",
+//         width: "100%",
+//         borderRadius: "5px",
+//         background: "linear-gradient(-90deg,#fff0,#ffffff1a 80%,#ffffff4d 95%,#fff6 96.5%,#cbcbcb14 98%,#6a6a6a1a)",
+//       }
+//     }
+//   })
+// );
 
 const DashBoard = React.memo(() => {
-  const classes = useStyles();
   const t = useTranslation();
   const router = useRouter()
   const user = useObservable("user",user$)
@@ -126,7 +111,7 @@ const DashBoard = React.memo(() => {
   return <div className='w-full'>
     <Divider flexItem sx={{borderColor:"#5c93bb2b"}}/>
     <div className='w-full max-w-7xl mx-auto md:mt-5'>
-      { !isUpMd &&
+      {/* { !isUpMd &&
         <Stack direction="row" width={1} justifyContent="center" alignItems="center" spacing={2} pt={3} className="overflow-x-scroll">
           <Stack onClick={()=>{setTabValue("cases")}} className={`items-center cursor-pointer rounded-xl px-4 py-2 ${tabValue==="cases" ? "bg-blue-50 text-blue-500" : "text-slate-400"}`}>
             <EventNoteOutlined/>
@@ -473,7 +458,7 @@ const DashBoard = React.memo(() => {
             </>
           }                      
         </Box>      
-      </div>
+      </div> */}
     </div>
   </div>
 })
@@ -489,92 +474,92 @@ DashBoard.getLayout = (page) => {
 export default DashBoard
 
 
-export const CaseListItem = ({caseData: c, removeCase}) => {
-  const router = useRouter()
-  const [caseMenuAnchorEl, setCaseMenuAnchorEl] = useState(null);
-  const selectNewCase = (id)=>() => {
-    router.push(`/cases/${id}`)
-  }
-  return <Stack sx={{pb:2,pt:1.5, borderBottom:"1px solid #5c93bb2b"}}>
-    <Stack direction="row" alignItems="center">
-      <div onClick={selectNewCase(c.id)} className={`font-bold text-base md:text-lg flex-grow cursor-pointer ${!c.name && "text-slate-500"}`}>{c.name || "無題の症例"}</div>
-      <Tooltip title="編集する">
-        <FaintNeumoIconButton  onClick={selectNewCase(c.id)} size="small"  className='h-8 w-8'><EditOutlined/></FaintNeumoIconButton>
-      </Tooltip>
-      <FaintNeumoIconButton  onClick={e=>{setCaseMenuAnchorEl(e.currentTarget)}} size="small" sx={{ml:{xs:.5, md:1},backgroundColor:"transparent !important"}}><ExpandMore/></FaintNeumoIconButton>
-      <Menu anchorEl={caseMenuAnchorEl} open={Boolean(caseMenuAnchorEl)} onClose={()=>{setCaseMenuAnchorEl(null)}} MenuListProps={{dense:true}}>
-        <DeleteMenuItemWithDialog onDelete={()=>{removeCase();setCaseMenuAnchorEl(null)}} message={"症例「"+(c?.name||"無題の症例") +"」を削除しようとしています。\nこの操作は戻すことができません。"} onClose={()=>{setCaseMenuAnchorEl(null)}} />
-      </Menu>
-    </Stack>
-    <Stack direction="row" sx={{justifyContent:"flex-start",alignItems:"center", mt:.8}}>
-      <Box sx={{mr:2,alignItems:"center",justifyContent:"center",display:"flex", border:"1px solid",borderColor: (c.visibility =="public" ? '#3ea8ff': "#d6e3ed"), borderRadius:"3px",padding:".1em .35em"}}><Typography  fontSize="11px" fontWeight='bold' color={c.visibility =="public" ? "primary" : 'secondary'}>{c.visibility =="public" ? "公開中" : "非公開"}</Typography></Box>
-      <Typography  variant="caption" sx={{color:"#6e7b85"}}>{formatDateDiff(new Date(),c.updatedAt?.toDate()) + (isEqual(c.updatedAt,c.createdAt) ? "に作成":"に更新")}</Typography>
-    </Stack>
-  </Stack>
-}
+// export const CaseListItem = ({caseData: c, removeCase}) => {
+//   const router = useRouter()
+//   const [caseMenuAnchorEl, setCaseMenuAnchorEl] = useState(null);
+//   const selectNewCase = (id)=>() => {
+//     router.push(`/cases/${id}`)
+//   }
+//   return <Stack sx={{pb:2,pt:1.5, borderBottom:"1px solid #5c93bb2b"}}>
+//     <Stack direction="row" alignItems="center">
+//       <div onClick={selectNewCase(c.id)} className={`font-bold text-base md:text-lg flex-grow cursor-pointer ${!c.name && "text-slate-500"}`}>{c.name || "無題の症例"}</div>
+//       <Tooltip title="編集する">
+//         <FaintNeumoIconButton  onClick={selectNewCase(c.id)} size="small"  className='h-8 w-8'><EditOutlined/></FaintNeumoIconButton>
+//       </Tooltip>
+//       <FaintNeumoIconButton  onClick={e=>{setCaseMenuAnchorEl(e.currentTarget)}} size="small" sx={{ml:{xs:.5, md:1},backgroundColor:"transparent !important"}}><ExpandMore/></FaintNeumoIconButton>
+//       <Menu anchorEl={caseMenuAnchorEl} open={Boolean(caseMenuAnchorEl)} onClose={()=>{setCaseMenuAnchorEl(null)}} MenuListProps={{dense:true}}>
+//         <DeleteMenuItemWithDialog onDelete={()=>{removeCase();setCaseMenuAnchorEl(null)}} message={"症例「"+(c?.name||"無題の症例") +"」を削除しようとしています。\nこの操作は戻すことができません。"} onClose={()=>{setCaseMenuAnchorEl(null)}} />
+//       </Menu>
+//     </Stack>
+//     <Stack direction="row" sx={{justifyContent:"flex-start",alignItems:"center", mt:.8}}>
+//       <Box sx={{mr:2,alignItems:"center",justifyContent:"center",display:"flex", border:"1px solid",borderColor: (c.visibility =="public" ? '#3ea8ff': "#d6e3ed"), borderRadius:"3px",padding:".1em .35em"}}><Typography  fontSize="11px" fontWeight='bold' color={c.visibility =="public" ? "primary" : 'secondary'}>{c.visibility =="public" ? "公開中" : "非公開"}</Typography></Box>
+//       <Typography  variant="caption" sx={{color:"#6e7b85"}}>{formatDateDiff(new Date(),c.updatedAt?.toDate()) + (isEqual(c.updatedAt,c.createdAt) ? "に作成":"に更新")}</Typography>
+//     </Stack>
+//   </Stack>
+// }
 
-export const ArticleListItem = ({articleData: c, removeArticle}) => {
-  const router = useRouter()
-  const [anchorEl, setAnchorEl] = useState(null);
-  const selectNewArticle = (id)=>() => {
-    router.push(`/articles/${id}`)
-  }
-  return <Stack sx={{pb:2,pt:1.5, borderBottom:"1px solid #5c93bb2b"}}>
-    <Stack direction="row" alignItems="center">
-      <div onClick={selectNewArticle(c.id)} className={`font-bold text-base md:text-lg flex-grow cursor-pointer ${!c.name && "text-slate-500"}`}>{c.name || "無題の記事"}</div>
-      <Tooltip title="編集する">
-        <FaintNeumoIconButton onClick={selectNewArticle(c.id)} size="small" className='h-8 w-8'><EditOutlined/></FaintNeumoIconButton>
-      </Tooltip>
-      <FaintNeumoIconButton  onClick={e=>{setAnchorEl(e.currentTarget)}} size="small" sx={{ml:{xs:.5, md:1},backgroundColor:"transparent !important"}}><ExpandMore/></FaintNeumoIconButton>
-      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>{setAnchorEl(null)}} MenuListProps={{dense:true}}>
-        <DeleteMenuItemWithDialog onDelete={()=>{removeArticle();setAnchorEl(null)}} message={"記事「"+(c?.name||"無題の記事") +"」を削除しようとしています。\nこの操作は戻すことができません。"} onClose={()=>{setAnchorEl(null)}} />
-      </Menu>
-    </Stack>
-    <Stack direction="row" sx={{justifyContent:"flex-start",alignItems:"center", mt:.8}}>
-      <Box sx={{mr:2,alignItems:"center",justifyContent:"center",display:"flex", border:"1px solid",borderColor: (c.visibility =="public" ? '#3ea8ff': "#d6e3ed"), borderRadius:"3px",padding:".1em .35em"}}><Typography  fontSize="11px" fontWeight='bold' color={c.visibility =="public" ? "primary" : 'secondary'}>{c.visibility =="public" ? "公開中" : "非公開"}</Typography></Box>
-      <Typography  variant="caption" sx={{color:"#6e7b85"}}>{formatDateDiff(new Date(),c.updatedAt?.toDate()) + (isEqual(c.updatedAt,c.createdAt) ? "に作成":"に更新")}</Typography>
-    </Stack>
-  </Stack>
-}
+// export const ArticleListItem = ({articleData: c, removeArticle}) => {
+//   const router = useRouter()
+//   const [anchorEl, setAnchorEl] = useState(null);
+//   const selectNewArticle = (id)=>() => {
+//     router.push(`/articles/${id}`)
+//   }
+//   return <Stack sx={{pb:2,pt:1.5, borderBottom:"1px solid #5c93bb2b"}}>
+//     <Stack direction="row" alignItems="center">
+//       <div onClick={selectNewArticle(c.id)} className={`font-bold text-base md:text-lg flex-grow cursor-pointer ${!c.name && "text-slate-500"}`}>{c.name || "無題の記事"}</div>
+//       <Tooltip title="編集する">
+//         <FaintNeumoIconButton onClick={selectNewArticle(c.id)} size="small" className='h-8 w-8'><EditOutlined/></FaintNeumoIconButton>
+//       </Tooltip>
+//       <FaintNeumoIconButton  onClick={e=>{setAnchorEl(e.currentTarget)}} size="small" sx={{ml:{xs:.5, md:1},backgroundColor:"transparent !important"}}><ExpandMore/></FaintNeumoIconButton>
+//       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>{setAnchorEl(null)}} MenuListProps={{dense:true}}>
+//         <DeleteMenuItemWithDialog onDelete={()=>{removeArticle();setAnchorEl(null)}} message={"記事「"+(c?.name||"無題の記事") +"」を削除しようとしています。\nこの操作は戻すことができません。"} onClose={()=>{setAnchorEl(null)}} />
+//       </Menu>
+//     </Stack>
+//     <Stack direction="row" sx={{justifyContent:"flex-start",alignItems:"center", mt:.8}}>
+//       <Box sx={{mr:2,alignItems:"center",justifyContent:"center",display:"flex", border:"1px solid",borderColor: (c.visibility =="public" ? '#3ea8ff': "#d6e3ed"), borderRadius:"3px",padding:".1em .35em"}}><Typography  fontSize="11px" fontWeight='bold' color={c.visibility =="public" ? "primary" : 'secondary'}>{c.visibility =="public" ? "公開中" : "非公開"}</Typography></Box>
+//       <Typography  variant="caption" sx={{color:"#6e7b85"}}>{formatDateDiff(new Date(),c.updatedAt?.toDate()) + (isEqual(c.updatedAt,c.createdAt) ? "に作成":"に更新")}</Typography>
+//     </Stack>
+//   </Stack>
+// }
 
-export const BookListItem = ({bookData: c, removeBook}) => {
-  const router = useRouter()
-  const classes = useStyles()
-  const [anchorEl, setAnchorEl] = useState(null);
-  const selectNewBook = (id)=>() => {
-    router.push(`/books/${id}`)
-  }
-  return (
-    <div className="flex flex-row justify-center py-4 border-0 border-b border-solid border-slate-200">
-      { c?.coverURL ? <div className={clsx("rounded-md cursor-pointer hidden md:block",classes.bookCover) }>
-          <img src={c?.coverURL} width={100} height={140} className="object-cover rounded" />
-        </div> : 
-        <div className={clsx("bg-blue-50 rounded-md shadow-md cursor-pointer",classes.bookCover)}>
-          <div className='flex justify-center items-center w-full h-full' style={{width:"100px"}}>
-            <div className='font-bold text-xl text-slate-400'>{c.name}</div>
-          </div>
-        </div>
-      }          
-      <div className='flex flex-col w-full md:pl-6'>
-        <Stack direction="row" alignItems="center">
-          <div onClick={selectNewBook(c.id)} className={`font-bold text-base md:text-lg flex-grow cursor-pointer ${!c.name && "text-slate-500"}`}>{c.name || "無題の本"}</div>
-          <Tooltip title="表示を確認する">
-            <FaintNeumoIconButton onClick={()=>{router.push(`/${c?.userId}/books/${c.id}`)}} size="small" className='h-8 w-8'><PlayArrowOutlined/></FaintNeumoIconButton>
-          </Tooltip>          
-          <Tooltip title="編集する">
-            <FaintNeumoIconButton onClick={selectNewBook(c.id)} size="small"  className='h-8 w-8 ml-2 md:ml-4'><EditOutlined/></FaintNeumoIconButton>
-          </Tooltip>
-          <FaintNeumoIconButton  onClick={e=>{setAnchorEl(e.currentTarget)}} size="small" sx={{ml:{xs:.5, md:1},backgroundColor:"transparent !important"}}><ExpandMore/></FaintNeumoIconButton>
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>{setAnchorEl(null)}} MenuListProps={{dense:true}}>
-            <DeleteMenuItemWithDialog onDelete={()=>{removeBook();setAnchorEl(null)}} message={"本「"+(c?.name||"無題の本") +"」を削除しようとしています。\nこの操作は戻すことができません。"} onClose={()=>{setAnchorEl(null)}} />
-          </Menu>
-        </Stack>
-        <Stack direction="row" sx={{justifyContent:"flex-start",alignItems:"center", mt:.8}}>
-          <Box sx={{mr:1,alignItems:"center",justifyContent:"center",display:"flex", border:"1px solid",borderColor: (c.visibility =="public" ? '#3ea8ff': "#d6e3ed"), borderRadius:"3px",padding:".1em .35em"}}><Typography  fontSize="11px" fontWeight='bold' color={c.visibility =="public" ? "primary" : 'secondary'}>{c.visibility =="public" ? (c.premium ? "販売中": "無料公開中") : "非公開"}</Typography></Box>
-          {c.premium && <Typography variant="body2" fontWeight='bold' color= "primary" sx={{mr:2}}>{c.amount}円</Typography>}
-          <Typography  variant="caption" sx={{color:"#6e7b85"}}>{formatDateDiff(new Date(),c.updatedAt?.toDate()) + (isEqual(c.updatedAt,c.createdAt) ? "に作成":"に更新")}</Typography>
-        </Stack>
-      </div>
-    </div>
-  )
-}
+// export const BookListItem = ({bookData: c, removeBook}) => {
+//   const router = useRouter()
+//   const classes = useStyles()
+//   const [anchorEl, setAnchorEl] = useState(null);
+//   const selectNewBook = (id)=>() => {
+//     router.push(`/books/${id}`)
+//   }
+//   return (
+//     <div className="flex flex-row justify-center py-4 border-0 border-b border-solid border-slate-200">
+//       { c?.coverURL ? <div className={clsx("rounded-md cursor-pointer hidden md:block",classes.bookCover) }>
+//           <img src={c?.coverURL} width={100} height={140} className="object-cover rounded" />
+//         </div> : 
+//         <div className={clsx("bg-blue-50 rounded-md shadow-md cursor-pointer",classes.bookCover)}>
+//           <div className='flex justify-center items-center w-full h-full' style={{width:"100px"}}>
+//             <div className='font-bold text-xl text-slate-400'>{c.name}</div>
+//           </div>
+//         </div>
+//       }          
+//       <div className='flex flex-col w-full md:pl-6'>
+//         <Stack direction="row" alignItems="center">
+//           <div onClick={selectNewBook(c.id)} className={`font-bold text-base md:text-lg flex-grow cursor-pointer ${!c.name && "text-slate-500"}`}>{c.name || "無題の本"}</div>
+//           <Tooltip title="表示を確認する">
+//             <FaintNeumoIconButton onClick={()=>{router.push(`/${c?.userId}/books/${c.id}`)}} size="small" className='h-8 w-8'><PlayArrowOutlined/></FaintNeumoIconButton>
+//           </Tooltip>          
+//           <Tooltip title="編集する">
+//             <FaintNeumoIconButton onClick={selectNewBook(c.id)} size="small"  className='h-8 w-8 ml-2 md:ml-4'><EditOutlined/></FaintNeumoIconButton>
+//           </Tooltip>
+//           <FaintNeumoIconButton  onClick={e=>{setAnchorEl(e.currentTarget)}} size="small" sx={{ml:{xs:.5, md:1},backgroundColor:"transparent !important"}}><ExpandMore/></FaintNeumoIconButton>
+//           <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={()=>{setAnchorEl(null)}} MenuListProps={{dense:true}}>
+//             <DeleteMenuItemWithDialog onDelete={()=>{removeBook();setAnchorEl(null)}} message={"本「"+(c?.name||"無題の本") +"」を削除しようとしています。\nこの操作は戻すことができません。"} onClose={()=>{setAnchorEl(null)}} />
+//           </Menu>
+//         </Stack>
+//         <Stack direction="row" sx={{justifyContent:"flex-start",alignItems:"center", mt:.8}}>
+//           <Box sx={{mr:1,alignItems:"center",justifyContent:"center",display:"flex", border:"1px solid",borderColor: (c.visibility =="public" ? '#3ea8ff': "#d6e3ed"), borderRadius:"3px",padding:".1em .35em"}}><Typography  fontSize="11px" fontWeight='bold' color={c.visibility =="public" ? "primary" : 'secondary'}>{c.visibility =="public" ? (c.premium ? "販売中": "無料公開中") : "非公開"}</Typography></Box>
+//           {c.premium && <Typography variant="body2" fontWeight='bold' color= "primary" sx={{mr:2}}>{c.amount}円</Typography>}
+//           <Typography  variant="caption" sx={{color:"#6e7b85"}}>{formatDateDiff(new Date(),c.updatedAt?.toDate()) + (isEqual(c.updatedAt,c.createdAt) ? "に作成":"に更新")}</Typography>
+//         </Stack>
+//       </div>
+//     </div>
+//   )
+// }

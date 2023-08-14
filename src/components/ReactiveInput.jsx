@@ -1,24 +1,22 @@
 import React, {useState, useEffect} from "react";
-import { InputAdornment, MuiInput, TextField, InputBase as MuiInputBase} from "@mui/material";
-import { withStyles } from '@mui/styles';
+import { InputAdornment, MuiInput, TextField, InputBase} from "@mui/material";
+import { styled } from '@mui/material/styles';
 
-export const Input = withStyles((theme) => ({
-  root: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: '4px',
-    border: '1px solid #5c93bb2b',
-    '&:hover': {
-      borderColor: '#3ea8ff',
-    },    
+const Input = styled(InputBase)(({ theme }) => ({
+  backgroundColor: '#f1f5f9',
+  borderRadius: '4px',
+  border: '1px solid #5c93bb2b',
+  '&:hover': {
+    borderColor: '#3ea8ff',
   },
-  input: {
+  '& input': {
     border: 'none',
-    padding: '4px 0 4px 4px'
+    padding: '4px 0 4px 4px',
   },
-  "& p.MuiTypography-root":{
-    fontSize: "0.7rem"
+  '& p.MuiTypography-root': {
+    fontSize: '0.7rem',
   },
-}))(MuiInputBase);
+}));
 
 
 const ReactiveInput = ({value, updateValue, unit=null, type ='number',variant='outlined',invertColor=false,allowEmpty=false,width="auto", ...args}) => {

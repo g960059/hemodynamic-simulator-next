@@ -3,7 +3,7 @@ import {Box, Grid, Typography, Divider,Button,Stack, CircularProgress,Tab} from 
 import {TabContext,TabList,TabPanel} from '@mui/lab';
 
 import {useTranslation} from "../src/hooks/useTranslation"
-import { makeStyles} from '@mui/styles';
+import { makeStyles} from '@mui/material/styles';
 import { useRouter } from 'next/router'
 import Footer from "../src/components/Footer"
 import {auth,db} from '../src/utils/firebase'
@@ -39,10 +39,8 @@ const TopPage = ({cases,articles,books}) => {
                 }
               </div>
               <div className='flex justify-center mt-6'>
-                <Link href="/cases">
-                  <a className='cursor-pointer no-underline text-blue-500 mb-[1px] hover:mb-0 hover:border-solid hover:border-0 hover:border-b hover:border-blue-500'>
+                <Link href="/cases" className='cursor-pointer no-underline text-blue-500 mb-[1px] hover:mb-0 hover:border-solid hover:border-0 hover:border-b hover:border-blue-500'>
                     症例をさらに探す
-                  </a>
                 </Link>                
               </div>              
               {/* <div className='font-bold text-slate-800 text-2xl md:text-3xl py-4'>Articles</div>
@@ -136,21 +134,17 @@ export const getStaticProps = async () => {
 export const ArticleItem = ({article})=> {
   return (
     <div key={article.id} className="w-full flex flex-row pb-5">
-      <Link href={`/${article?.userId}/articles/${article?.id}`} >
-        <a className= "text-slate-900 hover:opacity-70 transition-opacity duration-200 cursor-pointer w-24 h-24 no-underline hover:no-underline">
+      <Link href={`/${article?.userId}/articles/${article?.id}`} className= "text-slate-900 hover:opacity-70 transition-opacity duration-200 cursor-pointer w-24 h-24 no-underline hover:no-underline">
           {
             article?.coverURL ? <Image src={article?.coverURL} width={96} height={96}/> :
             <div className='bg-blue-50 rounded-lg flex justify-center items-center w-24 h-24'>
               <span className='text-4xl'>{article?.emoji}</span>
             </div>
           }
-        </a>
       </Link>
       <div className='ml-3 flex flex-col'>
-        <Link href={`/${article?.userId}/articles/${article?.id}`}>
-          <a className='font-bold text-slate-800 no-underline hover:no-underline'>
+        <Link href={`/${article?.userId}/articles/${article?.id}`} className='font-bold text-slate-800 no-underline hover:no-underline'>
             {article?.name || "無題の記事"}
-          </a>
         </Link>
         <div style={{flexGrow:1}}/>
         <div className='flex flex-row items-center'>
@@ -163,10 +157,8 @@ export const ArticleItem = ({article})=> {
             </div>
           }
           <div className='ml-2 text-slate-500'>
-            <Link href={`/users/${article?.userId}`}>
-              <a className='text-sm font-medium no-underline hover:no-underline text-slate-500'>
-                {article?.displayName}
-              </a>
+            <Link href={`/users/${article?.userId}`} className='text-sm font-medium no-underline hover:no-underline text-slate-500'>
+              {article?.displayName}
             </Link>
             
             <div className='flex flex-row items-center justify-between'>
@@ -188,21 +180,17 @@ export const ArticleItem = ({article})=> {
 export const CaseItem = ({caseItem}) => {
   return (
     <div key={caseItem?.id} className="w-full flex flex-row pb-5">
-      <Link href={`/${caseItem?.userId}/cases/${caseItem?.id}`} >
-        <a className= "text-slate-900 hover:opacity-70 transition-opacity duration-200 cursor-pointer w-24 h-24 no-underline hover:no-underline">
+      <Link href={`/${caseItem?.userId}/cases/${caseItem?.id}`} className= "text-slate-900 hover:opacity-70 transition-opacity duration-200 cursor-pointer w-24 h-24 no-underline hover:no-underline" >
           {
             caseItem?.coverURL ? <Image src={caseItem?.coverURL} width={96} height={96}/> :
             <div className='bg-blue-50 rounded-lg flex justify-center items-center w-24 h-24'>
               <span className='text-4xl'>{caseItem?.emoji}</span>
             </div>
           }
-        </a>
       </Link>
       <div className='ml-3 flex flex-col'>
-        <Link href={`/${caseItem?.userId}/cases/${caseItem?.id}`}>
-          <a className='font-bold text-slate-800 no-underline hover:no-underline'>
+        <Link href={`/${caseItem?.userId}/cases/${caseItem?.id}`} className='font-bold text-slate-800 no-underline hover:no-underline'>
             {caseItem?.name || "無題のケース"}
-          </a>
         </Link>
         <div style={{flexGrow:1}}/>
         <div className='flex flex-row items-center'>
@@ -215,10 +203,8 @@ export const CaseItem = ({caseItem}) => {
             </div>
           }
           <div className='ml-2 text-slate-500'>
-            <Link href={`/users/${caseItem?.userId}`}>
-              <a className='text-sm font-medium no-underline hover:no-underline text-slate-500'>
+            <Link href={`/users/${caseItem?.userId}`} className='text-sm font-medium no-underline hover:no-underline text-slate-500'>
                 {caseItem?.displayName}
-              </a>
             </Link>
             <div className='flex flex-row items-center justify-between'>
               <span className=' text-sm font-medium '>{ formatDateDiff(new Date(), new Date(caseItem?.updatedAt?.seconds * 1000)) } </span>

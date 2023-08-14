@@ -1,7 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Grid, Typography, Popover,useMediaQuery, IconButton, CircularProgress,Button, alpha, Dialog,DialogActions,DialogContent,DialogTitle, Select, Menu} from '@mui/material'
-import {TabContext,TabList,TabPanel} from '@mui/lab';
-import { makeStyles } from '@mui/styles';
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
 import {FastLineRenderableSeries} from "scichart/Charting/Visuals/RenderableSeries/FastLineRenderableSeries";

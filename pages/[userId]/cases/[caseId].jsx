@@ -3,9 +3,7 @@ import {Box,Typography,Grid,Tab,Tabs, Divider,AppBar,Tooltip, Toolbar,Button,Ico
 import {ArrowBack,Add,Favorite,FavoriteBorder,EventNoteOutlined,FeedOutlined,SettingsOutlined,Logout,Feed,EventNote, Edit,CalendarToday, ConstructionOutlined} from '@mui/icons-material';
 import {useEngine, user$,cases$, allCases$} from '../../../src/hooks/usePvLoop'
 import { useRouter } from 'next/router'
-import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../../src/hooks/useTranslation'
-
 import CaseEditor from "../../../src/components/CaseEditor"
 import Image from 'next/image'
 import {signOut} from "firebase/auth";
@@ -23,64 +21,21 @@ import LoadingAnimation from "../../../src/lotties/LoadingAnimation.json"
 import {format} from "date-fns"
 import { combineLatest, filter, map, mergeMap, of, zip } from 'rxjs';
 import { collectionData, docData } from 'rxfire/firestore';
+import Background from '../../../src/elements/Background';
 
 
-const useStyles = makeStyles((theme) =>(
-  {
-    appBar: {
-      backgroundColor: 'white',
-      color: 'inherit'
-    },
-    background: {
-      position: "fixed",
-      zIndex: -1,
-      top: "0px",
-      left: "0px",
-      width: "100%",
-      overflow: "hidden",
-      transform: "translate3d(0px, 0px, 0px)",
-      height: "-webkit-fill-available",
-      background: "radial-gradient(50% 50% at 50% 50%, #3ea8ff 0%, #f5f5f5 100%)",
-      opacity: 0.15,
-      userSelect: "none",
-      pointerEvents: "none"
-    },
-    neumoButton: {
-      transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-      color: "rgb(69, 90, 100)",
-      boxShadow: "0 2px 4px -2px #21253840",
-      backgroundColor: "white",
-      border: "1px solid rgba(92, 147, 187, 0.17)",
-      fontWeight:"bold",
-      "&:hover":{
-        backgroundColor: "rgba(239, 246, 251, 0.6)",
-        borderColor: "rgb(207, 220, 230)"
-      }
-    },
-    shadowBox: {
-      backgroundColor: "white",
-      boxShadow: "0 10px 20px #4b57a936",
-      border: "1px solid rgba(239, 246, 251, 0.6)"
-    },   
-    faintNeumoButton: {
-      transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-      color: "#b3b3b3",
-      backgroundColor: "#f1f4f9",
-      border: "none",
-      "&:hover":{
-        backgroundColor: "#fff2f2",
-        color: "#ec407a"
-      },
-      "& .MuiOutlinedInput-notchedOutline": {border:"none"}
-    },  
-    favoritedButton: {
-      color: "#f76685",
-      backgroundColor: "#ffeaf4",
-      border: "none",
-      "& .MuiOutlinedInput-notchedOutline": {border:"none"}
-    },     
-  })
-);
+
+// const useStyles = makeStyles((theme) =>(
+//   {
+
+//     favoritedButton: {
+//       color: "#f76685",
+//       backgroundColor: "#ffeaf4",
+//       border: "none",
+//       "& .MuiOutlinedInput-notchedOutline": {border:"none"}
+//     },     
+//   })
+// );
 
 
 const CaseReader = () => {
@@ -256,7 +211,7 @@ const CaseReader = () => {
 
 
   return <>
-      <AppBar position="static" elevation={0} className={classes.appBar} >
+      <AppBar position="static" elevation={0} className="bg-white text-inherit" >
         <Toolbar sx={{py:.5}}>
           <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex", alignItems:"center"}}>
             <Box mb={-1} mr={1}><Image src="/HeaderIcon.png" width={32} height={32}/></Box>
@@ -278,10 +233,10 @@ const CaseReader = () => {
           <div style={{flexGrow:1}}/>
           {!loading  && auth.currentUser &&<Stack direction="row">
             {heart.status=="success" && 
-              (heart.data ? <IconButton onClick={removeHeart} className={classes.favoritedButton} sx={{width: "40px",height:"40px",mr:1}} >
+              (heart.data ? <IconButton onClick={removeHeart}  sx={{width: "40px",height:"40px",mr:1}} >
                   <Favorite sx={{width:"28px",height:"28px"}}/>
                 </IconButton>
-              : <IconButton onClick={addHeart} className={classes.faintNeumoButton} sx={{width:"40px",height:"40px",mr:1}} >
+              : <IconButton onClick={addHeart} sx={{width:"40px",height:"40px",mr:1}} >
                   <FavoriteBorder sx={{width:"28px",height:"28px"}}/>
                 </IconButton>
               )
@@ -341,7 +296,6 @@ const CaseReader = () => {
             MenuListProps={{
               'aria-labelledby': 'profile-button',
             }}
-            className={classes.menuList}
           >
             <MenuItem onClick={()=>{router.push("/" + user?.userId);setAnchorEl(null)}} disableRipple sx={{fontWeight:"bold",height:"50px"}}>{user?.displayName}</MenuItem>
             <Divider light sx={{margin:"0 !important"}}/>
@@ -368,7 +322,7 @@ const CaseReader = () => {
       </AppBar>
       <Divider sx={{borderColor:"#5c93bb2b"}}/>
       <NextSeo title={"症例"+caseData?.name}/>
-      <div className={classes.background}/> 
+      <Background/>
       {/* {!isUpMd && <div className="bg-slate-200 h-screen w-screen fixed -z-10"/>} */}
       {loading && <Box>
           <Lottie loop animationData={LoadingAnimation} play style={{ objectFit:"contain" }} />

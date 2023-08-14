@@ -1,36 +1,16 @@
 import React, {useState, useEffect} from 'react';
 import {Box, Button, IconButton, Stack, Typography, Menu, MenuItem,Tooltip, useMediaQuery,Popover} from '@mui/material'
-import { makeStyles } from '@mui/styles';
+
 
 import {PlayArrow,Pause,} from "@mui/icons-material";
 import DeleteMenuItemWithDialog from './DeleteMenuItemWithDialog';
 import { useRouter } from 'next/router'
 import en from '../locales/en'
 import ja from '../locales/ja'
-
-const useStyles = makeStyles((theme) =>(
-  {
-    neumoIconButton:{
-      color:"#93a5b1",
-      boxShadow:"0 0 2px #4b57a926, 0 10px 12px -4px #0009651a",
-      width:"44px",
-      height:"44px",
-      backgroundColor:"white",
-      borderRadius:"50%",
-      transition:".3s",
-      "&:hover":{
-        boxShadow:"0 25px 25px -10px #00096540",
-        transform: "translateY(-2px)",
-        color: "#3ea8ff",
-        backgroundColor:"white",
-      }
-    }
-  })
-);
+import NeumoIconButton from '../elements/NeumoIconButton';
 
 
 const PlaySpeedButtons = ({engine, removeView}) =>{
-  const classes = useStyles()
   const {isPlaying, setIsPlaying, setSpeed} = engine
   const [anchorEl, setAnchorEl] = useState(null);
   const [speedAnchorEl, setSpeedAnchorEl] = useState(null);
@@ -51,12 +31,14 @@ const PlaySpeedButtons = ({engine, removeView}) =>{
         </div>
         <div className='draggable cursor-move flex flex-wrap flex-grow w-full items-center justify-center'>
           <Tooltip title={isPlaying ? t['Pause']: t['Play']} className='m-2 -mt-5'>
-            <IconButton onClick={()=>{setIsPlaying(prev=>!prev)}} className={classes.neumoIconButton}>{isPlaying ? <Pause/>:<PlayArrow/>}</IconButton>
+            <button onClick={(e)=>{e.preventDefault();e.stopPropagation(); setIsPlaying(prev=>!prev)}} type="button" className=' bg-slate-100 stroke-slate-500 text-slate-500 cursor-pointer py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center hover:bg-slate-200 border-none transition'>
+              {isPlaying ? <Pause/>:<PlayArrow/>}
+            </button>
           </Tooltip>  
           <Tooltip title={t['PlaySpeed']} className='m-2  -mt-5'>
-            <Button onClick={(e)=>{setSpeedAnchorEl(e.currentTarget)}} className={classes.neumoIconButton} sx={{borderRadius:"2.5rem !important"}} id="speed-button" aria-controls="speed-items" aria-haspopup="true" aria-expanded={Boolean(anchorEl) ? 'true' : undefined}>
+            <button onClick={(e)=>{e.preventDefault();e.stopPropagation(); setSpeedAnchorEl(e.currentTarget)}} type="button" id="speed-button" aria-controls="speed-items" aria-haspopup="true" aria-expanded={Boolean(anchorEl) ? 'true' : undefined} className=' bg-slate-100 stroke-slate-500 text-slate-500 cursor-pointer py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center hover:bg-slate-200 border-none transition'>
               x{speedDisplayed>=1 ? speedDisplayed.toFixed(1): speedDisplayed}
-            </Button>
+            </button>
           </Tooltip>
           <Menu
             id="speed-items"

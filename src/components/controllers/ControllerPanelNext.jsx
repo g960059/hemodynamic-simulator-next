@@ -2,7 +2,6 @@ import React,{useState, useEffect,useReducer} from 'react';
 import {Box,Grid, Typography, Stack,MenuItem,Divider,Select, Popover, IconButton, Slider,Tab, Button, ButtonGroup,ToggleButtonGroup,ToggleButton,Dialog,DialogContent,DialogTitle,DialogActions, DialogContentText,Tooltip,List,ListItem,ListItemText,ListItemIcon,Breadcrumbs,Link,useMediaQuery,Slide,Autocomplete,TextField,Menu} from '@mui/material'
 import {TabContext,TabList,TabPanel} from '@mui/lab';
 import { DragDropContext,Droppable,Draggable} from 'react-beautiful-dnd';
-import { makeStyles } from '@mui/styles';
 
 import {useTranslation} from '../../hooks/useTranslation'
 import {InputRanges,VDOptions} from '../../constants/InputSettings'
@@ -19,54 +18,7 @@ import ControllerDialog from '../ControllerDialog';
 
 const Severity = ["Trivial","Mild","Moderate","Severe"]
 
-const useStyles = makeStyles((theme) =>({
-    shadowBox: {
-      backgroundColor: "white",
-      boxShadow: "rgb(0 10 60 / 20%) 0px 3px 6px -2px",
-      border: "1px solid rgba(239, 246, 251, 0.6)",
-      borderRadius:"8px"
-    },
-    faintNeumoButton: {
-      transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-      color: "#b3b3b3",
-      backgroundColor: "#f1f4f9",
-      border: "none",
-      "&:hover":{
-        backgroundColor: "#e5f2ff",
-        color: "#3ea8ff"
-      },
-      "& .MuiOutlinedInput-notchedOutline": {border:"none"}
-    },
-    firestoreList: {
-      "&.Mui-selected":{
-        backgroundColor:"rgba(0, 0, 0, 0.04)", 
-        "&:hover":{
-          backgroundColor:"rgba(0, 0, 0, 0.04)"
-        }
-      },
-      "& .MuiListItemIcon-root .MuiSvgIcon-root":{
-        display:"none"
-      },
-      "&.MuiListItem-root:hover .MuiListItemIcon-root .MuiSvgIcon-root":{
-        display:"block"
-      },
-      "& .MuiListItemSecondaryAction-root .MuiButtonBase-root":{
-        display:"none"
-      },
-      "&.MuiListItem-root:hover .MuiListItemSecondaryAction-root .MuiButtonBase-root":{
-        display:"block"
-      }
-    },
-    secondaryActionHidden: {
-      "& .MuiListItemSecondaryAction-root .MuiButtonBase-root":{
-        display:"none"
-      },
-      "&.MuiListItem-root:hover .MuiListItemSecondaryAction-root .MuiButtonBase-root":{
-        display:"block"
-      }
-    }
-  }),
-);
+
 
 const Hdps = [
   'Volume',"HR",
@@ -76,8 +28,7 @@ const Hdps = [
   "ECMO","Impella"
 ]
 
-const ControllerPanel = React.memo(({view,updateView,removeView, patient, setPatient,patients,readOnly=false}) => {
-  const classes = useStyles()
+const ControllerPanel = React.memo(({view,updateView,removeView, patient, setPatient,patients}) => {
   const t = useTranslation()
   const [openInfoDialog, setOpenInfoDialog] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -175,305 +126,7 @@ const ControllerPanel = React.memo(({view,updateView,removeView, patient, setPat
 export default ControllerPanel
 
 
-export const ControllerEditor = ({initialController,updateController})=>{
-  const classes = useStyles()
-  const t = useTranslation();
-  const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
-  const [controller, setController] = useImmer(initialController);
-  const [controllerNameEditing, setControllerNameEditing] = useState(false);
-  const [dialogParentNameEditing, setDialogParentNameEditing] = useState(false);
-  const [dialogChildNameEditing, setDialogChildNameEditing] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedParentIndex, setSelectedParentIndex] = useState(null);
-  const [selectedChildIndex, setSelectedChildIndex] = useState(null);
-  console.log(selectedParentIndex, selectedChildIndex)
-  return <>
-    <Tooltip title="コントローラーを編集する">
-      <IconButton onClick={()=>{setDialogOpen(true)}} size="small" className={classes.faintNeumoButton} sx={{mr:1}}><EditOutlined/></IconButton>
-    </Tooltip>
-    <Dialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} maxWidth='md' sx={{"& .MuiDialog-paper":{width: "100%"}}}>
-      <DialogContent>
-        <Grid container sx={{border: "1px solid #5c93bb2b",borderRadius: "15px"}} disablePadding>
-          <Grid item xs={12} px={2} py={1} sx={{backgroundColor:"whitesmoke"}}>
-            <Breadcrumbs separator={<NavigateNext fontSize="small" />}>
-              <Link onClick={()=>{setSelectedChildIndex(null);setSelectedParentIndex(null)}} component="button" variant="body1" href="#" underline="hover" color="inherit" sx={{"&:hover":{color:"#f16a95"}}}>
-                <div className='px-1.5 m-1.5 mx-0  inline-flex items-center'>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 fill-slate-500" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
-                  </svg>
-                </div>
-              </Link>
-              {selectedParentIndex!=null && <Link onClick={()=>{setSelectedChildIndex(null)}} component="button" variant="body1" href="#" underline="hover" color="inherit" sx={{"&:hover":{color:"#f16a95"}}}>{controller.controllers[selectedParentIndex]?.name}</Link>}
-              {selectedParentIndex!=null && selectedChildIndex != null && <Link variant="body1" href="#" underline="none" color="inherit" >{controller.controllers[selectedParentIndex].controllers[selectedChildIndex]?.name}</Link>}
-            </Breadcrumbs>
-          </Grid>
-          <Grid item xs={12}>
-            <Divider flexItem/>
-          </Grid>
-          <Slide direction={"right"} in={isUpMd || selectedParentIndex==null} mountOnEnter unmountOnExit>
-            <Grid item xs={12} md={4} sx={{display: !isUpMd && selectedParentIndex!=null && "none"}}>
-              <List sx={{"& .MuiListItemIcon-root":{minWidth: "32px"}}} disablePadding>               
-                {/* <ListItem sx={{backgroundColor:"whitesmoke"}}>
-                {
-                  controllerNameEditing ? 
-                    <ReactiveInput 
-                      value={controller?.name} 
-                      updateValue={newName=>{
-                        setController({...controller,name:newName});
-                        setControllerNameEditing(false)
-                      }} 
-                      type="text" autoFocus/> :
-                    <Typography variant="h6" fontWeight="bold" onClick={()=>{setControllerNameEditing(true)}} sx={{width:1,cursor:"pointer","&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"}}}>{controller?.name}</Typography>
-                }                  
-                </ListItem> */}
-                <Divider/>
-                <ListItem 
-                  button sx={{"&.MuiListItem-root:hover":{backgroundColor:"#fef0f5"}}} 
-                  onClick={()=>{
-                    const id=nanoid(); 
-                    setController(draft=>{draft.controllers.push({id,name:"無題のタブ",items:[],controllers:[]});setSelectedParentIndex(draft.controllers.length-1);setDialogParentNameEditing(true)});
-                  }}
-                >
-                  <ListItemIcon ><Add color="primary"/></ListItemIcon><ListItemText primary="タブを追加" primaryTypographyProps={{color:"primary"}}/>
-                </ListItem>
-                <DragDropContext onDragEnd={({source,destination}) => {
-                  if(!destination || source.index==destination.index) return;
-                  setController(draft => {
-                    const [insertItem] = draft.controllers.splice(source.index,1)
-                    draft.controllers.splice(destination.index,0,insertItem)
-                    setSelectedParentIndex(destination.index)
-                  })
-                }} >
-                  <Droppable droppableId="root-tab">
-                    {(provided) => (
-                      <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
-                        {controller.controllers.map((controllerItem, index)=>(
-                            <Draggable key={controllerItem.id} draggableId={controllerItem.id} index={index}>
-                              {(provided) => (  
-                                <ListItem 
-                                  className={classes.firestoreList} 
-                                  button 
-                                  selected={index==selectedParentIndex} 
-                                  onClick={()=>{setSelectedParentIndex(index); setSelectedChildIndex(null)}}
-                                  ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} 
-                                >
-                                  <ListItemIcon ><DragIndicator/></ListItemIcon>
-                                  <ListItemText primary={controllerItem.name} sx={{cursor:"pointer"}}/>
-                                  {index==selectedParentIndex ? <ChevronRight sx={{display:"block"}}/> : null}
-                                </ListItem>
-                              )}
-                            </Draggable>                            
-                          ))}                        
-                        {provided.placeholder}
-                      </Box>
-                    )}
-                  </Droppable>
-                </DragDropContext>
-                <Divider/>                
-                <AddControllerItem addItem={newItem => {setController(draft=>{draft.items.push(newItem)})}}/>
-                <DragDropContext onDragEnd={({source,destination}) => {
-                  if(!destination || source.index==destination.index) return;
-                  setController(draft => {
-                    const [insertItem] = draft.items.splice(source.index,1)
-                    draft.items.splice(destination.index,0,insertItem)
-                  })
-                }} >
-                  <Droppable droppableId="root-item">
-                    {(provided) => (
-                      <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
-                        {controller.items?.map((controllerItem, index)=>(
-                          <Draggable key={controllerItem.id} draggableId={controllerItem.id} index={index}>
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef} 
-                                {...provided.draggableProps} {...provided.dragHandleProps}
-                              >
-                                <EditControllerItem 
-                                  initialItem={controllerItem} 
-                                  updateItem={newItem => {setController(draft=>{if(draft?.items){draft.items[index]=newItem}})}}
-                                  deleteItem={()=>{setController(draft=>{draft?.items.splice(index,1)});}}
-                                />    
-                              </div>
-                            )}
-                          </Draggable>                            
-                        ))}                        
-                        {provided.placeholder}
-                      </Box>
-                    )}
-                  </Droppable>
-                </DragDropContext>         
-              </List>
-            </Grid>
-          </Slide>
-          <Divider orientation="vertical" flexItem/>
-          <Slide direction="left" in={isUpMd || selectedParentIndex!=null} mountOnEnter unmountOnExit>
-            <Grid item xs={12} md={4} sx={{display: !isUpMd && (selectedParentIndex==null || selectedParentIndex!=null && selectedChildIndex!=null) && "none"}}>
-              <List sx={{"& .MuiListItemIcon-root":{minWidth: "32px"}}} disablePadding>
-                {selectedParentIndex != null && <ListItem sx={{backgroundColor:"whitesmoke"}} className={isUpMd && classes.secondaryActionHidden} secondaryAction={
-                  <IconButton edge="end" aria-label="delete" onClick={()=>{setController(draft=>{draft.controllers.splice(selectedParentIndex,1)});setSelectedParentIndex(null);setSelectedChildIndex(null)}}>
-                    <Delete/>
-                  </IconButton>
-                }>
-                  {
-                    dialogParentNameEditing ? 
-                      <ReactiveInput 
-                        value={controller.controllers[selectedParentIndex].name} 
-                        updateValue={newName=>{
-                          setController(draft=>{draft.controllers[selectedParentIndex].name=newName})
-                          setDialogParentNameEditing(false)
-                        }} 
-                        type="text" autoFocus/> :
-                      <Typography variant="h6" fontWeight="bold" onClick={()=>{setDialogParentNameEditing(true)}} sx={{width:1,cursor:"pointer","&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"}}}>{controller.controllers[selectedParentIndex]?.name}</Typography>
-                  }
-                </ListItem>}
-                <Divider/>
-                <ListItem button 
-                  sx={{"&.MuiListItem-root:hover":{backgroundColor:"#fef0f5"}}}
-                  onClick={()=>{
-                    const id=nanoid(); 
-                    setController(draft=>{draft.controllers[selectedParentIndex].controllers.push({id,name:"無題のタブ",items:[],controllers:[]});setSelectedChildIndex(draft.controllers[selectedParentIndex].controllers.length-1);setDialogChildNameEditing(true)});
-                  }}
-                >
-                  <ListItemIcon ><Add color="primary"/></ListItemIcon><ListItemText primary="タブを追加" primaryTypographyProps={{color:"primary"}}/>
-                </ListItem>
-                <DragDropContext onDragEnd={({source,destination}) => {
-                  if(!destination || source.index==destination.index) return;
-                  setController(draft => {
-                    const [insertItem] = draft.controllers[selectedParentIndex].controllers.splice(source.index,1)
-                    draft.controllers[selectedParentIndex].controllers.splice(destination.index,0,insertItem)
-                    setSelectedChildIndex(destination.index)
-                  })
-                }} >
-                  <Droppable droppableId="parent-tab">
-                    {(provided) => (
-                      <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
-                        {controller.controllers[selectedParentIndex]?.controllers.map((controllerItem, index)=>(
-                            <Draggable key={controllerItem.id} draggableId={controllerItem.id} index={index}>
-                              {(provided) => (  
-                                <ListItem 
-                                  className={classes.firestoreList} 
-                                  button 
-                                  selected={index==selectedChildIndex} 
-                                  onClick={()=>{setSelectedChildIndex(index)}}
-                                  ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} 
-                                >
-                                  <ListItemIcon ><DragIndicator/></ListItemIcon>
-                                  <ListItemText primary={controllerItem.name} sx={{cursor:"pointer"}}/>
-                                  {index==selectedChildIndex ? <ChevronRight sx={{display:"block"}}/> : null}
-                                </ListItem>
-                              )}
-                            </Draggable>                            
-                          ))}                        
-                        {provided.placeholder}
-                      </Box>
-                    )}
-                  </Droppable>
-                </DragDropContext>
-                <Divider/>
-                <AddControllerItem addItem={newItem => {setController(draft=>{draft.controllers[selectedParentIndex].items.push(newItem)})}}/>                
-                
-                <DragDropContext onDragEnd={({source,destination}) => {
-                  if(!destination || source.index==destination.index) return;
-                  setController(draft => {
-                    const [insertItem] = draft.controllers[selectedParentIndex]?.items.splice(source.index,1)
-                    draft.controllers[selectedParentIndex]?.items.splice(destination.index,0,insertItem)
-                  })
-                }} >
-                  <Droppable droppableId="parent-item">
-                    {(provided) => (
-                      <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
-                        {controller.controllers[selectedParentIndex]?.items?.map((controllerItem, index)=>(
-                          <Draggable key={controllerItem.id} draggableId={controllerItem.id} index={index}>
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef} 
-                                {...provided.draggableProps} {...provided.dragHandleProps}
-                              >
-                                <EditControllerItem 
-                                  initialItem={controllerItem} 
-                                  updateItem={newItem => {setController(draft=>{draft.controllers[selectedParentIndex].items[index]=newItem})}}
-                                  deleteItem={()=>{setController(draft=>{draft.controllers[selectedParentIndex].items.splice(index,1)});}}
-                                />     
-                              </div>
-                            )}
-                          </Draggable>                            
-                        ))}                        
-                        {provided.placeholder}
-                      </Box>
-                    )}
-                  </Droppable>
-                </DragDropContext>
-              </List>
-            </Grid>
-          </Slide> 
-          <Divider orientation="vertical" flexItem/>
-          <Slide direction="left" in={isUpMd || selectedChildIndex!=null && selectedParentIndex!=null} mountOnEnter unmountOnExit>
-            <Grid item xs={12} md={3.9} sx={{display: !isUpMd || selectedChildIndex==null && "none"}}>
-              <List disablePadding>
-                <ListItem sx={{backgroundColor:"whitesmoke"}} className={isUpMd && classes.secondaryActionHidden} secondaryAction={
-                  <IconButton edge="end" aria-label="delete" onClick={()=>{setController(draft=>{draft.controllers[selectedParentIndex].controllers.splice(selectedChildIndex,1)});setSelectedChildIndex(null)}}>
-                    <Delete/>
-                  </IconButton>
-                }>
-                  {
-                    dialogChildNameEditing ? 
-                      <ReactiveInput 
-                        value={controller.controllers[selectedParentIndex].controllers[selectedChildIndex]?.name} 
-                        updateValue={newName=>{
-                          setController(draft=>{draft.controllers[selectedParentIndex].controllers[selectedChildIndex].name=newName})
-                          setDialogChildNameEditing(false)
-                        }} 
-                        type="text" autoFocus/> :
-                      <Typography variant="h6" fontWeight="bold" onClick={()=>{setDialogChildNameEditing(true)}} sx={{width:1,cursor:"pointer","&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"}}}>{controller.controllers[selectedParentIndex]?.controllers[selectedChildIndex]?.name}</Typography>
-                  }
-                </ListItem> 
-                <Divider/> 
-                <AddControllerItem addItem={newItem => {setController(draft=>{draft.controllers[selectedParentIndex].controllers[selectedChildIndex].items.push(newItem)})}}/>
-                <DragDropContext onDragEnd={({source,destination}) => {
-                  if(!destination || source.index==destination.index) return;
-                  setController(draft => {
-                    const [insertItem] = draft.controllers[selectedParentIndex].controllers[selectedChildIndex]?.items.splice(source.index,1)
-                    draft.controllers[selectedParentIndex].controllers[selectedChildIndex]?.items.splice(destination.index,0,insertItem)
-                  })
-                }} >
-                  <Droppable droppableId="child-item">
-                    {(provided) => (
-                      <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
-                        {controller.controllers[selectedParentIndex]?.controllers[selectedChildIndex]?.items?.map((controllerItem, index)=>(
-                          <Draggable key={controllerItem.id} draggableId={controllerItem.id} index={index}>
-                            {(provided) => (
-                              <div
-                                ref={provided.innerRef} 
-                                {...provided.draggableProps} {...provided.dragHandleProps}
-                              >
-                              <EditControllerItem 
-                                initialItem={controllerItem} 
-                                updateItem={newItem => {setController(draft=>{draft.controllers[selectedParentIndex].controllers[selectedChildIndex].items[index]=newItem})}}
-                                deleteItem={()=>{setController(draft=>{draft.controllers[selectedParentIndex].controllers[selectedChildIndex].items.splice(index,1)});}}
-                              />
-                              </div>
-                            )}
-                          </Draggable>                            
-                        ))}                        
-                        {provided.placeholder}
-                      </Box>
-                    )}
-                  </Droppable>
-                </DragDropContext>      
-              </List>
-            </Grid> 
-          </Slide>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Stack direction="row" spacing={2}>
-          <Button color="secondary" onClick={()=>{setController(initialController);setDialogOpen(false)}}>Cancel</Button>
-          <Button variant="contained" onClick={()=>{updateController(controller);setDialogOpen(false)}}>{t["Save"]}</Button>
-        </Stack>
-      </DialogActions>
-    </Dialog>  
-  </>
-}
+
 
 export const EditControllerItem = ({initialItem,updateItem, deleteItem}) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -1182,3 +835,336 @@ export const BasicToggleButtons = React.memo(({hdp,initialHdps, hdps,setHdps}) =
     </Box>
   </>
 })
+
+// export const ControllerEditor = ({initialController,updateController})=>{
+//   const classes = useStyles()
+//   const t = useTranslation();
+//   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
+//   const [controller, setController] = useImmer(initialController);
+//   const [controllerNameEditing, setControllerNameEditing] = useState(false);
+//   const [dialogParentNameEditing, setDialogParentNameEditing] = useState(false);
+//   const [dialogChildNameEditing, setDialogChildNameEditing] = useState(false);
+//   const [dialogOpen, setDialogOpen] = useState(false);
+//   const [selectedParentIndex, setSelectedParentIndex] = useState(null);
+//   const [selectedChildIndex, setSelectedChildIndex] = useState(null);
+//   console.log(selectedParentIndex, selectedChildIndex)
+//   return <>
+//     <Tooltip title="コントローラーを編集する">
+//       <IconButton onClick={()=>{setDialogOpen(true)}} size="small" className={classes.faintNeumoButton} sx={{mr:1}}><EditOutlined/></IconButton>
+//     </Tooltip>
+//     <Dialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} maxWidth='md' sx={{"& .MuiDialog-paper":{width: "100%"}}}>
+//       <DialogContent>
+//         <Grid container sx={{border: "1px solid #5c93bb2b",borderRadius: "15px"}} disablePadding>
+//           <Grid item xs={12} px={2} py={1} sx={{backgroundColor:"whitesmoke"}}>
+//             <Breadcrumbs separator={<NavigateNext fontSize="small" />}>
+//               <Link onClick={()=>{setSelectedChildIndex(null);setSelectedParentIndex(null)}} component="button" variant="body1" href="#" underline="hover" color="inherit" sx={{"&:hover":{color:"#f16a95"}}}>
+//                 <div className='px-1.5 m-1.5 mx-0  inline-flex items-center'>
+//                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 fill-slate-500" viewBox="0 0 20 20" fill="currentColor">
+//                     <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
+//                   </svg>
+//                 </div>
+//               </Link>
+//               {selectedParentIndex!=null && <Link onClick={()=>{setSelectedChildIndex(null)}} component="button" variant="body1" href="#" underline="hover" color="inherit" sx={{"&:hover":{color:"#f16a95"}}}>{controller.controllers[selectedParentIndex]?.name}</Link>}
+//               {selectedParentIndex!=null && selectedChildIndex != null && <Link variant="body1" href="#" underline="none" color="inherit" >{controller.controllers[selectedParentIndex].controllers[selectedChildIndex]?.name}</Link>}
+//             </Breadcrumbs>
+//           </Grid>
+//           <Grid item xs={12}>
+//             <Divider flexItem/>
+//           </Grid>
+//           <Slide direction={"right"} in={isUpMd || selectedParentIndex==null} mountOnEnter unmountOnExit>
+//             <Grid item xs={12} md={4} sx={{display: !isUpMd && selectedParentIndex!=null && "none"}}>
+//               <List sx={{"& .MuiListItemIcon-root":{minWidth: "32px"}}} disablePadding>               
+//                 {/* <ListItem sx={{backgroundColor:"whitesmoke"}}>
+//                 {
+//                   controllerNameEditing ? 
+//                     <ReactiveInput 
+//                       value={controller?.name} 
+//                       updateValue={newName=>{
+//                         setController({...controller,name:newName});
+//                         setControllerNameEditing(false)
+//                       }} 
+//                       type="text" autoFocus/> :
+//                     <Typography variant="h6" fontWeight="bold" onClick={()=>{setControllerNameEditing(true)}} sx={{width:1,cursor:"pointer","&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"}}}>{controller?.name}</Typography>
+//                 }                  
+//                 </ListItem> */}
+//                 <Divider/>
+//                 <ListItem 
+//                   button sx={{"&.MuiListItem-root:hover":{backgroundColor:"#fef0f5"}}} 
+//                   onClick={()=>{
+//                     const id=nanoid(); 
+//                     setController(draft=>{draft.controllers.push({id,name:"無題のタブ",items:[],controllers:[]});setSelectedParentIndex(draft.controllers.length-1);setDialogParentNameEditing(true)});
+//                   }}
+//                 >
+//                   <ListItemIcon ><Add color="primary"/></ListItemIcon><ListItemText primary="タブを追加" primaryTypographyProps={{color:"primary"}}/>
+//                 </ListItem>
+//                 <DragDropContext onDragEnd={({source,destination}) => {
+//                   if(!destination || source.index==destination.index) return;
+//                   setController(draft => {
+//                     const [insertItem] = draft.controllers.splice(source.index,1)
+//                     draft.controllers.splice(destination.index,0,insertItem)
+//                     setSelectedParentIndex(destination.index)
+//                   })
+//                 }} >
+//                   <Droppable droppableId="root-tab">
+//                     {(provided) => (
+//                       <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
+//                         {controller.controllers.map((controllerItem, index)=>(
+//                             <Draggable key={controllerItem.id} draggableId={controllerItem.id} index={index}>
+//                               {(provided) => (  
+//                                 <ListItem 
+//                                   className={classes.firestoreList} 
+//                                   button 
+//                                   selected={index==selectedParentIndex} 
+//                                   onClick={()=>{setSelectedParentIndex(index); setSelectedChildIndex(null)}}
+//                                   ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} 
+//                                 >
+//                                   <ListItemIcon ><DragIndicator/></ListItemIcon>
+//                                   <ListItemText primary={controllerItem.name} sx={{cursor:"pointer"}}/>
+//                                   {index==selectedParentIndex ? <ChevronRight sx={{display:"block"}}/> : null}
+//                                 </ListItem>
+//                               )}
+//                             </Draggable>                            
+//                           ))}                        
+//                         {provided.placeholder}
+//                       </Box>
+//                     )}
+//                   </Droppable>
+//                 </DragDropContext>
+//                 <Divider/>                
+//                 <AddControllerItem addItem={newItem => {setController(draft=>{draft.items.push(newItem)})}}/>
+//                 <DragDropContext onDragEnd={({source,destination}) => {
+//                   if(!destination || source.index==destination.index) return;
+//                   setController(draft => {
+//                     const [insertItem] = draft.items.splice(source.index,1)
+//                     draft.items.splice(destination.index,0,insertItem)
+//                   })
+//                 }} >
+//                   <Droppable droppableId="root-item">
+//                     {(provided) => (
+//                       <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
+//                         {controller.items?.map((controllerItem, index)=>(
+//                           <Draggable key={controllerItem.id} draggableId={controllerItem.id} index={index}>
+//                             {(provided) => (
+//                               <div
+//                                 ref={provided.innerRef} 
+//                                 {...provided.draggableProps} {...provided.dragHandleProps}
+//                               >
+//                                 <EditControllerItem 
+//                                   initialItem={controllerItem} 
+//                                   updateItem={newItem => {setController(draft=>{if(draft?.items){draft.items[index]=newItem}})}}
+//                                   deleteItem={()=>{setController(draft=>{draft?.items.splice(index,1)});}}
+//                                 />    
+//                               </div>
+//                             )}
+//                           </Draggable>                            
+//                         ))}                        
+//                         {provided.placeholder}
+//                       </Box>
+//                     )}
+//                   </Droppable>
+//                 </DragDropContext>         
+//               </List>
+//             </Grid>
+//           </Slide>
+//           <Divider orientation="vertical" flexItem/>
+//           <Slide direction="left" in={isUpMd || selectedParentIndex!=null} mountOnEnter unmountOnExit>
+//             <Grid item xs={12} md={4} sx={{display: !isUpMd && (selectedParentIndex==null || selectedParentIndex!=null && selectedChildIndex!=null) && "none"}}>
+//               <List sx={{"& .MuiListItemIcon-root":{minWidth: "32px"}}} disablePadding>
+//                 {selectedParentIndex != null && <ListItem sx={{backgroundColor:"whitesmoke"}} className={isUpMd && classes.secondaryActionHidden} secondaryAction={
+//                   <IconButton edge="end" aria-label="delete" onClick={()=>{setController(draft=>{draft.controllers.splice(selectedParentIndex,1)});setSelectedParentIndex(null);setSelectedChildIndex(null)}}>
+//                     <Delete/>
+//                   </IconButton>
+//                 }>
+//                   {
+//                     dialogParentNameEditing ? 
+//                       <ReactiveInput 
+//                         value={controller.controllers[selectedParentIndex].name} 
+//                         updateValue={newName=>{
+//                           setController(draft=>{draft.controllers[selectedParentIndex].name=newName})
+//                           setDialogParentNameEditing(false)
+//                         }} 
+//                         type="text" autoFocus/> :
+//                       <Typography variant="h6" fontWeight="bold" onClick={()=>{setDialogParentNameEditing(true)}} sx={{width:1,cursor:"pointer","&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"}}}>{controller.controllers[selectedParentIndex]?.name}</Typography>
+//                   }
+//                 </ListItem>}
+//                 <Divider/>
+//                 <ListItem button 
+//                   sx={{"&.MuiListItem-root:hover":{backgroundColor:"#fef0f5"}}}
+//                   onClick={()=>{
+//                     const id=nanoid(); 
+//                     setController(draft=>{draft.controllers[selectedParentIndex].controllers.push({id,name:"無題のタブ",items:[],controllers:[]});setSelectedChildIndex(draft.controllers[selectedParentIndex].controllers.length-1);setDialogChildNameEditing(true)});
+//                   }}
+//                 >
+//                   <ListItemIcon ><Add color="primary"/></ListItemIcon><ListItemText primary="タブを追加" primaryTypographyProps={{color:"primary"}}/>
+//                 </ListItem>
+//                 <DragDropContext onDragEnd={({source,destination}) => {
+//                   if(!destination || source.index==destination.index) return;
+//                   setController(draft => {
+//                     const [insertItem] = draft.controllers[selectedParentIndex].controllers.splice(source.index,1)
+//                     draft.controllers[selectedParentIndex].controllers.splice(destination.index,0,insertItem)
+//                     setSelectedChildIndex(destination.index)
+//                   })
+//                 }} >
+//                   <Droppable droppableId="parent-tab">
+//                     {(provided) => (
+//                       <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
+//                         {controller.controllers[selectedParentIndex]?.controllers.map((controllerItem, index)=>(
+//                             <Draggable key={controllerItem.id} draggableId={controllerItem.id} index={index}>
+//                               {(provided) => (  
+//                                 <ListItem 
+//                                   className={classes.firestoreList} 
+//                                   button 
+//                                   selected={index==selectedChildIndex} 
+//                                   onClick={()=>{setSelectedChildIndex(index)}}
+//                                   ref={provided.innerRef} {...provided.draggableProps} {...provided.dragHandleProps} 
+//                                 >
+//                                   <ListItemIcon ><DragIndicator/></ListItemIcon>
+//                                   <ListItemText primary={controllerItem.name} sx={{cursor:"pointer"}}/>
+//                                   {index==selectedChildIndex ? <ChevronRight sx={{display:"block"}}/> : null}
+//                                 </ListItem>
+//                               )}
+//                             </Draggable>                            
+//                           ))}                        
+//                         {provided.placeholder}
+//                       </Box>
+//                     )}
+//                   </Droppable>
+//                 </DragDropContext>
+//                 <Divider/>
+//                 <AddControllerItem addItem={newItem => {setController(draft=>{draft.controllers[selectedParentIndex].items.push(newItem)})}}/>                
+                
+//                 <DragDropContext onDragEnd={({source,destination}) => {
+//                   if(!destination || source.index==destination.index) return;
+//                   setController(draft => {
+//                     const [insertItem] = draft.controllers[selectedParentIndex]?.items.splice(source.index,1)
+//                     draft.controllers[selectedParentIndex]?.items.splice(destination.index,0,insertItem)
+//                   })
+//                 }} >
+//                   <Droppable droppableId="parent-item">
+//                     {(provided) => (
+//                       <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
+//                         {controller.controllers[selectedParentIndex]?.items?.map((controllerItem, index)=>(
+//                           <Draggable key={controllerItem.id} draggableId={controllerItem.id} index={index}>
+//                             {(provided) => (
+//                               <div
+//                                 ref={provided.innerRef} 
+//                                 {...provided.draggableProps} {...provided.dragHandleProps}
+//                               >
+//                                 <EditControllerItem 
+//                                   initialItem={controllerItem} 
+//                                   updateItem={newItem => {setController(draft=>{draft.controllers[selectedParentIndex].items[index]=newItem})}}
+//                                   deleteItem={()=>{setController(draft=>{draft.controllers[selectedParentIndex].items.splice(index,1)});}}
+//                                 />     
+//                               </div>
+//                             )}
+//                           </Draggable>                            
+//                         ))}                        
+//                         {provided.placeholder}
+//                       </Box>
+//                     )}
+//                   </Droppable>
+//                 </DragDropContext>
+//               </List>
+//             </Grid>
+//           </Slide> 
+//           <Divider orientation="vertical" flexItem/>
+//           <Slide direction="left" in={isUpMd || selectedChildIndex!=null && selectedParentIndex!=null} mountOnEnter unmountOnExit>
+//             <Grid item xs={12} md={3.9} sx={{display: !isUpMd || selectedChildIndex==null && "none"}}>
+//               <List disablePadding>
+//                 <ListItem sx={{backgroundColor:"whitesmoke"}} className={isUpMd && classes.secondaryActionHidden} secondaryAction={
+//                   <IconButton edge="end" aria-label="delete" onClick={()=>{setController(draft=>{draft.controllers[selectedParentIndex].controllers.splice(selectedChildIndex,1)});setSelectedChildIndex(null)}}>
+//                     <Delete/>
+//                   </IconButton>
+//                 }>
+//                   {
+//                     dialogChildNameEditing ? 
+//                       <ReactiveInput 
+//                         value={controller.controllers[selectedParentIndex].controllers[selectedChildIndex]?.name} 
+//                         updateValue={newName=>{
+//                           setController(draft=>{draft.controllers[selectedParentIndex].controllers[selectedChildIndex].name=newName})
+//                           setDialogChildNameEditing(false)
+//                         }} 
+//                         type="text" autoFocus/> :
+//                       <Typography variant="h6" fontWeight="bold" onClick={()=>{setDialogChildNameEditing(true)}} sx={{width:1,cursor:"pointer","&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"}}}>{controller.controllers[selectedParentIndex]?.controllers[selectedChildIndex]?.name}</Typography>
+//                   }
+//                 </ListItem> 
+//                 <Divider/> 
+//                 <AddControllerItem addItem={newItem => {setController(draft=>{draft.controllers[selectedParentIndex].controllers[selectedChildIndex].items.push(newItem)})}}/>
+//                 <DragDropContext onDragEnd={({source,destination}) => {
+//                   if(!destination || source.index==destination.index) return;
+//                   setController(draft => {
+//                     const [insertItem] = draft.controllers[selectedParentIndex].controllers[selectedChildIndex]?.items.splice(source.index,1)
+//                     draft.controllers[selectedParentIndex].controllers[selectedChildIndex]?.items.splice(destination.index,0,insertItem)
+//                   })
+//                 }} >
+//                   <Droppable droppableId="child-item">
+//                     {(provided) => (
+//                       <Box {...provided.droppableProps} ref={provided.innerRef} width={1}>
+//                         {controller.controllers[selectedParentIndex]?.controllers[selectedChildIndex]?.items?.map((controllerItem, index)=>(
+//                           <Draggable key={controllerItem.id} draggableId={controllerItem.id} index={index}>
+//                             {(provided) => (
+//                               <div
+//                                 ref={provided.innerRef} 
+//                                 {...provided.draggableProps} {...provided.dragHandleProps}
+//                               >
+//                               <EditControllerItem 
+//                                 initialItem={controllerItem} 
+//                                 updateItem={newItem => {setController(draft=>{draft.controllers[selectedParentIndex].controllers[selectedChildIndex].items[index]=newItem})}}
+//                                 deleteItem={()=>{setController(draft=>{draft.controllers[selectedParentIndex].controllers[selectedChildIndex].items.splice(index,1)});}}
+//                               />
+//                               </div>
+//                             )}
+//                           </Draggable>                            
+//                         ))}                        
+//                         {provided.placeholder}
+//                       </Box>
+//                     )}
+//                   </Droppable>
+//                 </DragDropContext>      
+//               </List>
+//             </Grid> 
+//           </Slide>
+//         </Grid>
+//       </DialogContent>
+//       <DialogActions>
+//         <Stack direction="row" spacing={2}>
+//           <Button color="secondary" onClick={()=>{setController(initialController);setDialogOpen(false)}}>Cancel</Button>
+//           <Button variant="contained" onClick={()=>{updateController(controller);setDialogOpen(false)}}>{t["Save"]}</Button>
+//         </Stack>
+//       </DialogActions>
+//     </Dialog>  
+//   </>
+// }
+
+// const useStyles = makeStyles((theme) =>({
+
+//   firestoreList: {
+//     "&.Mui-selected":{
+//       backgroundColor:"rgba(0, 0, 0, 0.04)", 
+//       "&:hover":{
+//         backgroundColor:"rgba(0, 0, 0, 0.04)"
+//       }
+//     },
+//     "& .MuiListItemIcon-root .MuiSvgIcon-root":{
+//       display:"none"
+//     },
+//     "&.MuiListItem-root:hover .MuiListItemIcon-root .MuiSvgIcon-root":{
+//       display:"block"
+//     },
+//     "& .MuiListItemSecondaryAction-root .MuiButtonBase-root":{
+//       display:"none"
+//     },
+//     "&.MuiListItem-root:hover .MuiListItemSecondaryAction-root .MuiButtonBase-root":{
+//       display:"block"
+//     }
+//   },
+//   secondaryActionHidden: {
+//     "& .MuiListItemSecondaryAction-root .MuiButtonBase-root":{
+//       display:"none"
+//     },
+//     "&.MuiListItem-root:hover .MuiListItemSecondaryAction-root .MuiButtonBase-root":{
+//       display:"block"
+//     }
+//   }
+// }),
+// );

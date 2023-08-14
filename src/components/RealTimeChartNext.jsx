@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Box, Typography, CircularProgress, Popover, useMediaQuery, NoSsr} from '@mui/material'
-import { makeStyles} from '@mui/styles';
 import { alpha } from '@mui/material/styles';
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { chartBuilder } from "scichart/Builder/chartBuilder";
@@ -26,67 +25,7 @@ import { nanoid } from 'nanoid'
 const TIME_WINDOW_GAP = 300
 const isClient = () => typeof window !== 'undefined'
 
-const useStyles = makeStyles((theme) =>({
-  neumoButton: {
-    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-    color: "rgb(69, 90, 100)",
-    boxShadow: "0 2px 4px -2px #21253840",
-    backgroundColor: "white",
-    border: "1px solid rgba(92, 147, 187, 0.17)",
-    fontWeight:"bold",
-    "&:hover":{
-      backgroundColor: "rgba(239, 246, 251, 0.6)",
-      borderColor: "rgb(207, 220, 230)"
-    }
-  },
-  neumoIconButton:{
-    color:"#93a5b1",
-    boxShadow:"0 0 2px #4b57a926, 0 10px 12px -4px #0009651a",
-    width:"44px",
-    height:"44px",
-    backgroundColor:"white",
-    borderRadius:"50%",
-    transition:".3s",
-    "&:hover":{
-      boxShadow:"0 25px 25px -10px #00096540",
-      transform: "translateY(-2px)",
-      color: "#f76685",
-      backgroundColor:"white",
-    }
-  },
-  neumoSelect: {
-    backgroundColor: '#f1f5f9',
-    borderRadius: '4px',
-    border: '1px solid #5c93bb2b',
-    '&:hover': {
-        borderColor: '#3ea8ff',
-    }, 
-    "& .MuiOutlinedInput-notchedOutline":{border:"none"},
-    "& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input":{paddingTop:"8px",paddingBottom:"8px"}
-  },
-  neumoSelectInvert: {
-    backgroundColor: '#ffffff',
-    borderRadius: '4px',
-    border: '1px solid #5c93bb2b',
-    '&:hover': {
-        borderColor: '#3ea8ff',
-    }, 
-    "& .MuiOutlinedInput-notchedOutline":{border:"none"},
-    "& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input":{paddingTop:"8px",paddingBottom:"8px"}
-  },
-  faintNeumoButton: {
-    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-    color: "#b3b3b3",
-    backgroundColor: "#f1f4f9",
-    border: "none",
-    "&:hover":{
-      backgroundColor: "#fff2f2",
-      color: "#ec407a"
-    },
-    "& .MuiOutlinedInput-notchedOutline": {border:"none"}
-  },
-}),
-);
+
 
 const TIME_WINDOW = 6000
 
@@ -496,3 +435,64 @@ export default RealTimeChart
           //   return hdpTypes?.filter(pt => !existingItems.includes(pt)) 
           // }
         
+          // const useStyles = makeStyles((theme) =>({
+          //   neumoButton: {
+          //     transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+          //     color: "rgb(69, 90, 100)",
+          //     boxShadow: "0 2px 4px -2px #21253840",
+          //     backgroundColor: "white",
+          //     border: "1px solid rgba(92, 147, 187, 0.17)",
+          //     fontWeight:"bold",
+          //     "&:hover":{
+          //       backgroundColor: "rgba(239, 246, 251, 0.6)",
+          //       borderColor: "rgb(207, 220, 230)"
+          //     }
+          //   },
+          //   neumoIconButton:{
+          //     color:"#93a5b1",
+          //     boxShadow:"0 0 2px #4b57a926, 0 10px 12px -4px #0009651a",
+          //     width:"44px",
+          //     height:"44px",
+          //     backgroundColor:"white",
+          //     borderRadius:"50%",
+          //     transition:".3s",
+          //     "&:hover":{
+          //       boxShadow:"0 25px 25px -10px #00096540",
+          //       transform: "translateY(-2px)",
+          //       color: "#f76685",
+          //       backgroundColor:"white",
+          //     }
+          //   },
+          //   neumoSelect: {
+          //     backgroundColor: '#f1f5f9',
+          //     borderRadius: '4px',
+          //     border: '1px solid #5c93bb2b',
+          //     '&:hover': {
+          //         borderColor: '#3ea8ff',
+          //     }, 
+          //     "& .MuiOutlinedInput-notchedOutline":{border:"none"},
+          //     "& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input":{paddingTop:"8px",paddingBottom:"8px"}
+          //   },
+          //   neumoSelectInvert: {
+          //     backgroundColor: '#ffffff',
+          //     borderRadius: '4px',
+          //     border: '1px solid #5c93bb2b',
+          //     '&:hover': {
+          //         borderColor: '#3ea8ff',
+          //     }, 
+          //     "& .MuiOutlinedInput-notchedOutline":{border:"none"},
+          //     "& .MuiSelect-select.MuiSelect-outlined.MuiInputBase-input":{paddingTop:"8px",paddingBottom:"8px"}
+          //   },
+          //   faintNeumoButton: {
+          //     transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
+          //     color: "#b3b3b3",
+          //     backgroundColor: "#f1f4f9",
+          //     border: "none",
+          //     "&:hover":{
+          //       backgroundColor: "#fff2f2",
+          //       color: "#ec407a"
+          //     },
+          //     "& .MuiOutlinedInput-notchedOutline": {border:"none"}
+          //   },
+          // }),
+          // );
