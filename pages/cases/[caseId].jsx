@@ -1,16 +1,16 @@
 import React, {useRef, useState, useEffect} from 'react'
 import {Box,Typography,Grid,Tab,Tabs, Divider,AppBar,Tooltip, Toolbar,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery, NoSsr} from '@mui/material'
 import {ArrowBack,Add,Check,Tune,FavoriteBorder,DragIndicator} from '@mui/icons-material';
-import {useEngine, user$,cases$, allCases$} from '../../../hooks/usePvLoop'
+import {useEngine, user$,cases$, allCases$} from '../../src/hooks/usePvLoop'
 import { useRouter } from 'next/router'
-import {useTranslation} from '../../../hooks/useTranslation'
-import ReactiveInput from "../../../components/ReactiveInput";
-import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS, DEFAULT_CONTROLLER_NEXT, paramPresets} from '../../../utils/presets'
+import {useTranslation} from '../../src/hooks/useTranslation'
+import ReactiveInput from "../../src/components/ReactiveInput";
+import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS, DEFAULT_CONTROLLER_NEXT, paramPresets} from '../../src/utils/presets'
 
 import dynamic from 'next/dynamic'
 import { NextSeo } from 'next-seo';
 import {useObservable} from "reactfire"
-import {db,auth} from "../../../utils/firebase"
+import {db,auth} from "../../src/utils/firebase"
 import { mergeMap,filter,tap,map} from "rxjs/operators";
 import {forkJoin, combine, combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
@@ -18,16 +18,16 @@ import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs,
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
 import isEqual from "lodash/isEqual"
-import {objectWithoutKey,objectWithoutKeys,getRandomEmoji,useLeavePageConfirmation, deepEqual,deepEqual2} from "../../../utils/utils"
+import {objectWithoutKey,objectWithoutKeys,getRandomEmoji,useLeavePageConfirmation, deepEqual,deepEqual2} from "../../src/utils/utils"
 import { Picker } from 'emoji-mart'
-import { getRandomColor } from '../../../styles/chartConstants';
+import { getRandomColor } from '../../src/styles/chartConstants';
 import Lottie from 'react-lottie-player' 
-import LoadingAnimation from "../../../lotties/LoadingAnimation.json"
-import Background from '../../../elements/Background';
-import Layout from '../../../components/layout';
-import Footer from '../../../components/Footer';
+import LoadingAnimation from "../../src/lotties/LoadingAnimation.json"
+import Background from '../../src/elements/Background';
+import Layout from '../../src/components/layout';
+import Footer from '../../src/components/Footer';
 
-const CaseEditor = dynamic(() => import('../../../components/CaseEditor'),{ssr:false})
+const CaseEditor = dynamic(() => import('../../src/components/CaseEditor'),{ssr:false})
 
 
 

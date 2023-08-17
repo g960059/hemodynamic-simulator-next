@@ -1,10 +1,10 @@
 import React  from 'react'
 import {Box, Grid, Typography, Divider,Button,Stack} from '@mui/material'
-import {useTranslation} from "../../hooks/useTranslation"
-import Footer from "../../components/Footer"
+import {useTranslation} from "../src/hooks/useTranslation"
+import Footer from "../src/components/Footer"
 import {Timeline, TimelineConnector,TimelineItem,TimelineContent,TimelineSeparator,TimelineDot} from '@mui/lab'
-import Layout from '../../components/layout';
-import Background from '../../elements/Background';
+import Layout from '../src/components/layout';
+import Background from '../src/elements/Background';
 
 
 const Changelog = () => {
