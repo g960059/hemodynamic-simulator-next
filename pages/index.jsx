@@ -130,37 +130,29 @@ export const getStaticProps = async () => {
 export const CaseItem = ({caseItem}) => {
   const router = useRouter()
   return (
-    <div key={caseItem?.id} onClick={()=>{router.push({pathname:`/cases/${caseItem?.id}`,query:{caseUid: caseItem.uid}})}} className="w-full flex flex-col py-3 px-4 bg-white cursor-pointer border border-solid border-slate-200 rounded-md overflow-hidden hover:shadow transition">
+    <div key={caseItem?.id} onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/cases/${caseItem?.id}`,query:{caseUid: caseItem.uid}})}}  className="w-full flex flex-col py-3 px-4 bg-white cursor-pointer border border-solid border-slate-200 rounded-md overflow-hidden hover:shadow transition">
       <div className='flex flex-row items-center'>
         {caseItem?.photoURL ?
-          <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/users/${caseItem.userId}`)}}>
+          <div className="h-8 w-8 rounded-full overflow-hidden" onClick={(e)=>{e.stopPropagation(); router.push(`/users/${caseItem.userId}`)}}>
             <Image src={caseItem?.photoURL} height="32" width="32" alt="userPhoto"/>
           </div> :
-          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${caseItem.userId}`)}}>
+          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={(e)=>{e.stopPropagation();router.push(`/users/${caseItem.userId}`)}}>
             <span className="text-xs font-medium leading-none text-white">{caseItem?.displayName[0]}</span>
           </div>
         }
-        <div className='ml-2 text-slate-500'>
-          <Link href={`/users/${caseItem?.userId}`} className='text-sm font-medium no-underline hover:underline text-slate-500'>
+        <div className='ml-2 text-slate-500' >
+          <div onClick={(e)=>{e.stopPropagation(); router.push(`/users/${caseItem.userId}`)}} className='text-sm font-medium no-underline hover:underline text-slate-500'>
               {caseItem?.displayName}
-          </Link>
+          </div>
           <div className='flex flex-row items-center justify-between'>
             <span className='text-sm font-medium '>{ formatDateDiff(new Date(), new Date(caseItem?.updatedAt?.seconds * 1000)) } </span>
           </div>
         </div>
       </div>
-      {/* <Link className= "text-slate-900 hover:opacity-70 transition-opacity duration-200 cursor-pointer w-24 h-24 no-underline hover:no-underline" >
-          {
-            caseItem?.coverURL ? <Image src={caseItem?.coverURL} width={96} height={96}/> :
-            <div className='bg-blue-50 rounded-lg flex justify-center items-center w-24 h-24'>
-              <span className='text-4xl'>{caseItem?.emoji}</span>
-            </div>
-          }
-      </Link> */}
-      <div className='ml-10 mt-2'>
-        <Link href={`/cases/${caseItem?.id}`} className='font-bold text-xl text-slate-800 no-underline hover:underline'>
-            {caseItem?.name || "無題のケース"}
-        </Link>
+      <div className='ml-10 mt-2' onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/cases/${caseItem?.id}`,query:{caseUid: caseItem.uid}})}}>
+        <div className='font-bold text-xl text-slate-800 no-underline hover:underline'>
+            {caseItem?.name || "Untitled"}
+        </div>
       </div>
       <div className='ml-10 mt-2'>
         <span className='text-sm flex flex-row items-center justify-start text-slate-500'>
