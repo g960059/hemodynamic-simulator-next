@@ -29,7 +29,7 @@ const PlaySpeedButtons = ({engine, removeView, isOwner}) =>{
             </svg>
           </div>}
         </div>
-        <div className='draggable cursor-move flex flex-wrap flex-grow w-full items-center justify-center'>
+        <div className='md:draggable md:cursor-move flex flex-wrap flex-grow w-full items-center justify-center'>
           <Tooltip title={isPlaying ? t['Pause']: t['Play']} className='m-2 -mt-5'>
             <button onClick={(e)=>{e.preventDefault();e.stopPropagation(); setIsPlaying(prev=>!prev)}} type="button" className=' bg-slate-100 stroke-slate-500 text-slate-500 cursor-pointer py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center hover:bg-slate-200 border-2 border-solid border-slate-200 transition'>
               {isPlaying ? <Pause/>:<PlayArrow/>}
