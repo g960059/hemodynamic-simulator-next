@@ -13,7 +13,7 @@ const Footer = () => {
       <Box sx={{maxWidth:"260px",width:"100%",p:2,mr:3,display:"flex",justifyContent:{xs:"flex-start",md:"center"}}} >
         <Stack sx={{mb:1}}>
           <Stack direction="row">
-            <Box sx={{display:'block', mb:'-6px'}}><Image src="/HeaderIcon.png" width={30} height={30}/></Box>            
+            <Box sx={{display:'block', mb:'-6px'}}><Image src="/HeaderIcon.png" width={30} height={30} alt="headerIcon"/></Box>            
             <Typography variant="h5" noWrap component="div" sx={{fontFamily: "GT Haptik Regular" ,fontWeight: 'bold'}}>
               {t['Title']}
             </Typography>

@@ -76,7 +76,7 @@ export const CaseItem = ({caseItem}) => {
       <Link href={`/${caseItem?.userId}/cases/${caseItem?.id}`} >
         <a className= "text-slate-900 hover:opacity-70 transition-opacity duration-200 cursor-pointer w-24 h-24 no-underline hover:no-underline">
           {
-            caseItem?.coverURL ? <Image src={caseItem?.coverURL} width={96} height={96}/> :
+            caseItem?.coverURL ? <Image src={caseItem?.coverURL} width={96} height={96} alt="coverImage"/> :
             <div className='bg-blue-50 rounded-lg flex justify-center items-center w-24 h-24'>
               <span className='text-4xl'>{caseItem?.emoji}</span>
             </div>
@@ -93,7 +93,7 @@ export const CaseItem = ({caseItem}) => {
         <div className='flex flex-row items-center'>
           {caseItem?.photoURL ?
             <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/users/${caseItem.userId}`)}}>
-              <Image src={caseItem?.photoURL} height="32" width="32"/>
+              <Image src={caseItem?.photoURL} height="32" width="32" alt="userPhoto"/>
             </div> :
             <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${caseItem.userId}`)}}>
               <span className="text-xs font-medium leading-none text-white">{caseItem?.displayName[0]}</span>

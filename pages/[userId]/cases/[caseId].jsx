@@ -214,7 +214,7 @@ const CaseReader = () => {
       <AppBar position="static" elevation={0} className="bg-white text-inherit" >
         <Toolbar sx={{py:.5}}>
           <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex", alignItems:"center"}}>
-            <Box mb={-1} mr={1}><Image src="/HeaderIcon.png" width={32} height={32}/></Box>
+            <Box mb={-1} mr={1}><Image src="/HeaderIcon.png" width={32} height={32} alt="HeaderIcon"/></Box>
             <div className='overflow-x-scroll'>
               <Typography variant={isUpMd ? 'h5':'subtitle1'} fontWeight="bold" textAlign="left" className='whitespace-nowrap'>{caseData?.name || "無題の症例"}</Typography>
               {!isUpMd && <div sx={{cursor:"pointer", mt:-.5}} className="text-gray-500" onClick={()=>{router.push(`/users/${caseUser?.userId}`)}}>{caseUser?.displayName}</div>}
@@ -222,7 +222,7 @@ const CaseReader = () => {
           </Box>
           {isUpMd && !loading && caseData && <NoSsr>
             <Avatar onClick={()=>{router.push(`/${caseUser.userId}`)}} sx={{ width: "34px", height: "34px" ,cursor:"pointer",ml:4}}>
-              <Image src={caseUser?.photoURL} layout='fill'/>
+              <Image src={caseUser?.photoURL} layout='fill' alt="userPhoto"/>
             </Avatar>
             <Stack mx={1} >
               <Typography variant="subtitle2" sx={{cursor:"pointer"}} onClick={()=>{router.push(`/users/${caseUser?.userId}`)}}>{caseUser?.displayName}</Typography>
@@ -258,7 +258,7 @@ const CaseReader = () => {
           <Dialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} sx={{'& .firebaseui-idp-button':{borderRadius: "0.45em"}, '& .MuiDialog-paper':{borderRadius: '9px'},'& .MuiDialogContent-root':{maxWidth:"400px"}, '& .MuiBackdrop-root':{background:"rgba(0, 0, 0, 0.2)"}}}>
             <DialogContent>
               <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{mt:2,mb:3}}>
-                <Image src="/HeaderIcon.png" width={40} height={40}/>
+                <Image src="/HeaderIcon.png" width={40} height={40} alt="headerIcon"/>
                 <Typography variant="h5" noWrap component="div" sx={{fontFamily: "GT Haptik Regular",fontWeight: 'bold', fontSize:{xs:'h6.fontSize',sm:'h5.fontSize'}}}>
                   {t['Title']}
                 </Typography>

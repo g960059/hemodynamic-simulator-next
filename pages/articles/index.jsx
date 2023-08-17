@@ -76,7 +76,7 @@ export const ArticleItem = ({article})=> {
       <Link href={`/${article?.userId}/articles/${article?.id}`} >
         <a className= "text-slate-900 hover:opacity-70 transition-opacity duration-200 cursor-pointer w-24 h-24 no-underline hover:no-underline">
           {
-            article?.coverURL ? <Image src={article?.coverURL} width={96} height={96}/> :
+            article?.coverURL ? <Image src={article?.coverURL} width={96} height={96} alt="articleImage"/> :
             <div className='bg-blue-50 rounded-lg flex justify-center items-center w-24 h-24'>
               <span className='text-4xl'>{article?.emoji}</span>
             </div>
@@ -93,7 +93,7 @@ export const ArticleItem = ({article})=> {
         <div className='flex flex-row items-center'>
           {article.photoURL ?
             <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/${article.userId}`)}}>
-              <Image src={article.photoURL} height="32" width="32"/>
+              <Image src={article.photoURL} height="32" width="32" alt="userPhoto"/>
             </div> :  
             <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/${article.userId}`)}}>
               <span className="text-xs font-medium leading-none text-white">{article?.displayName[0]}</span>

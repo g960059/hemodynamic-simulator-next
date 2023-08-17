@@ -108,7 +108,7 @@ const Cases = React.memo(() => {
                         <Stack direction="row" my={.5}>{c.tags?.map(tag=><Box sx={{color:"#f86684",background:"#ffc5c545",fontSize:"10px",borderRadius:"4px",padding:"2px 5px",margin:"3px 7px 3px 0"}}>{tag}</Box>)}</Stack>
                         <Stack direction="row" justifyContent="center" alignItems="center">
                           <Avatar sx={{ width: 24, height: 24 }}>
-                            {c?.photoURL ? <Image src={c?.photoURL} layout='fill'/> : c?.displayName[0]}
+                            {c?.photoURL ? <Image src={c?.photoURL} layout='fill' alt="userPhoto"/> : c?.displayName[0]}
                           </Avatar>
                           <Typography variant="body2" sx={{mx:1}} >{c.displayName}</Typography>
                           <Typography  variant="body2" sx={{color:"#6e7b85"}}>{formatDateDiff(new Date(),c.updatedAt?.toDate())}</Typography>

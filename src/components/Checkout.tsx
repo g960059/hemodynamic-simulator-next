@@ -82,7 +82,7 @@ const Checkout: NextPage<Props> = ({item, size="medium", fullWidth=false}) =>{
             <div className='flex items-center justify-between'>
               <div className={`avatar ${!item?.photoURL && "placeholder"}`}>
                 <div className={`w-6 h-6 rounded-full ${!item?.photoURL && "bg-slate-100 text-slate-500 flex items-center justify-center border-solid border border-slate-300"}`}>
-                  {item?.photoURL ? <Image src={item?.photoURL} layout="fill"/> :
+                  {item?.photoURL ? <Image src={item?.photoURL} layout="fill" alt="userPhoto"/> :
                     <span className='text-sm'>{item?.displayName && item?.displayName[0].toUpperCase()}</span>
                   }
                 </div>
@@ -144,7 +144,7 @@ const Checkout: NextPage<Props> = ({item, size="medium", fullWidth=false}) =>{
     <Dialog open={loginDialogOpen} onClose={()=>{setLoginDialogOpen(false)}} sx={{'& .firebaseui-idp-button':{borderRadius: "0.45em"}, '& .MuiDialog-paper':{borderRadius: '9px'},'& .MuiDialogContent-root':{maxWidth:"400px"}, '& .MuiBackdrop-root':{background:"rgba(0, 0, 0, 0.2)"}}}>
       <DialogContent>
         <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{mt:2,mb:3}}>
-          <Image src="/HeaderIcon.png" width={40} height={40}/>
+          <Image src="/HeaderIcon.png" width={40} height={40} alt="headerIcon"/>
           <Typography variant="h5" noWrap component="div" sx={{fontFamily: "GT Haptik Regular",fontWeight: 'bold', fontSize:{xs:'h6.fontSize',sm:'h5.fontSize'}}}>
             {t['Title']}
           </Typography>

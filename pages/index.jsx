@@ -65,7 +65,7 @@ const TopPage = ({cases}) => {
               <Dialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} sx={{'& .firebaseui-idp-button':{borderRadius: "0.45em"}, '& .MuiDialog-paper':{borderRadius: '9px'},'& .MuiDialogContent-root':{maxWidth:"400px"}, '& .MuiBackdrop-root':{background:"rgba(0, 0, 0, 0.2)"}}}>
                 <DialogContent>
                   <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{mt:2,mb:3}}>
-                    <Image src="/HeaderIcon.png" width={40} height={40}/>
+                    <Image src="/HeaderIcon.png" width={40} height={40} alt='headerIcon'/>
                     <Typography variant="h5" noWrap component="div" sx={{fontFamily: "GT Haptik Regular",fontWeight: 'bold', fontSize:{xs:'h6.fontSize',sm:'h5.fontSize'}}}>
                       {t['Title']}
                     </Typography>
@@ -134,7 +134,7 @@ export const CaseItem = ({caseItem}) => {
       <div className='flex flex-row items-center'>
         {caseItem?.photoURL ?
           <div className="h-8 w-8 rounded-full overflow-hidden" onClick={()=>{router.push(`/users/${caseItem.userId}`)}}>
-            <Image src={caseItem?.photoURL} height="32" width="32"/>
+            <Image src={caseItem?.photoURL} height="32" width="32" alt="userPhoto"/>
           </div> :
           <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${caseItem.userId}`)}}>
             <span className="text-xs font-medium leading-none text-white">{caseItem?.displayName[0]}</span>

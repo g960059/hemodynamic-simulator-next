@@ -46,7 +46,6 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const [mounted, setMounted] = useState(false);
   const router = useRouter()
-  console.log(isOwner)
 
   useEffect(() => {
     if (views?.length>0 || patients?.length>0){setMounted(true);}
@@ -63,7 +62,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
       <div className='flex flex-row items-center justify-center'>
         {caseData.photoURL ?
           <div className="h-10 w-10 rounded-full overflow-hidden cursor-pointer hover:opacity-60" onClick={()=>{router.push(`/users/${caseData.uid}`)}}>
-            <Image src={caseData.photoURL} height="40" width="40"/>
+            <Image src={caseData.photoURL} height="40" width="40" alt="userPhoto"/>
           </div> :
           <div className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${caseData.uid}`)}}>
             <span className="text-xs font-medium leading-none text-white">{caseData?.displayName?.length > 0 &&caseData?.displayName[0]}</span>

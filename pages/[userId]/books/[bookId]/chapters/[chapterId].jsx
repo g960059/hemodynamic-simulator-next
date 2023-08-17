@@ -181,7 +181,7 @@ const ChapterReader = ({user,book,chapter, chapters}) => {
           <aside className={`bg-white fixed w-[22rem] md:w-[23rem] top-0 left-0 px-6 border-0 border-solid border-r border-slate-200 h-screen ease-in-out duration-300 z-50 md:block`} style={ {transform: (isUpMd || showSidebar ? "translateX(0%)": "translateX(-100%)") }}> 
             <div className='flex flex-row items-center'>
               <Link href={`/${user.userId}/books/${book.id}`}  className="h-14 font-[GT Haptik Regular] font-bold flex flex-row items-center flex-grow cursor-pointer border-0 border-b border-solid border-b-slate-200 text-slate-800 no-underline hover:no-underline">
-                <Image src="/HeaderIcon.png" width={32} height={32}/>
+                <Image src="/HeaderIcon.png" width={32} height={32} alt="HeaderIcon"/>
                 <Typography variant="h5" noWrap fontWeight="bold" >
                   {t['Title']}
                 </Typography>
