@@ -44,18 +44,18 @@ interface MyDocumentProps extends DocumentProps {
   emotionStyleTags: JSX.Element[];
 }
 
-let prefixer: any;
-let cleanCSS: any;
-if (process.env.NODE_ENV === 'production') {
-  /* eslint-disable global-require */
-  const postcss = require('postcss');
-  const autoprefixer = require('autoprefixer');
-  const CleanCSS = require('clean-css');
-  /* eslint-enable global-require */
+// let prefixer: any;
+// let cleanCSS: any;
+// if (process.env.NODE_ENV === 'production') {
+//   /* eslint-disable global-require */
+//   const postcss = require('postcss');
+//   const autoprefixer = require('autoprefixer');
+//   const CleanCSS = require('clean-css');
+//   /* eslint-enable global-require */
 
-  prefixer = postcss([autoprefixer]);
-  cleanCSS = new CleanCSS();
-}
+//   prefixer = postcss([autoprefixer]);
+//   cleanCSS = new CleanCSS();
+// }
 
 
 // `getInitialProps` belongs to `_document` (instead of `_app`),
