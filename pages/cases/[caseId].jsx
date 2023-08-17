@@ -342,7 +342,7 @@ const App = () => {
   )}else{
     if (isOwner){
       return <div>
-          <nav className="bg-white shadow md:sticky md:top-0 md:right-0 z-[1100]">
+          <nav className="bg-white shadow ">
             <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
               <div className='flex h-16 justify-between items-center'>
                 <Box onClick={()=>{router.push({pathname : "/", query: {tab: "mypage"}})}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex"}}>
@@ -382,7 +382,6 @@ const App = () => {
           </nav>  
           <NextSeo title={t["Simulator"]}/>
           <Background/>
-          {!isUpMd && <div className="bg-slate-200 h-full w-screen fixed -z-10"/>}
           <div className='md:hidden p-2'>
             {
               caseNameEditing ? 
