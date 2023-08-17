@@ -1,11 +1,11 @@
 import React  from 'react'
 import {Box, Grid, Typography, Divider,Button,Stack,Link} from '@mui/material'
-import {useTranslation} from "../src/hooks/useTranslation"
-import Footer from "../src/components/Footer"
+import {useTranslation} from "../../hooks/useTranslation"
+import Footer from "../../components/Footer"
 import ReactMarkdown from 'markdown-to-jsx';
 import TermsMd from "../src/markdown/terms.md"
-import Layout from '../src/components/layout';
-import Background from '../src/elements/Background';
+import Layout from '../../components/layout';
+import Background from '../../elements/Background';
 
 
 const options = {

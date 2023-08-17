@@ -1,27 +1,27 @@
 import React, {useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Typography,Grid,Tab,Tabs, Divider,AppBar,Tooltip, Toolbar,Button,IconButton,Stack,Menu,Dialog,DialogContent,DialogActions,DialogTitle,Popover,MenuItem,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery, DialogContentText, NoSsr} from '@mui/material'
 import {ArrowBack,Add,Favorite,FavoriteBorder,EventNoteOutlined,FeedOutlined,SettingsOutlined,Logout,Feed,EventNote, Edit,CalendarToday, ConstructionOutlined} from '@mui/icons-material';
-import {useEngine, user$,cases$, allCases$} from '../../../src/hooks/usePvLoop'
+import {useEngine, user$,cases$, allCases$} from '../../../../hooks/usePvLoop'
 import { useRouter } from 'next/router'
-import {useTranslation} from '../../../src/hooks/useTranslation'
-import CaseEditor from "../../../src/components/CaseEditor"
+import {useTranslation} from '../../../../hooks/useTranslation'
+import CaseEditor from "../../../../components/CaseEditor"
 import Image from 'next/image'
 import {signOut} from "firebase/auth";
 
 
 import { NextSeo } from 'next-seo';
 import {useObservable} from "reactfire"
-import {db,StyledAuth,auth} from "../../../src/utils/firebase"
+import {db,StyledAuth,auth} from "../../../../utils/firebase"
 
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs, getDoc, query, collectionGroup, orderBy, limit, increment} from 'firebase/firestore';
 import { useImmer } from "use-immer";
-import {nanoid,formatDateDiff} from "../../../src/utils/utils"
+import {nanoid,formatDateDiff} from "../../../../utils/utils"
 import Lottie from 'react-lottie-player' 
-import LoadingAnimation from "../../../src/lotties/LoadingAnimation.json"
+import LoadingAnimation from "../../../../lotties/LoadingAnimation.json"
 import {format} from "date-fns"
 import { combineLatest, filter, map, mergeMap, of, zip } from 'rxjs';
 import { collectionData, docData } from 'rxfire/firestore';
-import Background from '../../../src/elements/Background';
+import Background from '../../../../elements/Background';
 
 
 

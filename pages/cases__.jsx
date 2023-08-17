@@ -1,15 +1,15 @@
 import React, { useRef, useState, useEffect,} from 'react'
 import {Box, NoSsr, Grid, Tab,Tabs, Divider,Typography,Stack,Chip, Button, Avatar} from '@mui/material'
 import {Add,FavoriteBorder} from "@mui/icons-material";
-import {user$, myPatients$,allPatients$,cases$} from '../src/hooks/usePvLoop'
+import {user$, myPatients$,allPatients$,cases$} from '../../hooks/usePvLoop'
 import { makeStyles } from '@mui/styles';
-import {useTranslation} from '../src/hooks/useTranslation'
+import {useTranslation} from '../../hooks/useTranslation'
 import Lottie from 'react-lottie-player' 
-import DoctorPrescription from "../src/lotties/DoctorPrescription.json"
+import DoctorPrescription from "../../lotties/DoctorPrescription.json"
 import { useRouter } from 'next/router'
-import {formatDateDiff, nanoid} from "../src/utils/utils"
+import {formatDateDiff, nanoid} from "../../utils/utils"
 import {useObservable} from "reactfire"
-import Layout from '../src/components/layout'
+import Layout from '../../components/layout'
 import Image from 'next/image'
 
 const useStyles = makeStyles((theme) =>(

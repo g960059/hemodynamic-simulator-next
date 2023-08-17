@@ -1,17 +1,17 @@
 import React, { useRef, useState, useEffect,} from 'react'
 import {Box, NoSsr, Grid, Tab,Tabs, Divider,Typography,Stack,Tooltip, Button, Avatar, Menu, IconButton, useMediaQuery} from '@mui/material'
 import {Add,FavoriteBorder,ExpandMore,EditOutlined,FeedOutlined,EventNoteOutlined,MenuBookOutlined,PlayArrowOutlined, StoreOutlined, PaidOutlined} from "@mui/icons-material";
-import {user$, articles$,cases$,books$, purchases$, salesDetail$, payableHistory$, withdrawals$, favorites$} from '../../src/hooks/usePvLoop'
+import {user$, articles$,cases$,books$, purchases$, salesDetail$, payableHistory$, withdrawals$, favorites$} from '../../../hooks/usePvLoop'
 // import { makeStyles } from '@mui/styles';
-import {useTranslation} from '../../src/hooks/useTranslation'
-import { FaintNeumoIconButton } from '../../src/components/StyledComponents';
+import {useTranslation} from '../../../hooks/useTranslation'
+import { FaintNeumoIconButton } from '../../../components/StyledComponents';
 import { useRouter } from 'next/router'
-import {formatDateDiff, nanoid} from "../../src/utils/utils"
+import {formatDateDiff, nanoid} from "../../../utils/utils"
 import {useObservable} from "reactfire"
-import Layout from '../../src/components/layout'
-import DeleteMenuItemWithDialog from "../../src/components/DeleteMenuItemWithDialog";
+import Layout from '../../../components/layout'
+import DeleteMenuItemWithDialog from "../../../components/DeleteMenuItemWithDialog";
 import { doc, deleteDoc, writeBatch, collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
-import {db} from "../../src/utils/firebase";
+import {db} from "../../../utils/firebase";
 import isEqual from "lodash/isEqual"
 import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';

@@ -3,19 +3,19 @@ import {Box, Grid, Typography, Divider,Button,Stack,Link, CircularProgress, Tab,
 import {Facebook, Twitter, Link as LinkIcon, FavoriteBorderOutlined, ExpandMore, FavoriteBorder, Favorite, ChevronLeftOutlined, ChevronRightOutlined} from "@mui/icons-material"
 import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
-import {auth,db} from '../../../../../src/utils/firebase'
+import {auth,db} from '../../../../../../utils/firebase'
 import {doc, getDoc,writeBatch,increment, setDoc, updateDoc, arrayUnion, arrayRemove, getDocs, collection} from 'firebase/firestore';
-import Layout from "../../../../../src/components/layout"
+import Layout from "../../../../../../components/layout"
 import {format} from "date-fns";
 import {TwitterTweetEmbed } from 'react-twitter-embed';
 import tocbot from 'tocbot'
 import clsx from 'clsx';
-import { user$ } from '../../../../../src/hooks/usePvLoop';
+import { user$ } from '../../../../../../hooks/usePvLoop';
 import { useObservable } from 'reactfire';
 import { collectionData, docData } from 'rxfire/firestore';
 import {mergeMap, of} from 'rxjs';
 import Image from 'next/image';
-import { useTranslation } from '../../../../../src/hooks/useTranslation';
+import { useTranslation } from '../../../../../../hooks/useTranslation';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { authState } from 'rxfire/auth';
 

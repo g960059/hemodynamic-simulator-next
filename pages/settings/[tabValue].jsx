@@ -3,20 +3,20 @@ import {Box, Grid, Typography, Divider,Button,Stack,Link, CircularProgress, Tab,
 import {TabContext,TabList,TabPanel} from '@mui/lab';
 import {Twitter,Facebook, Close, Check} from "@mui/icons-material"
 import { useRouter } from 'next/router'
-import Footer from "../../src/components/Footer"
-import {auth,db,storage} from '../../src/utils/firebase'
-import ReactiveInput from '../../src/components/ReactiveInput';
-import {user$} from '../../src/hooks/usePvLoop'
+import Footer from "../../../components/Footer"
+import {auth,db,storage} from '../../../utils/firebase'
+import ReactiveInput from '../../../components/ReactiveInput';
+import {user$} from '../../../hooks/usePvLoop'
 import {useObservable} from "reactfire"
 import { useImmer } from "use-immer";
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc,} from 'firebase/firestore';
 import { ref, getDownloadURL ,uploadString,uploadBytesResumable} from "firebase/storage";
 import { nanoid } from 'nanoid'
 import Cropper from 'react-easy-crop'
-import Layout from "../../src/components/layout"
-import {getCroppedImg,readFile,deepEqual3} from "../../src/utils/utils"
-import Billing from "../../src/components/Billing"
-import { bank_options } from '../../src/utils/bank';
+import Layout from "../../../components/layout"
+import {getCroppedImg,readFile,deepEqual3} from "../../../utils/utils"
+import Billing from "../../../components/Billing"
+import { bank_options } from '../../../utils/bank';
 
 
 

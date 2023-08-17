@@ -2,19 +2,19 @@ import React,{ useEffect, useRef, useState }  from 'react'
 import {Box, Grid, Typography, Divider,Button,Stack, CircularProgress,Tab, Dialog, DialogContent,DialogContentText} from '@mui/material'
 import {TabContext,TabList,TabPanel} from '@mui/lab';
 
-import {useTranslation} from "../src/hooks/useTranslation"
+import {useTranslation} from "../../hooks/useTranslation"
 import { makeStyles} from '@mui/material/styles';
 import { useRouter } from 'next/router'
-import Footer from "../src/components/Footer"
-import {auth,db} from '../src/utils/firebase'
+import Footer from "../../components/Footer"
+import {auth,db} from '../../utils/firebase'
 import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
 
-import Layout from "../src/components/layout"
+import Layout from "../../components/layout"
 import { collectionGroup, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
 import Image from 'next/image'
-import { formatDateDiff } from '../src/utils/utils';
+import { formatDateDiff } from '../../utils/utils';
 import {useObservable} from "reactfire"
-import {cases$,user$} from '../src/hooks/usePvLoop'
+import {cases$,user$} from '../../hooks/usePvLoop'
 import Link from 'next/link';
 
 
