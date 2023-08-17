@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React,{useState, useEffect} from 'react';
 import {Popover} from '@mui/material'
@@ -23,7 +23,6 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner}) => 
 
 
   const editor = useBlockNote({
-    initialContent: view?.content ? view?.content : [{id:nanoid(),type:"paragraph",props:{textColor:"default",backgroundColor:"default",textAlignment:"left"},content:[],children:[]}],
     onEditorContentChange : (editor) => {
       setContent(editor?.topLevelBlocks)
     }
