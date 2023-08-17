@@ -259,7 +259,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               isOwner={isOwner}
             />
           }
-          {/* {
+          {
             view.type == "Note" && 
             <NotePanel
               view={view}
@@ -275,7 +275,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               }}
               isOwner={isOwner}
             />
-          } */}
+          }
         </div>
       )}      
       {

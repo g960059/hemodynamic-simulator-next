@@ -21,9 +21,9 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner}) => 
 
 
   const editor = useBlockNote({
-    initialContent: content,
+    initialContent: view?.content ? view?.content : [{id:nanoid(),type:"paragraph",props:{textColor:"default",backgroundColor:"default",textAlignment:"left"},content:[],children:[]}],
     onEditorContentChange : (editor) => {
-      setContent(editor.topLevelBlocks)
+      setContent(editor?.topLevelBlocks)
     }
   });
 
