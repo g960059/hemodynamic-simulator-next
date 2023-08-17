@@ -59,7 +59,7 @@
     "dev": "npm run copyWasm && next dev",
     "build": "npm run copyWasm && next build ",
     "postbuild": "next-sitemap",
-    "start": "next start",
+    "start": "npm run copyWasm && next start",
     "post-update": "echo \"codesandbox preview only, need an update\" && yarn upgrade --latest"
   },
   "devDependencies": {

@@ -54,10 +54,6 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
   return <div className='w-full pb-3'> 
     <div className='flex mx-3 md:mx-8 md:mt-5 md:mb-2 items-center justify-center'>
       {!isOwner && <div className='text-2xl font-bold text-slate-600 mr-4'>{caseData?.name}</div>}
-      {/* <div className='flex flex-row justify-center items-center'>
-        <Avatar src={user?.photoURL} >{user?.displayName[0]}</Avatar>
-        <div className='md:text-lg ml-2'>{user?.displayName}</div>
-      </div> */}
 
       <div className='flex flex-row items-center justify-center'>
         {caseData.photoURL ?
@@ -153,7 +149,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
       isDraggable = {isOwner}
       isResizable = {isOwner}
     >
-      { views?.filter(view => view.type !="PlaySpeed").map(view =>
+      {/* { views?.filter(view => view.type !="PlaySpeed").map(view =>
         <div key={view.id}  className='bg-white border border-solid border-slate-200 rounded overflow-hidden'>
           {view.type === "Controller" && 
             <ControllerPanelNext
@@ -300,7 +296,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
             />
           </div>
         )
-      }
+      } */}
     </StyledReactGridLayout>
   </div>
 })
