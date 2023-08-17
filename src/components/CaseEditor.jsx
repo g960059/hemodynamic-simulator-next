@@ -277,7 +277,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
             />
           }
         </div>
-      )}      
+      )}       */}
       {
         views?.filter(view => view.type === "PlaySpeed").map(view => 
           <div key={view.id}  className='overflow-hidden'>
@@ -296,7 +296,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
             />
           </div>
         )
-      } */}
+      }
     </StyledReactGridLayout>
   </div>
 })
