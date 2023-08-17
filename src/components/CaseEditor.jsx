@@ -149,7 +149,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
       isDraggable = {isOwner}
       isResizable = {isOwner}
     >
-      {/* { views?.filter(view => view.type !="PlaySpeed").map(view =>
+      { views?.filter(view => view.type !="PlaySpeed").map(view =>
         <div key={view.id}  className='bg-white border border-solid border-slate-200 rounded overflow-hidden'>
           {view.type === "Controller" && 
             <ControllerPanelNext
@@ -225,7 +225,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               isOwner={isOwner}
             /> 
           }
-          {
+          {/* {
             view.type === "Tracker" &&
             <Tracker engine={engine} initialView={view} patients = {patients}
               setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
@@ -240,8 +240,8 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               }}
               isOwner={isOwner}            
             />
-          }
-          {
+          } */}
+          {/* {
             view.type === "Metrics" &&
             <MetricsPanel 
               view={view} 
@@ -275,9 +275,9 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               }}
               isOwner={isOwner}
             />
-          }
+          } */}
         </div>
-      )}       */}
+      )}      
       {
         views?.filter(view => view.type === "PlaySpeed").map(view => 
           <div key={view.id}  className='overflow-hidden'>
