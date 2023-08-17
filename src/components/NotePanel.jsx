@@ -24,6 +24,7 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner}) => 
 
   const editor = useBlockNote({
     initialContent: content,
+    editable: isOwner,
     onEditorContentChange : (editor) => {
       setContent(editor?.topLevelBlocks)
     }
