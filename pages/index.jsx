@@ -24,7 +24,7 @@ const TopPage = ({cases}) => {
   const myCases = useObservable(`mycases`,cases$)
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
   const [signInWithGoogle, _, loading, error] = useSignInWithGoogle(auth);
-  const [tabValue, setTabValue] = useState('trending');
+  const [tabValue, setTabValue] = useState(router.query.tab || "trending");
   const [dialogOpen, setDialogOpen] = useState(false);
 
 

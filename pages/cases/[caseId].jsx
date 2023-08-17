@@ -345,7 +345,7 @@ const App = () => {
           <nav className="bg-white shadow md:sticky md:top-0 md:right-0 z-[1100]">
             <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
               <div className='flex h-16 justify-between items-center'>
-                <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex"}}>
+                <Box onClick={()=>{router.push({pathname : "/", query: {tab: "mypage"}})}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex"}}>
                   <IconButton><ArrowBack/></IconButton>
                 </Box>
                 <Box sx={{display:{xs:"none",md:"block"}}}>
@@ -400,19 +400,35 @@ const App = () => {
           <div className='px-2 md:px-4 lg:px-6'>
             {caseData?.createdAt &&  <CaseEditor engine={engine} caseData={caseData} setCaseData={setCaseData} patients={patients} setPatients={setPatients} views={views} setViews={setViews} user={user} isOwner={isOwner}/>}   
           </div>
-        <Dialog open={openPublishDialog} onClose={()=>setOpenPublishDialog(false)} sx={{minHeight:'340px'}}>
+        {/* <Dialog  open={openPublishDialog} onClose={()=>setOpenPublishDialog(false)} sx={{minHeight:'340px'}} >
           <DialogTitle >
             症例の設定
           </DialogTitle>
-          <DialogContent>
-            <Stack direction="row" sx={{backgroundColor:"#edf2f6",borderRadius:"10px",color:"#6e7b85",mb:2,mt:1,p:2,position:"relative",alignItems:"center"}}>
-              <Box onClick={e=>{setEmojiAnchorEl(e.currentTarget)}} sx={{fontSize:"50px",cursor:"pointer"}}>{caseData.emoji}</Box>
-              <Popover open={Boolean(emojiAnchorEl)} anchorEl={emojiAnchorEl} onClose={()=>{setEmojiAnchorEl(null)}} anchorOrigin={{vertical: 'bottom',horizontal:'left'}}>
-                <Picker emoji={caseData.emoji} onSelect={newEmoji=>{setCaseData(draft=>{draft.emoji = newEmoji.native})}} showPreview={false} showSkinTones={false}/>
-              </Popover>
-              <Divider orientation="vertical" flexItem sx={{mx:2}}/>
-              <Typography variant='subtitle2'>アイキャッチ絵文字を変更する</Typography>
-            </Stack>
+          <DialogContent className=' min-w-[360px]'>
+
+          </DialogContent>
+          <DialogActions sx={{display:"flex", justifyContent:"center",mb:2}}>
+            <Button onClick={()=>{updateCase();setOpenPublishDialog(false)}} variant='contained' disableElevation disabled={!isChanged} className='font-bold text-white'>
+              {isChanged ? (caseData.visibility=="private" || caseData.visibility=="public" && loadedCase.data?.caseData?.visibility=="public" ? t["Save"] : t["Publish"]) : t["Saved"]}
+            </Button>
+          </DialogActions>
+        </Dialog> */}
+        <Dialog fullScreen={!isUpMd} sx={{ ".MuiDialog-paper": {m:0}}} open={openPublishDialog} onClose={()=>setOpenPublishDialog(false)}>
+          <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
+            <div className='text-base font-bold text-center inline-flex items-center'>
+              <svg className='w-6 h-5 mr-1.5 stroke-blue-500' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+              </svg>   
+              タイトル・タグの設定
+            </div>
+            <div className='md:w-60 flex-grow'/>
+            <button onClick={()=>setOpenPublishDialog(false)} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+              <svg className='stroke-slate-600 w-4 h-4' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className='w-full px-6 py-5'>
             <Typography variant='subtitle1' fontWeight="bold">Title</Typography>
             <ReactiveInput value={caseData.name} updateValue={newName=>{setCaseData(draft=>{draft.name=newName});}} type="text" autoFocus/>
             <Typography variant='subtitle1' fontWeight="bold" sx={{mt:2}}>Tags</Typography>
@@ -445,14 +461,29 @@ const App = () => {
                   "& .Mui-focused .MuiOutlinedInput-notchedOutline":{border:"none"}
                 }}}
                 />
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{display:"flex", justifyContent:"center",mb:2}}>
-            <Button onClick={()=>{updateCase();setOpenPublishDialog(false)}} variant='contained' disableElevation disabled={!isChanged} className='font-bold text-white'>
-              {isChanged ? (caseData.visibility=="private" || caseData.visibility=="public" && loadedCase.data?.caseData?.visibility=="public" ? t["Save"] : t["Publish"]) : t["Saved"]}
-            </Button>
-          </DialogActions>
-        </Dialog>
+            </Box>     
+          </div>  
+          <div className=' w-full p-3 pl-4 flex flex-row items-center justify-center'>
+            <div className='flex-grow'></div>
+            <button  type='button' onClick={()=>setOpenPublishDialog(false)} className="py-2 px-4 ml-4 bg-white cursor-pointer text-base rounded-md flex justify-center items-center border border-solid border-slate-300 hover:bg-slate-100 hover:border-slate-100 transition">
+              キャンセル
+            </button>
+            { isChanged ? 
+              <button 
+                type='button' 
+                onClick={()=>{updateCase();setOpenPublishDialog(false)}}
+                className=' bg-blue-500 text-white cursor-pointer py-2 px-5 ml-4 text-base rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition'
+              >
+                更新する
+              </button>: <button 
+                type='button' 
+                className=' bg-slate-200 text-slate-500  py-2 px-5 ml-4 text-base rounded-md flex justify-center items-center  border-none transition'
+              >
+                保存済み
+              </button>
+            }
+          </div>
+        </Dialog>        
       </div>
     }else{
       return <>
