@@ -3,19 +3,23 @@ import {Button,IconButton,Stack,Menu,Dialog,DialogContent,Grow,DialogTitle,Popov
 import PlaySpeedButtonsNext from './PlaySpeedButtonsNext'
 import MetricsPanel from './MetricsPanel'
 import ControllerPanelNext from './controllers/ControllerPanelNext'
+import NotePanel from './NotePanel'
 
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import dynamic from 'next/dynamic'
 import { useImmer } from "use-immer";
 import {nanoid,calculatePosition} from "../utils/utils"
 import {getTimeSeriesPressureFn,  getTimeSeriesFlowFn, paramPresets, controllableHdpTypes, AllHdpOptions}  from "../utils/presets"
-import { useTranslation } from '../hooks/useTranslation';
+import { formatDateDiff } from '../utils/utils'
 import EditableText from './EditableText';
 import ChartDialog from './ChartDialog';
 import MetricsDialog from './MetricsDialog';
 import ControllerDialog from './ControllerDialog';
+import NoteDialog from './NoteDialog'
 import { styled } from '@mui/material/styles';
-
+import { useRouter } from 'next/router' 
+import Link from 'next/link';
+import Image from 'next/image'
 import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -37,24 +41,45 @@ const StyledReactGridLayout = styled(ResponsiveReactGridLayout)`
 
 
 
-const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients ,views, setViews, user}) => {
+const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients ,views, setViews, user, isOwner}) => {
 
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const [mounted, setMounted] = useState(false);
-
+  const router = useRouter()
+  console.log(isOwner)
 
   useEffect(() => {
     if (views?.length>0 || patients?.length>0){setMounted(true);}
   }, []);
 
   return <div className='w-full pb-3'> 
-    <div className='flex mx-3 md:mx-8 md:mt-5 md:mb-2'>
-      <div className='flex flex-row justify-center items-center'>
+    <div className='flex mx-3 md:mx-8 md:mt-5 md:mb-2 items-center justify-center'>
+      {!isOwner && <div className='text-2xl font-bold text-slate-600 mr-4'>{caseData?.name}</div>}
+      {/* <div className='flex flex-row justify-center items-center'>
         <Avatar src={user?.photoURL} >{user?.displayName[0]}</Avatar>
         <div className='md:text-lg ml-2'>{user?.displayName}</div>
-      </div>
+      </div> */}
+
+      <div className='flex flex-row items-center justify-center'>
+        {caseData.photoURL ?
+          <div className="h-10 w-10 rounded-full overflow-hidden cursor-pointer hover:opacity-60" onClick={()=>{router.push(`/users/${caseData.uid}`)}}>
+            <Image src={caseData.photoURL} height="40" width="40"/>
+          </div> :
+          <div className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${caseData.uid}`)}}>
+            <span className="text-xs font-medium leading-none text-white">{caseData?.displayName?.length > 0 &&caseData?.displayName[0]}</span>
+          </div>
+        }
+        <div className='ml-2 text-slate-500'>
+          <Link href={`/users/${caseData.uid}`} className='text-sm font-medium no-underline hover:underline text-slate-500'>
+              {caseData.displayName}
+          </Link>
+          <div className='flex flex-row items-center justify-between'>
+            <span className=' text-xs font-medium '>{ formatDateDiff(new Date(), new Date(caseData.updatedAt?.seconds * 1000)) } </span>
+          </div>
+        </div>
+      </div>      
       <div className="flex-grow"/>
-      <NewAddViewDialog 
+      {isOwner && <NewAddViewDialog 
         addViewItem={(viewItem)=>{
           let newView = {...viewItem, id:nanoid()}
           setCaseData(draft=>{
@@ -91,6 +116,9 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                 wMd = 1
                 hMd = 4
                 break;
+              case "Note":
+                wMd = 6
+                hMd = 6
             }
             let wXs = 12
             let hXs = 8
@@ -107,7 +135,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
           engine.register(newPatient);
           setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
         }}
-      />
+      />}
     </div>
     <StyledReactGridLayout
       layouts={caseData?.layouts}
@@ -118,9 +146,16 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
       useCSSTransforms={mounted}
       rowHeight={isUpMd ? 30 : 20}
       draggableHandle=".draggable"
+      onLayoutChange={(layout,layouts) =>{
+        setCaseData(draft=>{
+          draft.layouts = layouts
+        })
+      }}
+      isDraggable = {isOwner}
+      isResizable = {isOwner}
     >
       { views?.filter(view => view.type !="PlaySpeed").map(view =>
-        <div key={view.id}  className='bg-white border border-solid border-slate-200 md:rounded overflow-hidden'>
+        <div key={view.id}  className='bg-white border border-solid border-slate-200 rounded overflow-hidden'>
           {view.type === "Controller" && 
             <ControllerPanelNext
               key = {view.id}
@@ -138,6 +173,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               patients = {patients}
               patient={patients.find(p=>p.id===view.patientId)}
               setPatient={newPatient=>{setPatients(draft=>{draft.findIndex(p=>p.id===view.patientId)===-1? draft.push(newPatient) : draft.splice(draft.findIndex(p=>p.id===view.patientId),1,newPatient);})}}
+              isOwner={isOwner}
             />
           }
           {view.type === "PressureCurve" && 
@@ -155,6 +191,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                 })
               }}
               getTimeSeriesFn = {getTimeSeriesPressureFn}
+              isOwner={isOwner}
             />
           }
           {view.type === "FlowCurve" && 
@@ -172,6 +209,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                 })
               }}
               getTimeSeriesFn = {getTimeSeriesFlowFn}
+              isOwner={isOwner}
             />
           }                  
           {view.type === "PressureVolumeCurve" && 
@@ -188,7 +226,9 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                   draft.splice(draft.findIndex(v=>v.id===view.id),1)
                 })
               }}
-              patients={patients}/>
+              patients={patients}
+              isOwner={isOwner}
+            /> 
           }
           {
             view.type === "Tracker" &&
@@ -202,8 +242,9 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                 setViews(draft=>{
                   draft.splice(draft.findIndex(v=>v.id===view.id),1)
                 })
-              }
-            }/>
+              }}
+              isOwner={isOwner}            
+            />
           }
           {
             view.type === "Metrics" &&
@@ -220,6 +261,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                   draft.splice(draft.findIndex(v=>v.id===view.id),1)
                 })
               }}
+              isOwner={isOwner}
             />
           }
           {
@@ -236,6 +278,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                   draft.splice(draft.findIndex(v=>v.id===view.id),1)
                 })
               }}
+              isOwner={isOwner}
             />
           }
         </div>
@@ -253,7 +296,8 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                 setViews(draft=>{
                   draft.splice(draft.findIndex(v=>v.id===view.id),1)
                 })
-              }}            
+              }}
+              isOwner={isOwner}
             />
           </div>
         )
@@ -288,6 +332,11 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
   }
   const selectModelDialog = ()=>{
     setOpenDialog("Model");
+    setAnchorEl(null);
+  }
+
+  const selectNoteDialog = ()=>{
+    setOpenDialog("Note");
     setAnchorEl(null);
   }
 
@@ -356,7 +405,7 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
           </div>
           Player
         </button>               
-        <button className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
+        <button onClick={selectNoteDialog} className='text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
           <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
             <svg className='w-6 h-5 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
@@ -364,14 +413,14 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
           </div>
           Note
         </button>
-        <button className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
+        {/* <button className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
           <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
             <svg className='w-6 h-5 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
             </svg>
           </div>
           Image
-        </button>  
+        </button>   */}
       </div>
     </Popover>
 
@@ -441,6 +490,9 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
     
     {/* ControllerDialog */}
     <ControllerDialog open={openDialog == "Controller"} onClose={()=>setOpenDialog(null)} updateView={addViewItem} patients={patients}/>
+
+    {/* NoteDialog */}
+    <NoteDialog open={openDialog == "Note"} onClose={()=>setOpenDialog(null)} updateView={addViewItem} patients={patients}/>
   </>
 }
 

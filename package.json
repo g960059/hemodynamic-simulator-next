@@ -3,6 +3,8 @@
   "version": "5.0.0",
   "private": true,
   "dependencies": {
+    "@blocknote/core": "^0.9.0",
+    "@blocknote/react": "^0.9.0",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.1",
     "@emotion/server": "^11.11.0",

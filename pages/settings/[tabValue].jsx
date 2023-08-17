@@ -2,7 +2,6 @@ import React,{ useEffect, useRef,useState,useCallback }  from 'react'
 import {Box, Grid, Typography, Divider,Button,Stack,Link, CircularProgress, Tab,Avatar, useMediaQuery,Snackbar, IconButton,Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,Slider, Autocomplete, TextField} from '@mui/material'
 import {TabContext,TabList,TabPanel} from '@mui/lab';
 import {Twitter,Facebook, Close, Check} from "@mui/icons-material"
-import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
 import Footer from "../../src/components/Footer"
 import {auth,db,storage} from '../../src/utils/firebase'
@@ -13,46 +12,20 @@ import { useImmer } from "use-immer";
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc,} from 'firebase/firestore';
 import { ref, getDownloadURL ,uploadString,uploadBytesResumable} from "firebase/storage";
 import { nanoid } from 'nanoid'
-import isEqual from "lodash/isEqual"
 import Cropper from 'react-easy-crop'
 import Layout from "../../src/components/layout"
-import {getCroppedImg,readFile, toHira} from "../../src/utils/utils"
+import {getCroppedImg,readFile,deepEqual3} from "../../src/utils/utils"
 import Billing from "../../src/components/Billing"
 import { bank_options } from '../../src/utils/bank';
 
-const useStyles = makeStyles((theme) =>({
-  background: {
-    position: "fixed",
-    zIndex: -1,
-    top: "0px",
-    left: "0px",
-    width: "100%",
-    overflow: "hidden",
-    transform: "translate3d(0px, 0px, 0px)",
-    height: "-webkit-fill-available",
-    background: "white",
-    opacity: 1,
-    userSelect: "none",
-    pointerEvents: "none"
-  },
-  featuredBox: {
-    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-    color: "rgb(69, 90, 100)",
-    boxShadow: "rgb(0 0 0 / 10%) 0px 2px 4px -2px",
-    backgroundColor: "white",
-    border: "1px solid rgba(92, 147, 187, 0.17)",
-    borderRadius: "12px",
-  }
-}),
-);
 
 
 const Settings = () => {
   const el = useRef(null);
-  const classes = useStyles();
   const router = useRouter()
   const [tabValue, setTabValue] = useState(router.query.tabValue || "account");
-  const loadedUser = useObservable("user",user$)
+  const loadedUser =  useObservable(`user_${auth?.currentUser?.uid}`,user$) 
+
   const [loading, setLoading] = useState(false);
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const [user, setUser] = useImmer();
@@ -62,8 +35,20 @@ const Settings = () => {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [isDuplicatedId, setIsDuplicatedId] = useState(false);
-  const isChangedUser = !isEqual(user,loadedUser.data)
-  
+  const isChangedUser = !deepEqual3(user,loadedUser.data, ["updatedAt"],false, true)
+
+  const updateUser= async ()=>{
+    const batch = writeBatch(db);                  
+    if(user.userId != loadedUser.data.userId){
+      batch.delete(doc(db,"userIds",loadedUser.data.userId))
+      batch.set(doc(db,"userIds",user.userId),{uid:user.uid,createdAt:serverTimestamp()})
+      batch.update(doc(db,"users",user.uid),{...user,updatedAt:serverTimestamp()})
+    }else{
+      batch.update(doc(db,"users",user.uid),{...user,updatedAt:serverTimestamp()})
+    }
+    await batch.commit()
+  }
+
   useEffect(() => {
     setLoading(true)
     if(loadedUser.status == "success" && loadedUser.data?.uid){
@@ -75,12 +60,12 @@ const Settings = () => {
   const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels)
   }, [])
-
+  
   useEffect(() => {
     setTabValue(router.query.tabValue || "profile")
   }, [router.query.tabValue]);
 
-  return <Box width={1}>
+  return <Box width={1} className="bg-white">
       <Divider light flexItem sx={{borderColor:"#5c93bb2b"}}/>
       <Stack width={1} justifyContent="center" alignItems="center" >
         <Box maxWidth="960px" width={1} px={{xs:2,md:10}} p={2}>
@@ -89,9 +74,9 @@ const Settings = () => {
             <Box sx={{ borderBottom: 1, borderColor: '#5c93bb2b',mx:{xs:-1,md:0} }}>
               <TabList onChange={(e,newValue)=>{setTabValue(newValue)}} aria-label="lab API tabs example" sx={{"& .MuiTab-textColorPrimary":{fontWeight:"bold"}}} variant="scrollable">
                 <Tab label="プロフィール" value="profile"/>
-                <Tab label="カード情報" value="billing" />
+                {/* <Tab label="カード情報" value="billing" />
                 <Tab label="購入履歴" value="payments_history" />
-                <Tab label="お振込先" value="bank_account" />
+                <Tab label="お振込先" value="bank_account" /> */}
               </TabList>
             </Box>
             <TabPanel value="profile" sx={{px:0}}>
@@ -266,17 +251,7 @@ const Settings = () => {
                     <Typography variant="subtitle2" color="secondary">プロフィールにこれらの情報が表示されます</Typography>
                     <Box width={1} display="flex" justifyContent="center" alignItems="center" my={3}>
                       <Button 
-                        onClick={ async ()=>{
-                          const batch = writeBatch(db);                  
-                          if(user.userId != loadedUser.data.userId){
-                            batch.delete(doc(db,"userIds",loadedUser.data.userId))
-                            batch.set(doc(db,"userIds",user.userId),{uid:user.uid,createdAt:serverTimestamp()})
-                            batch.update(doc(db,"users",user.uid),{...user,updatedAt:serverTimestamp()})
-                          }else{
-                            batch.update(doc(db,"users",user.uid),{...user,updatedAt:serverTimestamp()})
-                          }
-                          await batch.commit()
-                        }}
+                        onClick={()=>{updateUser()} }
                         variant='contained' 
                         className='font-bold text-white'
                         disableElevation sx={{fontWeight:"bold"}}  disabled={!isChangedUser || (isDuplicatedId && user.userId != loadedUser.data.userId)} endIcon = {!isChangedUser&&<Check/>}
@@ -290,143 +265,7 @@ const Settings = () => {
             </TabPanel>
             <TabPanel value="billing" sx={{p:0}}><Billing/></TabPanel>
             <TabPanel value="payments_history"> payments_history</TabPanel>
-            <TabPanel value="bank_account">
-              {
-                router.query.message="bank_account_required" && <div className='bg-red-100 text-red-600 p-4 m-4 rounded-lg text-sm font-bold'>
-                  お支払先情報を入力し、再度出金申請を行ってください
-                </div>
-              }
-              <div className='md:px-4 mt-6'>
-                <div className='text-xl font-bold mb-4'>お支払先</div>
-                <div className='mb-5'>
-                  <Typography variant='subtitle2' sx={{fontWeight:"bold",mb:.5}}>銀行名</Typography>
-                  <Autocomplete 
-                    value={user?.bank}
-                    onChange={(event,newValue)=>{
-                      setUser(draft=>{
-                        draft.bank=newValue
-                        draft.branch =null
-                      })
-                    }}
-                    options={bank_options.filter(option=>option.branch_code ==="000").sort((a,b)=> a.kana > b.kana ? 1 : -1).map(option=>{
-                      if(["金庫", "信金","組合","農協", "バンク","信組","漁","信連"].every(x=>!option.name.includes(x))){
-                        return {...option,name:option.name+"銀行"}
-                      }else{
-                        return option
-                      }
-                    })} 
-                    groupBy={(option) => toHira(option.kana[0])} 
-                    renderInput={(params) => <TextField  
-                      {...params} 
-                      placeholder="銀行名を入力してください" 
-                      required
-                      sx={{"& .MuiInputBase-root":{
-                        backgroundColor: '#f1f5f9',
-                        borderRadius: '4px',
-                        padding: "0",
-                        border: '1px solid #5c93bb2b',
-                        '&:hover': { 
-                          borderColor: '#3ea8ff'
-                        }},
-                        "& input": {border: 'none',padding: '8px 16px !important'},
-                        "& p.MuiTypography-root":{
-                          fontSize: "0.7rem"
-                        },
-                        "& .MuiOutlinedInput-notchedOutline":{border:"none"},
-                        "& .Mui-focused .MuiOutlinedInput-notchedOutline":{ border: '1px solid #3ea8ff !important'},
-                      }}
-                    />} 
-                    getOptionLabel={option => option.bank_code + "  "+ option.name} 
-                    isOptionEqualToValue = {(option,value)=>option.bank_code === value.bank_code}
-                  />
-                </div>   
-                <div className='mb-5'>
-                  <Typography variant='subtitle2' sx={{fontWeight:"bold",mb:.5}}>支店名</Typography>
-                  <Autocomplete 
-                    value={user?.branch}
-                    onChange={(event,newValue)=>{
-                      setUser(draft=>{
-                        draft.branch=newValue
-                      })
-                    }}
-                    options={bank_options.filter(option=>option.bank_code ===user?.bank?.bank_code).sort((a,b)=> a.kana > b.kana ? 1 : -1)} 
-                    groupBy={(option) => toHira(option.kana[0])} 
-                    renderInput={(params) => <TextField  
-                      {...params} 
-                      placeholder="支店名を入力してください" 
-                      required
-                      sx={{"& .MuiInputBase-root":{
-                        backgroundColor: '#f1f5f9',
-                        borderRadius: '4px',
-                        padding: "0",
-                        border: '1px solid #5c93bb2b',
-                        '&:hover': { 
-                          borderColor: '#3ea8ff'
-                        }},
-                        "& input": {border: 'none',padding: '8px 16px !important'},
-                        "& p.MuiTypography-root":{
-                          fontSize: "0.7rem"
-                        },
-                        "& .MuiOutlinedInput-notchedOutline":{border:"none"},
-                        "& .Mui-focused .MuiOutlinedInput-notchedOutline":{ border: '1px solid #3ea8ff !important'},
-                      }}
-                    />} 
-                    getOptionLabel={option => option.branch_code + "  "+ option.name} 
-                    isOptionEqualToValue = {(option,value)=>option.branch_code === value.branch_code}
-                  />
-                </div> 
-                <div className='mb-5 w-full'>
-                  <Typography variant='subtitle2' sx={{fontWeight:"bold",mb:.5}}>口座番号（7桁）<span className='text-slate-400'>(半角 6桁の場合は先頭に0)</span></Typography>
-                  <ReactiveInput 
-                    value={user?.account_number} 
-                    updateValue={newValue=>{
-                    setUser(draft=>{
-                      if(newValue){draft.account_number=newValue}                          
-                    })}} 
-                    type="text" placeholder="口座番号を入力してください" required fullWidth
-                  />
-                </div>
-                <Typography variant='subtitle2' sx={{fontWeight:"bold",mb:.5}}>口座種別</Typography>
-                <div className='mb-5 inline-flex rounded-md overflow-hidden border-solid border border-slate-200 font-bold'>
-                  <button className={`px-4 py-2 border-0 cursor-pointer border-r border-solid border-slate-200 bg-white ${user?.account_type == "普通" ? "text-slate-900 bg-slate-100 font-bold" : "text-slate-500"}`} onClick={()=>{setUser(draft=>{draft.account_type="普通"})}}>普通預金</button>
-                  <button className={`px-4 py-2 border-0 cursor-pointer border-r border-solid border-slate-200 bg-white ${user?.account_type == "当座" ? "text-slate-900 bg-slate-100 font-bold" : "text-slate-500"}`} onClick={()=>{setUser(draft=>{draft.account_type="当座"})}}>当座預金</button>
-                  <button className={`px-4 py-2 border-0 cursor-pointer bg-white ${user?.account_type == "貯蓄" ? "text-slate-900 bg-slate-100 font-bold" : "text-slate-500"}`} onClick={()=>{setUser(draft=>{draft.account_type="貯蓄"})}}>貯蓄預金</button>
-                </div>
-                <div className='mb-5 w-full'>
-                  <Typography variant='subtitle2' sx={{fontWeight:"bold",mb:.5}}>口座名義カナ （全角）</Typography>
-                  <ReactiveInput 
-                    value={user?.beneficiary_name} 
-                    updateValue={newValue=>{
-                    setUser(draft=>{
-                      if(newValue){draft.beneficiary_name=newValue}                          
-                    })}} 
-                    type="text" placeholder="口座名義を入力してください" required fullWidth
-                  />
-                </div>                          
-                <div>
-                <Box width={1} display="flex" justifyContent="center" alignItems="center" my={3}>
-                  <Button 
-                    onClick={ async ()=>{
-                      const batch = writeBatch(db);                  
-                      if(user.userId != loadedUser.data.userId){
-                        batch.delete(doc(db,"userIds",loadedUser.data.userId))
-                        batch.set(doc(db,"userIds",user.userId),{uid:user.uid,createdAt:serverTimestamp()})
-                        batch.update(doc(db,"users",user.uid),{...user,updatedAt:serverTimestamp()})
-                      }else{
-                        batch.update(doc(db,"users",user.uid),{...user,updatedAt:serverTimestamp()})
-                      }
-                      await batch.commit()
-                    }}
-                    variant='contained' 
-                    className='font-bold text-white'
-                    disableElevation sx={{fontWeight:"bold"}}  disabled={!isChangedUser || (isDuplicatedId && user.userId != loadedUser.data.userId)} endIcon = {!isChangedUser&&<Check/>}
-                  >
-                    {!isChangedUser ? "保存済み" : "更新する"} 
-                  </Button>
-                </Box>
-                </div>
-              </div>              
-            </TabPanel>
+
           </TabContext> 
         </Box>
       </Stack>
@@ -443,3 +282,142 @@ Settings.getLayout = (page) => {
 }
 
 export default Settings;
+
+{/* <TabPanel value="bank_account">
+{
+  router.query.message="bank_account_required" && <div className='bg-red-100 text-red-600 p-4 m-4 rounded-lg text-sm font-bold'>
+    お支払先情報を入力し、再度出金申請を行ってください
+  </div>
+}
+<div className='md:px-4 mt-6'>
+  <div className='text-xl font-bold mb-4'>お支払先</div>
+  <div className='mb-5'>
+    <Typography variant='subtitle2' sx={{fontWeight:"bold",mb:.5}}>銀行名</Typography>
+    <Autocomplete 
+      value={user?.bank}
+      onChange={(event,newValue)=>{
+        setUser(draft=>{
+          draft.bank=newValue
+          draft.branch =null
+        })
+      }}
+      options={bank_options.filter(option=>option.branch_code ==="000").sort((a,b)=> a.kana > b.kana ? 1 : -1).map(option=>{
+        if(["金庫", "信金","組合","農協", "バンク","信組","漁","信連"].every(x=>!option.name.includes(x))){
+          return {...option,name:option.name+"銀行"}
+        }else{
+          return option
+        }
+      })} 
+      groupBy={(option) => toHira(option.kana[0])} 
+      renderInput={(params) => <TextField  
+        {...params} 
+        placeholder="銀行名を入力してください" 
+        required
+        sx={{"& .MuiInputBase-root":{
+          backgroundColor: '#f1f5f9',
+          borderRadius: '4px',
+          padding: "0",
+          border: '1px solid #5c93bb2b',
+          '&:hover': { 
+            borderColor: '#3ea8ff'
+          }},
+          "& input": {border: 'none',padding: '8px 16px !important'},
+          "& p.MuiTypography-root":{
+            fontSize: "0.7rem"
+          },
+          "& .MuiOutlinedInput-notchedOutline":{border:"none"},
+          "& .Mui-focused .MuiOutlinedInput-notchedOutline":{ border: '1px solid #3ea8ff !important'},
+        }}
+      />} 
+      getOptionLabel={option => option.bank_code + "  "+ option.name} 
+      isOptionEqualToValue = {(option,value)=>option.bank_code === value.bank_code}
+    />
+  </div>   
+  <div className='mb-5'>
+    <Typography variant='subtitle2' sx={{fontWeight:"bold",mb:.5}}>支店名</Typography>
+    <Autocomplete 
+      value={user?.branch}
+      onChange={(event,newValue)=>{
+        setUser(draft=>{
+          draft.branch=newValue
+        })
+      }}
+      options={bank_options.filter(option=>option.bank_code ===user?.bank?.bank_code).sort((a,b)=> a.kana > b.kana ? 1 : -1)} 
+      groupBy={(option) => toHira(option.kana[0])} 
+      renderInput={(params) => <TextField  
+        {...params} 
+        placeholder="支店名を入力してください" 
+        required
+        sx={{"& .MuiInputBase-root":{
+          backgroundColor: '#f1f5f9',
+          borderRadius: '4px',
+          padding: "0",
+          border: '1px solid #5c93bb2b',
+          '&:hover': { 
+            borderColor: '#3ea8ff'
+          }},
+          "& input": {border: 'none',padding: '8px 16px !important'},
+          "& p.MuiTypography-root":{
+            fontSize: "0.7rem"
+          },
+          "& .MuiOutlinedInput-notchedOutline":{border:"none"},
+          "& .Mui-focused .MuiOutlinedInput-notchedOutline":{ border: '1px solid #3ea8ff !important'},
+        }}
+      />} 
+      getOptionLabel={option => option.branch_code + "  "+ option.name} 
+      isOptionEqualToValue = {(option,value)=>option.branch_code === value.branch_code}
+    />
+  </div> 
+  <div className='mb-5 w-full'>
+    <Typography variant='subtitle2' sx={{fontWeight:"bold",mb:.5}}>口座番号（7桁）<span className='text-slate-400'>(半角 6桁の場合は先頭に0)</span></Typography>
+    <ReactiveInput 
+      value={user?.account_number} 
+      updateValue={newValue=>{
+      setUser(draft=>{
+        if(newValue){draft.account_number=newValue}                          
+      })}} 
+      type="text" placeholder="口座番号を入力してください" required fullWidth
+    />
+  </div>
+  <Typography variant='subtitle2' sx={{fontWeight:"bold",mb:.5}}>口座種別</Typography>
+  <div className='mb-5 inline-flex rounded-md overflow-hidden border-solid border border-slate-200 font-bold'>
+    <button className={`px-4 py-2 border-0 cursor-pointer border-r border-solid border-slate-200 bg-white ${user?.account_type == "普通" ? "text-slate-900 bg-slate-100 font-bold" : "text-slate-500"}`} onClick={()=>{setUser(draft=>{draft.account_type="普通"})}}>普通預金</button>
+    <button className={`px-4 py-2 border-0 cursor-pointer border-r border-solid border-slate-200 bg-white ${user?.account_type == "当座" ? "text-slate-900 bg-slate-100 font-bold" : "text-slate-500"}`} onClick={()=>{setUser(draft=>{draft.account_type="当座"})}}>当座預金</button>
+    <button className={`px-4 py-2 border-0 cursor-pointer bg-white ${user?.account_type == "貯蓄" ? "text-slate-900 bg-slate-100 font-bold" : "text-slate-500"}`} onClick={()=>{setUser(draft=>{draft.account_type="貯蓄"})}}>貯蓄預金</button>
+  </div>
+  <div className='mb-5 w-full'>
+    <Typography variant='subtitle2' sx={{fontWeight:"bold",mb:.5}}>口座名義カナ （全角）</Typography>
+    <ReactiveInput 
+      value={user?.beneficiary_name} 
+      updateValue={newValue=>{
+      setUser(draft=>{
+        if(newValue){draft.beneficiary_name=newValue}                          
+      })}} 
+      type="text" placeholder="口座名義を入力してください" required fullWidth
+    />
+  </div>                          
+  <div>
+  <Box width={1} display="flex" justifyContent="center" alignItems="center" my={3}>
+    <Button 
+      onClick={ async ()=>{
+        const batch = writeBatch(db);   
+                     
+        if(user.userId != loadedUser.data.userId){
+          batch.delete(doc(db,"userIds",loadedUser.data.userId))
+          batch.set(doc(db,"userIds",user.userId),{uid:user.uid,createdAt:serverTimestamp()})
+          batch.update(doc(db,"users",user.uid),{...user,updatedAt:serverTimestamp()})
+        }else{
+          batch.update(doc(db,"users",user.uid),{...user,updatedAt:serverTimestamp()})
+        }
+        await batch.commit()
+      }}
+      variant='contained' 
+      className='font-bold text-white'
+      disableElevation sx={{fontWeight:"bold"}}  disabled={!isChangedUser || (isDuplicatedId && user.userId != loadedUser.data.userId)} endIcon = {!isChangedUser&&<Check/>}
+    >
+      {!isChangedUser ? "保存済み" : "更新する"} 
+    </Button>
+  </Box>
+  </div>
+</div>              
+</TabPanel> */}

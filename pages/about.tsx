@@ -2,7 +2,6 @@ import React,{ ReactElement, ReactNode, useEffect, useRef }  from 'react'
 import {Box, Grid, Typography, Divider,Button} from '@mui/material'
 import Typed from "typed.js";
 import {useTranslation} from "../src/hooks/useTranslation"
-import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
 import Footer from "../src/components/Footer"
 import Lottie from 'react-lottie-player' 
@@ -12,32 +11,8 @@ import Discussion from "../src/lotties/Discussion.json"
 import Teaching from "../src/lotties/Teaching.json"
 import Layout from "../src/components/layout"
 import { NextPage } from 'next';
+import Background from "../src/elements/Background"
 
-const useStyles = makeStyles(() =>({
-  background: {
-    position: "fixed",
-    zIndex: -1,
-    top: "0px",
-    left: "0px",
-    width: "100%",
-    overflow: "hidden",
-    transform: "translate3d(0px, 0px, 0px)",
-    height: "-webkit-fill-available",
-    background: "white",
-    opacity: 1,
-    userSelect: "none",
-    pointerEvents: "none"
-  },
-  featuredBox: {
-    transition: "background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms",
-    color: "rgb(69, 90, 100)",
-    boxShadow: "rgb(0 0 0 / 10%) 0px 2px 4px -2px",
-    backgroundColor: "white",
-    border: "1px solid rgba(92, 147, 187, 0.17)",
-    borderRadius: "12px",
-  }
-}),
-);
 
 type NextPageWithLayout = NextPage & {
   getLayout?: (page: ReactElement) => ReactNode
@@ -47,7 +22,6 @@ type NextPageWithLayout = NextPage & {
 const About: NextPageWithLayout = () => {
   const el = useRef(null);
   const t = useTranslation();
-  const classes = useStyles();
   const router = useRouter()
 
   useEffect(() => {
@@ -90,7 +64,7 @@ const About: NextPageWithLayout = () => {
         </Box>
         <Grid container spacing={3} px={4} mt={1} mb={6}>
           <Grid item xs={12} md={4}>
-            <Box sx={{p:2}} className={classes.featuredBox}>
+            <Box sx={{p:2}} className="bg-white rounded-lg border-solid border border-slate-200 shadow">
               <Typography variant="h6" sx={{mb:2, fontWeight:"bold",textAlign:"center"}}>循環をより深く理解しよう</Typography>
               <Box sx={{display:"flex",justifyContent:"center",width:1,height:"200px"}}>
                 <Lottie loop animationData={LearningConcept} play style={{ objectFit:"contain" }} />
@@ -99,7 +73,7 @@ const About: NextPageWithLayout = () => {
             </Box>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Box sx={{p:2}} className={classes.featuredBox}>
+            <Box sx={{p:2}} className="bg-white rounded-lg border-solid border border-slate-200 shadow">
               <Typography variant="h6" sx={{mb:2, fontWeight:"bold",textAlign:"center"}}>症例を振り返ろう</Typography>
               <Box sx={{display:"flex",justifyContent:"center",width:1,height:"200px"}}>
                 <Lottie loop animationData={Discussion} play style={{ objectFit:"contain" }} />
@@ -108,7 +82,7 @@ const About: NextPageWithLayout = () => {
             </Box>    
           </Grid>
           <Grid item xs={12} md={4}>
-          <Box sx={{p:2}} className={classes.featuredBox}>
+          <Box sx={{p:2}} className="bg-white rounded-lg border-solid border border-slate-200 shadow">
             <Typography variant="h6" sx={{mb:2, fontWeight:"bold",textAlign:"center"}}>分かりやすく伝えよう</Typography>
             <Box sx={{display:"flex",justifyContent:"center",width:1,height:"200px"}}>
               <Lottie loop animationData={Teaching} play style={{ objectFit:"contain" }} />
@@ -215,7 +189,7 @@ const About: NextPageWithLayout = () => {
         <Divider light variant="middle" sx={{mx:{sx:2,md:10}}}/>
         <Footer/>
       </Box>
-      <div className={classes.background}></div>
+      <Background/>
   </>
 }
 

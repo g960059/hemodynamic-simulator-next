@@ -1,6 +1,6 @@
 // import { getAnalytics  } from "firebase/analytics";
 import { getAuth,GoogleAuthProvider, connectAuthEmulator } from 'firebase/auth';
-import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
+import { connectFirestoreEmulator, getFirestore, initializeFirestore } from 'firebase/firestore';
 import StyledFirebaseAuth from "../components/StyledFirebaseAuth";
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
@@ -17,17 +17,7 @@ export let firebaseConfig = {
   measurementId: "${config.measurementId}"
 };
 
-// if (process.env.NEXT_PUBLIC_ENV != "production"){
-  // firebaseConfig = {
-  //   apiKey: process.env.NEXT_PUBLIC_API_KEY,
-  //   authDomain: process.env.NEXT_PUBLIC_PROJECT_ID,
-  //   projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
-  //   storageBucket: process.env.NEXT_PUBLIC_STORAGE_BUCKET,
-  //   messagingSenderId: process.env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
-  //   appId: process.env.NEXT_PUBLIC_APP_ID,
-  //   measurementId: "${config.measurementId}"
-  // }
-// }
+
 
 const uiConfig = {
   signInFlow: 'popup',
@@ -39,12 +29,19 @@ const uiConfig = {
   },
 };
 
+export const app = firebase.initializeApp(firebaseConfig);
+
 // Initialize Firebase
 const FIREBASE_INITIALIZED = 'FIREBASE_INITIALIZED';
 if(!global[FIREBASE_INITIALIZED]) {
+  initializeFirestore(app, {
+    ignoreUndefinedProperties: true,
+  })
 }
-export const app = firebase.initializeApp(firebaseConfig);
+
 // export const analytics = getAnalytics(app);
+
+
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const functions = getFunctions(app)

@@ -244,3 +244,225 @@ export const calculatePosition= (positions, newItem) => {
   // 最適な位置を返します。
   return bestPosition;
 }
+
+export function deepEqual(a, b, excludeKeys = []) {
+  if (a === b) return true;
+
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    if (a.constructor !== b.constructor) return false;
+
+    let length, i, keys;
+    if (Array.isArray(a)) {
+      length = a.length;
+      if (length !== b.length) return false;
+      for (i = length; i-- !== 0;)
+        if (!deepEqual(a[i], b[i], excludeKeys)) return false;
+      return true;
+    }
+
+    if (a instanceof Map && b instanceof Map) {
+      if (a.size !== b.size) return false;
+      for (i of a.entries())
+        if (!b.has(i[0]) || !deepEqual(i[1], b.get(i[0]), excludeKeys)) return false;
+      return true;
+    }
+
+    if (a instanceof Set && b instanceof Set) {
+      if (a.size !== b.size) return false;
+      for (i of a.entries())
+        if (!b.has(i[0])) return false;
+      return true;
+    }
+
+    if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) {
+      length = a.length;
+      if (length !== b.length) return false;
+      for (i = length; i-- !== 0;)
+        if (a[i] !== b[i]) return false;
+      return true;
+    }
+
+    if (a.constructor === RegExp) return a.source === b.source && a.flags === b.flags;
+    if (a.valueOf !== Object.prototype.valueOf) return a.valueOf() === b.valueOf();
+    if (a.toString !== Object.prototype.toString) return a.toString() === b.toString();
+
+    keys = Object.keys(a).filter(key => !excludeKeys.includes(key));
+    length = keys.length;
+    if (length !== Object.keys(b).filter(key => !excludeKeys.includes(key)).length) return false;
+
+    for (i = length; i-- !== 0;)
+      if (!Object.hasOwn(b, keys[i])) return false;
+
+    for (i = length; i-- !== 0;) {
+      var key = keys[i];
+      if (!deepEqual(a[key], b[key], excludeKeys)) return false;
+    }
+
+    return true;
+  }
+
+  // True if both NaN, false otherwise
+  return a !== a && b !== b;
+}
+
+export function fastDeepEqual(a, b, excludeKeys = [], includeKeys = null) {
+  if (a === b) return true;
+
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    if (a.constructor !== b.constructor) return false;
+
+    let length, i, keys;
+    if (Array.isArray(a)) {
+      length = a.length;
+      if (length !== b.length) return false;
+      for (i = length; i-- !== 0;)
+        if (!fastDeepEqual(a[i], b[i], excludeKeys, includeKeys)) return false;
+      return true;
+    }
+
+    if (a instanceof Map && b instanceof Map) {
+      if (a.size !== b.size) return false;
+      for (i of a.entries())
+        if (!b.has(i[0]) || !fastDeepEqual(i[1], b.get(i[0]), excludeKeys, includeKeys)) return false;
+      return true;
+    }
+
+    if (a instanceof Set && b instanceof Set) {
+      if (a.size !== b.size) return false;
+      for (i of a.entries())
+        if (!b.has(i[0])) return false;
+      return true;
+    }
+
+    if (ArrayBuffer.isView(a) && ArrayBuffer.isView(b)) {
+      length = a.length;
+      if (length !== b.length) return false;
+      for (i = length; i-- !== 0;)
+        if (a[i] !== b[i]) return false;
+      return true;
+    }
+
+    if (a.constructor === RegExp) return a.source === b.source && a.flags === b.flags;
+    if (a.valueOf !== Object.prototype.valueOf) return a.valueOf() === b.valueOf();
+    if (a.toString !== Object.prototype.toString) return a.toString() === b.toString();
+
+    if (includeKeys !== null) {
+      keys = includeKeys;
+    } else {
+      keys = Object.keys(a).filter(key => !excludeKeys.includes(key));
+    }
+
+    length = keys.length;
+    if (length !== Object.keys(b).filter(key => !excludeKeys.includes(key)).length) return false;
+
+    for (i = length; i-- !== 0;)
+      if (!Object.hasOwn(b, keys[i])) return false;
+
+    for (i = length; i-- !== 0;) {
+      var key = keys[i];
+      if (!fastDeepEqual(a[key], b[key], excludeKeys, includeKeys)) return false;
+    }
+
+    return true;
+  }
+
+  // True if both NaN, false otherwise
+  return a !== a && b !== b;
+}
+
+export function deepEqual2(a, b, excludeKeys = [], ignoreArrayOrder = false) {
+  if (a === b) return true;
+
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    if (a.constructor !== b.constructor) return false;
+
+    let length, i, keys;
+    if (Array.isArray(a)) {
+      length = a.length;
+      if (length !== b.length) return false;
+
+      if (ignoreArrayOrder) {
+        // Sort both arrays based on the 'i' property before comparing
+        const sortedA = [...a].sort((x, y) => (x.i > y.i ? 1 : -1));
+        const sortedB = [...b].sort((x, y) => (x.i > y.i ? 1 : -1));
+        for (i = length; i-- !== 0;)
+          if (!deepEqual2(sortedA[i], sortedB[i], excludeKeys, ignoreArrayOrder)) return false;
+      } else {
+        for (i = length; i-- !== 0;)
+          if (!deepEqual2(a[i], b[i], excludeKeys, ignoreArrayOrder)) return false;
+      }
+      return true;
+    }
+
+    keys = Object.keys(a).filter(key => !excludeKeys.includes(key));
+    length = keys.length;
+    if (length !== Object.keys(b).filter(key => !excludeKeys.includes(key)).length) return false;
+
+    for (i = length; i-- !== 0;)
+      if (!Object.hasOwn(b, keys[i])) return false;
+
+    for (i = length; i-- !== 0;) {
+      var key = keys[i];
+      if (!deepEqual2(a[key], b[key], excludeKeys, ignoreArrayOrder)) return false;
+    }
+
+    return true;
+  }
+
+  // True if both NaN, false otherwise
+  return a !== a && b !== b;
+}
+
+
+
+export function deepEqual3(a, b, excludeKeys = [], ignoreArrayOrder = false, ignoreUndefined = false) {
+  if (a === b) return true;
+
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    if (a.constructor !== b.constructor) return false;
+
+    let length, i, keys;
+    if (Array.isArray(a)) {
+      length = a.length;
+      if (length !== b.length) return false;
+
+      if (ignoreArrayOrder) {
+        const sortedA = [...a].sort((x, y) => (x.i > y.i ? 1 : -1));
+        const sortedB = [...b].sort((x, y) => (x.i > y.i ? 1 : -1));
+        for (i = length; i-- !== 0;)
+          if (!deepEqual3(sortedA[i], sortedB[i], excludeKeys, ignoreArrayOrder, ignoreUndefined)) return false;
+      } else {
+        for (i = length; i-- !== 0;)
+          if (!deepEqual3(a[i], b[i], excludeKeys, ignoreArrayOrder, ignoreUndefined)) return false;
+      }
+      return true;
+    }
+
+    keys = Object.keys(a).filter(key => !excludeKeys.includes(key));
+    if (ignoreUndefined) {
+      keys = keys.filter(key => a[key] !== undefined);
+    }
+    length = keys.length;
+
+    const bKeys = Object.keys(b).filter(key => !excludeKeys.includes(key));
+    if (ignoreUndefined) {
+      if (length !== bKeys.filter(key => b[key] !== undefined).length) return false;
+    } else {
+      if (length !== bKeys.length) return false;
+    }
+
+    for (i = length; i-- !== 0;)
+      if (!Object.hasOwn(b, keys[i])) return false;
+
+    for (i = length; i-- !== 0;) {
+      var key = keys[i];
+      if (!deepEqual3(a[key], b[key], excludeKeys, ignoreArrayOrder, ignoreUndefined)) return false;
+    }
+
+    return true;
+  }
+
+  // True if both NaN, false otherwise
+  return a !== a && b !== b;
+}
+

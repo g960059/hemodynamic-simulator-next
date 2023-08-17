@@ -29,7 +29,7 @@ const Footer = () => {
             <Stack sx={{pt:2}}>
               <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} onClick={()=>router.push("/about")}>{t["About"]}</Link>
               <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} onClick={()=>router.push("/changelog")}>{t["ChangeLog"]}</Link>
-              <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}}>{t["HowToUse"]}</Link>
+              {/* <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}}>{t["HowToUse"]}</Link> */}
               <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} href="https://github.com/g960059/hemodynamic-simulator-next/projects/1">{t["Roadmap"]}</Link>
             </Stack>
           </Box>

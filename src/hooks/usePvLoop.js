@@ -327,37 +327,72 @@ class Patient {
   }
 }
 
+// export const user$ = authState(auth).pipe(
+//   mergeMap(user => {
+//     if(user){
+//       return combineLatest([docData(doc(db,'users',user?.uid),{idField: 'uid'}),of(user)])
+//     }else{
+//       return combineLatest([of(null),of(null)])
+//     }
+//   }),
+//   tap(([userDocData,user])=>{
+//       if(user && !userDocData){
+//         const initializeUser = async ()=>{
+//           const batch = writeBatch(db);
+//           batch.set(doc(db,"users",user.uid),{
+//             displayName: user.displayName,
+//             photoURL: user.photoURL,
+//             userId: user.uid,
+//             email: user.email,
+//             caseHeartCount:0,
+//             createdAt:serverTimestamp(),
+//           });
+//           batch.set(doc(db,"userIds",user.uid),{uid:user.uid, createdAt:serverTimestamp()});
+//           batch.set(doc(db,"followers",user.uid),{users:[]});
+//           await batch.commit();
+//         }
+//         initializeUser();
+//       }
+//     }
+//   ),
+//   map(([userDocData,user])=> userDocData),
+// );
+
 export const user$ = authState(auth).pipe(
-  mergeMap(user => {
-    if(user){
-      return zip([docData(doc(db,'users',user?.uid),{idField: 'uid'}),of(user)])
-    }else{
-      return zip([of(null),of(user)])
+  switchMap(user => {
+    if (user) {
+      return docData(doc(db, 'users', user.uid), { idField: 'uid' }).pipe(
+        tap(userDocData => {
+          if (!userDocData) {
+            const initializeUser = async () => {
+              const batch = writeBatch(db);
+              batch.set(doc(db, "users", user.uid), {
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                userId: user.uid,
+                email: user.email,
+                caseHeartCount: 0,
+                createdAt: serverTimestamp(),
+              });
+              batch.set(doc(db, "userIds", user.uid), { uid: user.uid, createdAt: serverTimestamp() });
+              batch.set(doc(db, "followers", user.uid), { users: [] });
+              await batch.commit();
+            }
+            initializeUser();
+          }
+        })
+      );
+    } else {
+      // userがnullの場合、nullを発行するObservableを返します
+      return of(null);
     }
-  }),
-  tap(([userDocData,user])=>{
-      if(user && !userDocData){
-        const initializeUser = async ()=>{
-          const batch = writeBatch(db);
-          batch.set(doc(db,"users",user.uid),{
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            userId: user.uid,
-            email: user.email,
-            articleHeartCount:0,
-            caseHeartCount:0,
-            createdAt:serverTimestamp(),
-          });
-          batch.set(doc(db,"userIds",user.uid),{uid:user.uid, createdAt:serverTimestamp()});
-          batch.set(doc(db,"followers",user.uid),{users:[]});
-          await batch.commit();
-        }
-        initializeUser();
-      }
-    }
-  ),
-  map(([userDocData,user])=> userDocData),
+  })
 );
+
+
+
+
+
 
 export const nextUser$ = user$.pipe(
   mergeMap(user => docData(doc(db,'users',user.uid),{idField: 'uid'})),

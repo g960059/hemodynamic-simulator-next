@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
-import {Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, useMediaQuery, Popover} from '@mui/material'
+import {Popover} from '@mui/material'
 import {useTranslation} from '../hooks/useTranslation'
 import {metrics} from '../utils/metrics'
 import { useImmer } from 'use-immer'
@@ -8,23 +8,23 @@ import DeleteMenuItemWithDialog from './DeleteMenuItemWithDialog'
 import MetricsDialog from './MetricsDialog'
 
 
-const MetricsPanel = React.memo(({patients, view, updateView,removeView}) => {
+const MetricsPanel = React.memo(({patients, view, updateView,removeView, isOwner}) => {
   const t = useTranslation()
   const [anchorEl, setAnchorEl] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   return <>
-    <div className='w-full '>
-      <div className='flex p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200'>
+    <div className='w-full h-full overflow-hidden'>
+      <div className='flex items-center p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200 relative h-10'>
         <div className='draggable cursor-move font-bold text-lg pl-1'>{view?.name || "Output Panel"}</div>
-        <div className='draggable cursor-move flex-grow'></div>
-        <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
+        <div className='draggable cursor-move flex-grow h-full'></div>
+        {isOwner && <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
           <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
           </svg>
-        </div>
+        </div>}
       </div>
-      <div className='flex flex-row flex-wrap bg-white' >
-        {view.items?.map((o,index) => <div key={o.id} className='flex flex-row -ml-px '>
+      <div className='flex flex-row flex-wrap bg-white w-full h-[calc(100%_-_48px)] relative overflow-auto' >
+        {view.items?.map((o,index) => <div key={o.id} className='flex flex-row -ml-px h-16'>
           <div className='bg-slate-300 w-[1px] my-3'></div>
           <Output patient = {patients.find(p=>p.id==o.patientId)} output = {o}/>
         </div>)}
@@ -44,7 +44,6 @@ const MetricsPanel = React.memo(({patients, view, updateView,removeView}) => {
       }}
       elevation={0}
       marginThreshold={0}
-      PaperProps={{style: {backgroundColor: 'transparent'}}}
     >
       <div className='flex flex-col items-center justify-center py-2 bg-white  border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
         <div onClick={()=> {setDialogOpen(true); setAnchorEl(null)}} 

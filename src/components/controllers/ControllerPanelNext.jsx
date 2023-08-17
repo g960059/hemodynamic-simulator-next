@@ -28,22 +28,22 @@ const Hdps = [
   "ECMO","Impella"
 ]
 
-const ControllerPanel = React.memo(({view,updateView,removeView, patient, setPatient,patients}) => {
+const ControllerPanel = React.memo(({view,updateView,removeView, patient, setPatient,patients, isOwner}) => {
   const t = useTranslation()
   const [openInfoDialog, setOpenInfoDialog] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
   return (
-    <div className='w-full'>
-      <div className=' flex p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200'>
+    <div className='w-full h-full overflow-hidden'>
+      <div className='flex items-center p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200 relative h-10'>
         <div className='draggable cursor-move font-bold text-lg pl-1'>{view?.name || "Controller Panel"}</div>
-        <div className='draggable cursor-move flex-grow'></div>
-        <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget);}}>
+        <div className='draggable cursor-move flex-grow h-full'></div>
+        {isOwner && <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget);}}>
           <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
           </svg>
-        </div>
+        </div>}
       </div>
       <Popover 
         open={Boolean(anchorEl)}
@@ -89,7 +89,7 @@ const ControllerPanel = React.memo(({view,updateView,removeView, patient, setPat
         </div>
       </Popover>   
       {view.items?.length>0 &&
-        <div className='w-full px-4 py-2'>
+        <div className='w-full px-4 py-2 h-[calc(100%_-_48px)] relative overflow-auto'>
           {
             view.items?.map(controllerItem=> (
               <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
