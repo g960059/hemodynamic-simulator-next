@@ -1,3 +1,5 @@
+'use client'
+
 import React,{useState, useEffect} from 'react';
 import {Popover} from '@mui/material'
 
@@ -43,7 +45,7 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner}) => 
         </div>}
       </div>
       <div className='w-full h-[calc(100%_-_48px)] relative overflow-auto'>
-        {/* <BlockNoteView editor={editor}  /> */}
+        <BlockNoteView editor={editor}  />
       </div>
     </div>
     <Popover 

@@ -3,7 +3,6 @@ import {Button,IconButton,Stack,Menu,Dialog,DialogContent,Grow,DialogTitle,Popov
 import PlaySpeedButtonsNext from './PlaySpeedButtonsNext'
 import MetricsPanel from './MetricsPanel'
 import ControllerPanelNext from './controllers/ControllerPanelNext'
-import NotePanel from './NotePanel'
 
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import dynamic from 'next/dynamic'
@@ -28,6 +27,7 @@ const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const RealTimeChartNext = dynamic(()=>import('./RealTimeChartNext'), {ssr: false});
 const PressureVolumeCurveNext = dynamic(()=>import('./PressureVolumeCurveNext'), {ssr: false,});
 const Tracker = dynamic (()=>import('./Tracker'), {ssr: false,});
+const NotePanel = dynamic(()=>import('./NotePanel'), {ssr: false,});
 // const CombinedChart = dynamic(()=>import('./combined/CombinedChart'), {ssr: false,});
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
