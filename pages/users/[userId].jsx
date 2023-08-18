@@ -147,9 +147,12 @@ export const CaseItem = ({caseItem}) => {
           </div>
         </div>
       </div>
-      <div className='ml-10 mt-2' onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/cases/${caseItem?.id}`,query:{caseUid: caseItem.uid}})}}>
-        <div className='font-bold text-xl text-slate-800 no-underline hover:underline'>
+      <div className='ml-10 mt-2' >
+        <div onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/cases/${caseItem?.id}`,query:{caseUid: caseItem.uid}})}} className='font-bold text-xl text-slate-800 no-underline hover:underline'>
             {caseItem?.name || "Untitled"}
+        </div>
+        <div className='flex flex-row items-center justify-start mt-2'>
+          {caseItem.tags?.map(tag=><span class="inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium bg-slate-100 text-slate-800">{tag}</span>)}
         </div>
       </div>
       <div className='ml-10 mt-2'>

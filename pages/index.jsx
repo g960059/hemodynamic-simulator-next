@@ -52,7 +52,7 @@ const TopPage = ({cases}) => {
           <div className='max-w-4xl w-full mx-auto py-4 md:py-6 px-4 min-h-[440px]'>
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {
-                myCases.data.map(c=><CaseItem caseItem={c}/>)
+                myCases.data.map(c=><CaseItem caseItem={c} showVisibility={true}/>)
               }
             </div>         
           </div>  :
@@ -127,7 +127,7 @@ export const getStaticProps = async () => {
   }
 }
 
-export const CaseItem = ({caseItem}) => {
+export const CaseItem = ({caseItem, showVisibility=false}) => {
   const router = useRouter()
   return (
     <div key={caseItem?.id} onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/cases/${caseItem?.id}`,query:{caseUid: caseItem.uid}})}}  className="w-full flex flex-col py-3 px-4 bg-white cursor-pointer border border-solid border-slate-200 rounded-md overflow-hidden hover:shadow transition">
@@ -148,10 +148,21 @@ export const CaseItem = ({caseItem}) => {
             <span className='text-sm font-medium '>{ formatDateDiff(new Date(), new Date(caseItem?.updatedAt?.seconds * 1000)) } </span>
           </div>
         </div>
+        <div className='flex-grow'/>
+        {
+          showVisibility && (
+            caseItem.visibility=="public" ?  
+              <span class="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium text-blue-500 border border-solid border-blue-500">公開中</span> :
+              <span class="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium text-slate-400 border border-solid border-slate-300">非公開</span>
+          )
+        }
       </div>
-      <div className='ml-10 mt-2' onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/cases/${caseItem?.id}`,query:{caseUid: caseItem.uid}})}}>
-        <div className='font-bold text-xl text-slate-800 no-underline hover:underline'>
+      <div className='ml-10 mt-2' >
+        <div onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/cases/${caseItem?.id}`,query:{caseUid: caseItem.uid}})}} className='font-bold text-xl text-slate-800 no-underline hover:underline'>
             {caseItem?.name || "Untitled"}
+        </div>
+        <div className='flex flex-row items-center justify-start mt-2'>
+          {caseItem.tags?.map(tag=><span class="inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium bg-slate-100 text-slate-800">{tag}</span>)}
         </div>
       </div>
       <div className='ml-10 mt-2'>
