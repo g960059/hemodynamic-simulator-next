@@ -11,6 +11,7 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
   const [view, setView] = useImmer(initialView || {name: "Metrics", type: "Metrics", items:[]});
   const [viewItemAnchorEl, setViewItemAnchorEl] = useState(null);
   const [edittingIndex, setEdittingIndex] = useState(null);
+  const [activeItemId, setActiveItemId] = useState(null);
   const [openNewMetric, setOpenNewMetric] = useState(false);
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
 
@@ -67,15 +68,15 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
                           <div onClick={()=>{setEdittingIndex(index)}} className='cursor-pointer bg-white rounded-lg pl-2 w-full flex items-center justify-center hover:bg-slate-100'>
                             <div className='text-base'>{item?.label}</div>
                             <div className='flex-grow'></div>
-                            <div className='p-1 py-2 flex items-center' onClick={e => {e.stopPropagation(); setViewItemAnchorEl(e.currentTarget)}}>
+                            <div className='p-1 py-2 flex items-center' onClick={e => {e.stopPropagation(); setViewItemAnchorEl(e.currentTarget);setActiveItemId(item.id)}}>
                               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
                               </svg>
                             </div>
                             <Popover 
-                              open={Boolean(viewItemAnchorEl)}
+                              open={Boolean(viewItemAnchorEl) && activeItemId === item.id}
                               anchorEl={viewItemAnchorEl}
-                              onClose={(e)=>{e.stopPropagation();setViewItemAnchorEl(null)}}
+                              onClose={(e)=>{e.stopPropagation();setViewItemAnchorEl(null);setActiveItemId(null)}}
                               anchorOrigin={{
                                 vertical: 'bottom',
                                 horizontal: 'right',
@@ -90,7 +91,7 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
                               PaperProps={{style: {backgroundColor: 'transparent',boxShadow: 'none',width: 'auto',maxWidth: 'none',}}}
                             >
                               <div className='flex flex-col items-center justify-center py-2 bg-white border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
-                                <div onClick={()=> {setEdittingIndex(index); setViewItemAnchorEl(null)}} 
+                                <div onClick={()=> {setEdittingIndex(index); setViewItemAnchorEl(null);setActiveItemId(null)}} 
                                   className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
                                 >
                                   <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
@@ -98,7 +99,7 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
                                   </svg>
                                   Edit
                                 </div>
-                                <div onClick={()=>{setView(draft=>{draft.items.splice(index,1)});setViewItemAnchorEl(null);}} 
+                                <div onClick={(e)=>{e.stopPropagation();setView(draft=>{draft.items.splice(index,1)});setViewItemAnchorEl(null);setActiveItemId(null)}} 
                                   className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1 text-red-500 hover:bg-red-500 hover:text-white"
                                 >
                                   <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

@@ -1,36 +1,36 @@
 import React, {useRef, useState, useEffect} from 'react'
 import {Box,Typography,Grid,Tab,Tabs, Divider,AppBar,Tooltip, Toolbar,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery} from '@mui/material'
 import {ArrowBack,Add,Check,Tune,FavoriteBorder,DragIndicator} from '@mui/icons-material';
-import {useEngine, user$} from '../../../src/hooks/usePvLoop'
+import {useEngine, user$} from '../../../hooks/usePvLoop'
 import { useRouter } from 'next/router'
-import PlaySpeedButtonsNext from '../../../src/components/PlaySpeedButtonsNext'
-import {a11yProps, TabPanel} from '../../../src/components/TabUtils'
+import PlaySpeedButtonsNext from '../../../components/PlaySpeedButtonsNext'
+import {a11yProps, TabPanel} from '../../../components/TabUtils'
 import { makeStyles } from '@mui/styles';
-import {useTranslation} from '../../../src/hooks/useTranslation'
-import OutputPanel from '../../../src/components/OutputPanel'
-import ControllerPanelNext from '../../../src/components/controllers/ControllerPanelNext'
-import {getTimeSeriesPressureFn, pressureTypes} from '../../../src/utils/presets'
-import {COLORS} from '../../../src/styles/chartConstants'
+import {useTranslation} from '../../../hooks/useTranslation'
+import OutputPanel from '../../../components/OutputPanel'
+import ControllerPanelNext from '../../../components/controllers/ControllerPanelNext'
+import {getTimeSeriesPressureFn, pressureTypes} from '../../../utils/presets'
+import {COLORS} from '../../../styles/chartConstants'
 
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import dynamic from 'next/dynamic'
 import {useObservable} from "reactfire"
-import {db,auth,app} from "../../../src/utils/firebase"
+import {db,auth,app} from "../../../utils/firebase"
 import { mergeMap,filter,tap,map} from "rxjs/operators";
 import {forkJoin, combine, combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
-import {objectWithoutKey,objectWithoutKeys,getRandomEmoji,useLeavePageConfirmation} from "../../../src/utils/utils"
+import {objectWithoutKey,objectWithoutKeys,getRandomEmoji,useLeavePageConfirmation} from "../../../utils/utils"
 import { Allotment } from "allotment";
 import "allotment/dist/style.css";
 import Lottie from 'react-lottie-player' 
-import LoadingAnimation from "../../../src/lotties/LoadingAnimation.json"
+import LoadingAnimation from "../../../lotties/LoadingAnimation.json"
 
-const RealTimeChartNext = dynamic(()=>import('../../../src/components/RealTimeChartNext'), {ssr: false});
-const PressureVolumeCurveNext = dynamic(()=>import('../../../src/components/PressureVolumeCurveNext'), {ssr: false,});
-const CombinedChart = dynamic(()=>import('../../../src/components/combined/CombinedChart'), {ssr: false,});
+const RealTimeChartNext = dynamic(()=>import('../../../components/RealTimeChartNext'), {ssr: false});
+const PressureVolumeCurveNext = dynamic(()=>import('../../../components/PressureVolumeCurveNext'), {ssr: false,});
+const CombinedChart = dynamic(()=>import('../../../components/combined/CombinedChart'), {ssr: false,});
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 

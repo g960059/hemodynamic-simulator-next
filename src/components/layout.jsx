@@ -77,11 +77,11 @@ function Layout(props) {
   const [newItemAnchorEl, setNewItemAnchorEl] = useState(null);
 
   const createNewCase =  async () => {
-    const caseId = nanoid()
-    router.push({pathname:`/cases/${caseId}`,query:{newItem:true, caseUid: user.uid}})
+    const canvasId = nanoid()
+    router.push({pathname:`/canvas/${canvasId}`,query:{newItem:true}})
     setNewItemAnchorEl(null)
   }
-  console.log(user)
+
 
   useEffect(() => {
     if(user){

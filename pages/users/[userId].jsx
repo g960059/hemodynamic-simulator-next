@@ -27,7 +27,7 @@ function UserSummary(){
 
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   // const [user, setUser] = useState();
-  const [cases, setCases] = useState();
+  const [canvas, setCanvas] = useState();
 
   const [followerDiff, setFollowerDiff] = useState(0);
   const [currentUser] = useAuthState(auth)
@@ -63,12 +63,12 @@ function UserSummary(){
   useEffect(() => {
     (async ()=>{
       if(uid){
-        const loadedCases = []
-        const loadedCasesSnap = await getDocs(query(collection(db,'users',uid,'cases'),where("visibility","!=","private")));
-        loadedCasesSnap.forEach(async (caseSnap) => {
-          loadedCases.push({...caseSnap.data(),id:caseSnap.id})
+        const loadedCanvas = []
+        const loadedCanvasSnap = await getDocs(query(collection(db,"canvas"),where("visibility","!=","private")));
+        loadedCanvasSnap.forEach(async (caseSnap) => {
+          loadedCanvas.push({...caseSnap.data(),id:caseSnap.id})
         })
-        setCases(loadedCases)       
+        setCanvas(loadedCanvas)       
       }
     })()
   }, [uid]);
@@ -114,7 +114,7 @@ function UserSummary(){
         <div className='max-w-4xl w-full mx-auto py-4 md:py-6 px-4 min-h-[440px]'>
           <div className="grid md:grid-cols-2 gap-4 md:gap-8">
             {
-              cases?.map(c=><CaseItem caseItem={c}/>)
+              canvas?.map(c=><CanvasItem canvas={c}/>)
             }
           </div>         
         </div>    
@@ -125,34 +125,34 @@ function UserSummary(){
   </>
 }
 
-export const CaseItem = ({caseItem}) => {
+export const CanvasItem = ({canvas}) => {
   const router = useRouter()
   return (
-    <div key={caseItem?.id} onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/cases/${caseItem?.id}`,query:{caseUid: caseItem.uid}})}}  className="w-full flex flex-col py-3 px-4 bg-white cursor-pointer border border-solid border-slate-200 rounded-md overflow-hidden hover:shadow transition">
+    <div key={canvas?.id} onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/canvas/${canvas?.id}`})}}  className="w-full flex flex-col py-3 px-4 bg-white cursor-pointer border border-solid border-slate-200 rounded-md overflow-hidden hover:shadow transition">
       <div className='flex flex-row items-center'>
-        {caseItem?.photoURL ?
-          <div className="h-8 w-8 rounded-full overflow-hidden" onClick={(e)=>{e.stopPropagation(); router.push(`/users/${caseItem.userId}`)}}>
-            <Image src={caseItem?.photoURL} height="32" width="32" alt="userPhoto"/>
+        {canvas?.photoURL ?
+          <div className="h-8 w-8 rounded-full overflow-hidden" onClick={(e)=>{e.stopPropagation(); router.push(`/users/${canvas.userId}`)}}>
+            <Image src={canvas?.photoURL} height="32" width="32" alt="userPhoto"/>
           </div> :
-          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={(e)=>{e.stopPropagation();router.push(`/users/${caseItem.userId}`)}}>
-            <span className="text-xs font-medium leading-none text-white">{caseItem?.displayName[0]}</span>
+          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={(e)=>{e.stopPropagation();router.push(`/users/${canvas.userId}`)}}>
+            <span className="text-xs font-medium leading-none text-white">{canvas?.displayName[0]}</span>
           </div>
         }
         <div className='ml-2 text-slate-500' >
-          <div onClick={(e)=>{e.stopPropagation(); router.push(`/users/${caseItem.userId}`)}} className='text-sm font-medium no-underline hover:underline text-slate-500'>
-              {caseItem?.displayName}
+          <div onClick={(e)=>{e.stopPropagation(); router.push(`/users/${canvas.userId}`)}} className='text-sm font-medium no-underline hover:underline text-slate-500'>
+              {canvas?.displayName}
           </div>
           <div className='flex flex-row items-center justify-between'>
-            <span className='text-sm font-medium '>{ formatDateDiff(new Date(), new Date(caseItem?.updatedAt?.seconds * 1000)) } </span>
+            <span className='text-sm font-medium '>{ formatDateDiff(new Date(), new Date(canvas?.updatedAt?.seconds * 1000)) } </span>
           </div>
         </div>
       </div>
       <div className='ml-10 mt-2' >
-        <div onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/cases/${caseItem?.id}`,query:{caseUid: caseItem.uid}})}} className='font-bold text-xl text-slate-800 no-underline hover:underline'>
-            {caseItem?.name || "Untitled"}
+        <div onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/canvas/${canvas?.id}`})}} className='font-bold text-xl text-slate-800 no-underline hover:underline'>
+            {canvas?.name || "Untitled"}
         </div>
         <div className='flex flex-row items-center justify-start mt-2'>
-          {caseItem.tags?.map(tag=><span class="inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium bg-slate-100 text-slate-800">{tag}</span>)}
+          {canvas.tags?.map(tag=><span class="inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium bg-slate-100 text-slate-800">{tag}</span>)}
         </div>
       </div>
       <div className='ml-10 mt-2'>
@@ -160,7 +160,7 @@ export const CaseItem = ({caseItem}) => {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 " fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
-          <span className='text-sm ml-0.5'>{caseItem?.heartCount || 0}</span>
+          <span className='text-sm ml-0.5'>{canvas?.heartCount || 0}</span>
         </span>
       </div>
     </div>

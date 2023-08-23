@@ -25,22 +25,19 @@ const EditableText = ({value, updateValue, inputArgs={}, textArgs={}}) => {
       setEditing(true);
   }
   return (
-      <div>
-          {isEditing ? (
-              <input
-                  ref={inputRef}
-                  type="text"
-                  className="appearance-none p-2 border-solid border-2 rounded  focus:border-blue-500 focus:outline-none "
-                  value={value}
-                  onChange={handleChange}
-                  onKeyDown={handleKeyDown}
-                  onBlur={handleBlur}
-                  {...inputArgs}
-              />
-          ) : (
-              <div onClick={handleClick} className="cursor-pointer pb-1.5 pt-[5px] px-2 rounded  hover:bg-slate-100 " {...textArgs}>{value}</div>
-          )}
-      </div>
+    <div>
+        <input
+            ref={inputRef}
+            type="text"
+            className="appearance-none p-2 border-solid border-1 rounded-md bg-slate-100 border-slate-200 focus:outline focus:border-blue-500 focus:outline-2 focus:outline-[#bfdcff] "
+            value={value}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            {...inputArgs}
+        />
+          
+    </div>
   )
 }
 export default EditableText
