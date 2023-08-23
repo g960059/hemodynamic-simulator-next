@@ -1,28 +1,29 @@
 import React, {useRef, useState, useEffect} from 'react'
-import {Box,Typography,Grid,Tab,Tabs, Divider,AppBar,Tooltip, Toolbar,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery, NoSsr} from '@mui/material'
-import {ArrowBack,Add,Check,Tune,FavoriteBorder,DragIndicator} from '@mui/icons-material';
-import {useEngine, user$,cases$, allCases$} from '../../src/hooks/usePvLoop'
+import {Box,Typography,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,useMediaQuery, NoSsr} from '@mui/material'
+import {ArrowBack,Add,Check,Tune} from '@mui/icons-material';
+import {useEngine, user$} from '../../src/hooks/usePvLoop'
 import { useRouter } from 'next/router'
 import {useTranslation} from '../../src/hooks/useTranslation'
 import ReactiveInput from "../../src/components/ReactiveInput";
-import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS, DEFAULT_CONTROLLER_NEXT, paramPresets} from '../../src/utils/presets'
+import { paramPresets} from '../../src/utils/presets'
 
 import dynamic from 'next/dynamic'
 import { NextSeo } from 'next-seo';
 import {useObservable} from "reactfire"
 import {db,auth} from "../../src/utils/firebase"
-import { mergeMap,filter,tap,map, switchMap} from "rxjs/operators";
-import {forkJoin, combine, combineLatest,of} from "rxjs"
+import { map, switchMap, catchError} from "rxjs/operators";
+import { combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs, limit, collectionGroup,  query, where} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
 import isEqual from "lodash/isEqual"
-import {objectWithoutKey,objectWithoutKeys,getRandomEmoji,useLeavePageConfirmation, deepEqual,deepEqual2} from "../../src/utils/utils"
+import {getRandomEmoji,useLeavePageConfirmation, deepEqual,deepEqual2} from "../../src/utils/utils"
 import { getRandomColor } from '../../src/styles/chartConstants';
 import Background from '../../src/elements/Background';
 import Layout from '../../src/components/layout';
 import Footer from '../../src/components/Footer';
+import { set } from 'lodash';
 
 const CaseEditor = dynamic(() => import('../../src/components/CaseEditor'),{ssr:false})
 
@@ -35,13 +36,22 @@ const App = () => {
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
 
   const canvasId = router.query.canvasId;
+  let isChanged = false;
   const combinedData$ = of(canvasId).pipe(
     switchMap(cid => {
-      if(cid){
+      if(cid && !isChanged){
         return combineLatest({
           canvas: docData(doc(db,"canvas",cid),{idField:"id"}),
           paramSets: collectionData(query(collection(db,"paramSets"),where("canvasId","==",cid)),{idField: 'id'}),
           blocks: collectionData(collection(db,"canvas",cid,"blocks"),{idField: 'id'}),
+          userLiked: docData(doc(db, "likes", `${user?.uid}_${cid}`)).pipe(
+            map(likeDoc => !!likeDoc), 
+            catchError(() => of(false)) 
+          ),
+          userBookmarked: docData(doc(db, "bookmarks", `${user?.uid}_${cid}`)).pipe(
+            map(bookmarkDoc => !!bookmarkDoc), 
+            catchError(() => of(false)) 
+          )          
         }).pipe(
         map(data => {
           const updatedData = { ...data };
@@ -83,7 +93,10 @@ const App = () => {
   const [defaultBlocks, setDefaultBlocks] = useState([]);
   const [canvas, setCanvas] = useImmer({});
   const [defaultCanvas, setDefaultCanvas] = useState({});
+  const [liked, setLiked] = useState(false);
+  const [bookmarked, setBookmarked] = useState(false);
   const isOwner = canvas.uid == user?.uid 
+  const isLogin = !!user?.uid
 
   const [caseNameEditing, setCaseNameEditing] = useState(false);
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
@@ -113,8 +126,50 @@ const App = () => {
     return originalBlock && deepEqual(originalBlock,v)
   })
 
-  const isChanged = isCanvasChanged || isNewCanvasChanged || isParamsetsChanged || isNewParamsetsChanged || isBlocksChanged || isNewBlocksChanged
+  isChanged = isCanvasChanged || isNewCanvasChanged || isParamsetsChanged || isNewParamsetsChanged || isBlocksChanged || isNewBlocksChanged
  
+  const addLike = async () =>{
+  if(!isLogin) return
+    setCanvas(draft=>{draft.totalLikes+=1})
+    setLiked(true)
+    const batch = writeBatch(db);
+    batch.update(doc(db,"canvas",canvasId),{totalLikes:canvas.totalLikes+1})
+    batch.set(doc(db,"likes",`${user?.uid}_${canvasId}`),{uid:user?.uid,canvasId:canvasId,createdAt:serverTimestamp()})
+    await batch.commit() 
+  }
+  const removeLike = async () =>{
+    if(!isLogin) return;
+    setCanvas(draft=>{draft.totalLikes-=1})
+    setLiked(false)
+    const batch = writeBatch(db);
+    batch.update(doc(db,"canvas",canvasId),{totalLikes:canvas.totalLikes-1})
+    batch.delete(doc(db,"likes",`${user?.uid}_${canvasId}`))
+    await batch.commit()
+  }
+  const addBookmark = async () => {
+    if(!isLogin) return;
+    setCanvas(draft=>{draft.totalBookmarks+=1})
+    setBookmarked(true)
+    const batch = writeBatch(db);
+    batch.update(doc(db, "canvas", canvasId), { totalBookmarks: canvas.totalBookmarks + 1 });
+    batch.set(doc(db, "bookmarks", `${user?.uid}_${canvasId}`), {
+        uid: user?.uid,
+        canvasId: canvasId,
+        createdAt: serverTimestamp()
+    });
+    await batch.commit();
+  }
+
+  const removeBookmark = async () => {
+    if(!isLogin) return;
+    setCanvas(draft=>{draft.totalBookmarks-=1})
+    setBookmarked(false)
+    const batch = writeBatch(db);
+    batch.update(doc(db, "canvas", canvasId), { totalBookmarks: canvas.totalBookmarks - 1 });
+    batch.delete(doc(db, "bookmarks", `${user?.uid}_${canvasId}`));
+    await batch.commit();
+  }
+    
 
   useEffect(() => {
     setLoading(true)
@@ -126,6 +181,8 @@ const App = () => {
       setParamSets(engine.getAllPatinets().map(p=>({...p,...combinedData.data.paramSets.find(_p=>_p.id==p.id)})));
       setBlocks(combinedData.data.blocks)
       setCanvas(combinedData.data.canvas)
+      setLiked(combinedData.data.userLiked || 0)
+      setBookmarked(combinedData.data.userBookmarked || 0)
       engine.setIsPlaying(true);
     }else{
       if(router.query.newItem && combinedData.status == "success" && combinedData.data?.paramSets.length==0 && paramSets.length==0 && !canvas?.id){
@@ -258,7 +315,8 @@ const App = () => {
           visibility: "private",
           emoji: getRandomEmoji(),
           tags:[],
-          heartCount:0,
+          totalLikes:0,
+          totalBookmarks:0,
           userId: user?.userId,
           uid: user?.uid,
           displayName: user?.displayName,
@@ -407,7 +465,8 @@ const App = () => {
               } 
           </div>
           <div className='px-2 md:px-4 lg:px-6'>
-            {canvas?.createdAt &&  <CaseEditor engine={engine} caseData ={canvas} setCaseData={setCanvas} patients={paramSets} setPatients={setParamSets} views={blocks} setViews={setBlocks} user={user} isOwner={isOwner}/>}   
+            {canvas?.createdAt &&  
+              <CaseEditor engine={engine} caseData ={canvas} setCaseData={setCanvas} patients={paramSets} setPatients={setParamSets} views={blocks} setViews={setBlocks} isLogin={isLogin} isOwner={isOwner} addLike={addLike} removeLike={removeLike} addBookmark={addBookmark} removeBookmark={removeBookmark} liked={liked} bookmarked ={bookmarked}/>}   
           </div>
         {/* <Dialog  open={openPublishDialog} onClose={()=>setOpenPublishDialog(false)} sx={{minHeight:'340px'}} >
           <DialogTitle >
@@ -498,7 +557,7 @@ const App = () => {
       return <>
       <Layout>
         <div className='px-2 md:px-4 lg:px-6'>
-          {canvas?.createdAt  &&  <CaseEditor engine={engine} caseData={canvas} setCaseData={setCanvas} patients={paramSets} setPatients={setParamSets} views={blocks} setViews={setBlocks} user={user} isOwner={isOwner}/>}   
+          {canvas?.createdAt  &&  <CaseEditor engine={engine} caseData={canvas} setCaseData={setCanvas} patients={paramSets} setPatients={setParamSets} views={blocks} setViews={setBlocks} isLogin={isLogin} isOwner={isOwner} addLike={addLike} removeLike={removeLike} addBookmark={addBookmark} removeBookmark={removeBookmark} liked={liked} bookmarked ={bookmarked}/>}   
         </div>
       </Layout>
       <hr className="border-0 border-b border-slate-200"/>

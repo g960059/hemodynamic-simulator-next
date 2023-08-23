@@ -40,8 +40,7 @@ const StyledReactGridLayout = styled(ResponsiveReactGridLayout)`
 `;
 
 
-
-const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients ,views, setViews, user, isOwner}) => {
+const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients ,views, setViews, isLogin, isOwner, addLike, removeLike, addBookmark, removeBookmark, liked, bookmarked}) => {
 
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const [mounted, setMounted] = useState(false);
@@ -50,7 +49,8 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
   useEffect(() => {
     if (views?.length>0 || patients?.length>0){setMounted(true);}
   }, []);
-  console.log(views)
+
+
   return <div className='w-full pb-3'> 
     <div className='flex mx-3 md:mx-8 md:mt-5 md:mb-2 items-center justify-center'>
       {!isOwner && <div className='text-2xl font-bold text-slate-600 mr-4'>{caseData?.name}</div>}
@@ -74,86 +74,89 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
         </div>
       </div>      
       <div className="flex-grow"/>
-      {isOwner && 
+
         <div className='flex flex-row justify-center items-center -mr-3'>
-          <button className='mr-3 bg-slate-100 fill-slate-500 stroke-slate-500 text-slate-500 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600 cursor-pointer py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center hover:bg-slate-200  border-none transition'>
-            <svg xmlns="http://www.w3.org/2000/svg" strokeWidth={2} height="20px" width="20px" fill="none" viewBox="0 0 24 24" >
+          <button onClick={()=>{if(liked){removeLike()}else{addLike()}}} className={`mr-3 ${liked ? "bg-red-100 hover:bg-red-200 fill-red-300 stroke-red-500 text-red-500 hover:fill-red-300 hover:stroke-red-600 hover:text-red-600" : "bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500 "} ${isLogin && "cursor-pointer"} ${isLogin && liked && "hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
+            <svg xmlns="http://www.w3.org/2000/svg" strokeWidth={2} height="20px" width="20px" fill={!liked  && "none"} viewBox="0 0 24 24" >
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
             </svg>
-            <span className='pl-1.5 font-bold text-base'>{patients.length || 0}</span>
+            <span className='pl-1.5 font-bold text-base'>{caseData.totalLikes || 0}</span>
           </button>  
-          <button className='mr-3 bg-slate-100 fill-slate-500 stroke-slate-500 text-slate-500 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600 cursor-pointer py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center hover:bg-slate-200  border-none transition'>
-            <svg xmlns="http://www.w3.org/2000/svg" strokeWidth={2} height="20px" width="20px" fill="none" viewBox="0 0 24 24" >
+          <button onClick={()=>{if(bookmarked){removeBookmark()}else{addBookmark()}}} className={`mr-3 ${bookmarked ? "bg-red-100 hover:bg-red-200 fill-red-300 stroke-red-500 text-red-500 hover:fill-red-300 hover:stroke-red-600 hover:text-red-600" : "bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500 "} ${isLogin && "cursor-pointer"} ${isLogin && bookmarkd && "hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
+            <svg xmlns="http://www.w3.org/2000/svg" strokeWidth={2} height="20px" width="20px" fill={!bookmarked  && "none"} viewBox="0 0 24 24" >
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
             </svg>
-            <span className='pl-1.5 font-bold text-base'>{patients.length || 0}</span>
-          </button>                   
-          <ParamSetsDialog 
-            patients={patients} 
-            engine={engine}
-            setPatients = {setPatients}
-            caseData={caseData}
-            setViews={setViews}
-          />
-          <NewAddViewDialog 
-            addViewItem={(viewItem)=>{
-              let newView = {...viewItem, id:nanoid()}
-              setCaseData(draft=>{
-                let wMd;
-                let hMd;
-                switch (viewItem.type) {
-                  case "FlowCurve":
-                  case "PressureCurve":
-                    hMd = 8
-                    if (viewItem.options?.timeWindow  >12){
-                      wMd = 12
-                    }else{
-                      wMd = viewItem.options?.timeWindow
-                    }
-                    break;
-                  case "PressureVolumeCurve":
-                    hMd = 12
-                    wMd = 6
-                    break;
-                  case "Metrics":
-                    if (viewItem.items.length<12){
-                      wMd = 1+viewItem.items.length
-                      hMd = 3
-                    }else{
-                      wMd = 12
+            <span className='pl-1.5 font-bold text-base'>{caseData.totalBookmarks || 0}</span>
+          </button>
+          {isOwner && <>              
+            <ParamSetsDialog 
+              patients={patients} 
+              engine={engine}
+              setPatients = {setPatients}
+              caseData={caseData}
+              setViews={setViews}
+            />
+            <NewAddViewDialog 
+              addViewItem={(viewItem)=>{
+                let newView = {...viewItem, id:nanoid()}
+                setCaseData(draft=>{
+                  let wMd;
+                  let hMd;
+                  switch (viewItem.type) {
+                    case "FlowCurve":
+                    case "PressureCurve":
+                      hMd = 8
+                      if (viewItem.options?.timeWindow  >12){
+                        wMd = 12
+                      }else{
+                        wMd = viewItem.options?.timeWindow
+                      }
+                      break;
+                    case "PressureVolumeCurve":
+                      hMd = 12
+                      wMd = 6
+                      break;
+                    case "Metrics":
+                      if (viewItem.items.length<12){
+                        wMd = 1+viewItem.items.length
+                        hMd = 3
+                      }else{
+                        wMd = 12
+                        hMd = 6
+                      }
+                      break;
+                    case "Controller":
+                      wMd = 4
+                      hMd = viewItem.items?.length + 2
+                      break;
+                    case "PlaySpeed":
+                      wMd = 1
+                      hMd = 4
+                      break;
+                    case "Note":
+                      wMd = 6
                       hMd = 6
-                    }
-                    break;
-                  case "Controller":
-                    wMd = 4
-                    hMd = viewItem.items?.length + 2
-                    break;
-                  case "PlaySpeed":
-                    wMd = 1
-                    hMd = 4
-                    break;
-                  case "Note":
-                    wMd = 6
-                    hMd = 6
-                }
-                let wXs = 12
-                let hXs = 8
-                let xsPosition = calculatePosition(draft.layouts.xs,{w:wXs,h:hXs})
-                draft.layouts.xs.push({i:newView.id, ...xsPosition, w:wXs, h:hXs})
-                let mdPosition = calculatePosition(draft.layouts.md,{w:wMd,h:hMd})
-                draft.layouts.md.push({i:newView.id, ...mdPosition, w:wMd, h:hMd})
-              })
-              setViews(draft=>{draft.push(newView)})
-            }} 
-            patients={patients}
-            addPatient = {(patient)=>{
-              const newPatient = {...patient,id:nanoid()}
-              engine.register(newPatient);
-              setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
-            }}
-          />
+                  }
+                  let wXs = 12
+                  let hXs = 8
+                  let xsPosition = calculatePosition(draft.layouts.xs,{w:wXs,h:hXs})
+                  draft.layouts.xs.push({i:newView.id, ...xsPosition, w:wXs, h:hXs})
+                  let mdPosition = calculatePosition(draft.layouts.md,{w:wMd,h:hMd})
+                  draft.layouts.md.push({i:newView.id, ...mdPosition, w:wMd, h:hMd})
+                })
+                setViews(draft=>{draft.push(newView)})
+              }} 
+              patients={patients}
+              addPatient = {(patient)=>{
+                const newPatient = {...patient,id:nanoid()}
+                engine.register(newPatient);
+                setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
+              }}
+            />
+          </>   
+        }
         </div>
-      }
+      
     </div>
     <StyledReactGridLayout
       layouts={caseData?.layouts}

@@ -17,7 +17,7 @@ import { formatDateDiff } from '../src/utils/utils';
 import {useObservable} from "reactfire"
 import {user$} from '../src/hooks/usePvLoop'
 import Link from 'next/link';
-import { mergeMap } from 'rxjs';
+import { mergeMap, of } from 'rxjs';
 import DeleteMenuItemWithDialog from '../src/components/DeleteMenuItemWithDialog';
 
 
