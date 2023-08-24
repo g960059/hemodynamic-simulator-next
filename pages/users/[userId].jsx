@@ -81,14 +81,18 @@ function UserSummary(){
         <Stack width={1} justifyContent="center" alignItems="center" className='bg-white'>
           <NoSsr>
             <Stack className='w-full max-w-6xl mx-auto' direction={isUpMd ?"row" : "column"} pt={isUpMd?8:4} pb={isUpMd?4:1} px={isUpMd?10:2} spacing={3}>
-              <Avatar src={user?.photoURL} sx={{width:"100px",height:"100px"}}>
-                {user?.displayName[0]}
-              </Avatar>
+              <div className='flex flex-row items-center'>
+                <Avatar src={user?.photoURL} className='w-20 h-20'>
+                  {user?.displayName[0]}
+                </Avatar>
+                <div className='flex-grow'/>
+                {!isUpMd && (user.uid === currentUser?.uid  ? <Button onClick={()=>{router.push(`/settings/profile`)}} className="btn-neumorphic">プロフィールを編集</Button> : (isFollowing ? <Button variant="contained" onClick={unfollow} className="text-white font-bold" disableElevation size="small">フォロー中</Button> : <Button variant="outlined" onClick={follow} size="small">フォローする</Button>))}
+              </div>
               <Stack flexGrow={1} spacing={1}>
                 <Stack direction="row" >
                   <Typography variant="h5" fontWeight="bold">{user?.displayName}</Typography>
                   <div style={{flexGrow:1}}/>
-                  {user.uid === currentUser?.uid ? <Button onClick={()=>{router.push(`/settings/profile`)}} className="btn-neumorphic">プロフィールを編集</Button> : (isFollowing ? <Button variant="contained" onClick={unfollow} className="text-white font-bold" disableElevation size="small">フォロー中</Button> : <Button variant="outlined" onClick={follow} size="small">フォローする</Button>)}
+                  {isUpMd && (user.uid === currentUser?.uid  ? <Button onClick={()=>{router.push(`/settings/profile`)}} className="btn-neumorphic">プロフィールを編集</Button> : (isFollowing ? <Button variant="contained" onClick={unfollow} className="text-white font-bold" disableElevation size="small">フォロー中</Button> : <Button variant="outlined" onClick={follow} size="small">フォローする</Button>))}
                 </Stack>
                 {user?.description && <Typography variant="body1">{user?.description}</Typography>}
                 <Stack direction="row" spacing={2}>
@@ -111,7 +115,7 @@ function UserSummary(){
             </Stack>
           </NoSsr>
         </Stack>
-        <div className='max-w-4xl w-full mx-auto py-4 md:py-6 px-4 min-h-[440px]'>
+        <div className='max-w-4xl w-full mx-auto py-6 px-4 min-h-[440px]'>
           <div className="grid md:grid-cols-2 gap-4 md:gap-8">
             {
               canvas?.map(c=><CanvasItem canvas={c}/>)

@@ -23,7 +23,7 @@ import { getRandomColor } from '../../src/styles/chartConstants';
 import Background from '../../src/elements/Background';
 import Layout from '../../src/components/layout';
 import Footer from '../../src/components/Footer';
-import { set } from 'lodash';
+import TextareaAutosize from 'react-textarea-autosize';
 
 const CaseEditor = dynamic(() => import('../../src/components/CaseEditor'),{ssr:false})
 
@@ -98,7 +98,7 @@ const App = () => {
   const isOwner = canvas.uid == user?.uid 
   const isLogin = !!user?.uid
 
-  const [caseNameEditing, setCaseNameEditing] = useState(false);
+  const [caseNameEditing, setCaseNameEditing] = useState(true);
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
 
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'), {noSsr: true});
@@ -159,7 +159,6 @@ const App = () => {
     });
     await batch.commit();
   }
-
   const removeBookmark = async () => {
     if(!isLogin) return;
     setCanvas(draft=>{draft.totalBookmarks-=1})
@@ -169,7 +168,19 @@ const App = () => {
     batch.delete(doc(db, "bookmarks", `${user?.uid}_${canvasId}`));
     await batch.commit();
   }
-    
+
+  const handleKeyDown = (event) => {
+    const { key } = event;
+    switch (key) {
+        case "Enter":
+            setCaseNameEditing(false);
+            break;
+    }
+  }
+  const handleBlur = () => {
+      setCaseNameEditing(false);
+  }
+
 
   useEffect(() => {
     setLoading(true)
@@ -183,6 +194,7 @@ const App = () => {
       setCanvas(combinedData.data.canvas)
       setLiked(combinedData.data.userLiked || 0)
       setBookmarked(combinedData.data.userBookmarked || 0)
+      setCaseNameEditing(false)
       engine.setIsPlaying(true);
     }else{
       if(router.query.newItem && combinedData.status == "success" && combinedData.data?.paramSets.length==0 && paramSets.length==0 && !canvas?.id){
@@ -337,7 +349,7 @@ const App = () => {
   }, [combinedData.status, combinedData.data]);
 
 
-  useLeavePageConfirmation(Boolean(isChanged))
+  useLeavePageConfirmation(Boolean(isChanged && isOwner))
 
 
   const updateCanvas = async () =>{
@@ -416,26 +428,30 @@ const App = () => {
                 <Box onClick={()=>{router.push({pathname : "/", query: {tab: "mypage"}})}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex"}}>
                   <IconButton><ArrowBack/></IconButton>
                 </Box>
-                <Box sx={{display:{xs:"none",md:"block"}}}>
+                <div className='hidden md:block overflow-x-auto w-full'>
                 {
                   caseNameEditing ? 
-                    <ReactiveInput 
+                    <input
                       value={canvas.name} 
-                      updateValue={(newValue)=>{
-                        setCanvas(draft=>{draft.name=newValue})
-                        setCaseNameEditing(false)
-                      }} 
-                      type="text" autoFocus  allowEmpty
-                    /> : 
-                    <Typography variant="h4" fontWeight="bold" onClick={()=>{setCaseNameEditing(true)}} sx={{"&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"},cursor:"pointer",px:1,color:!canvas.name&&"gray"}}>{canvas.name || "Title"}</Typography>                
+                      onChange={e=>{
+                        setCanvas(draft=>{draft.name=e.target.value})
+                      }}
+                      className= "w-full font-bold text-xl appearance-none p-2 py-1 border-solid border-1 rounded-md bg-slate-100 border-slate-200 focus:outline focus:border-blue-500 focus:outline-2 focus:outline-[#bfdcff]"
+                      onKeyDown={handleKeyDown}
+                      onBlur={handleBlur}
+                      autoFocus
+                      placeholder='Title'
+                    />
+                    : 
+                    <div className='min-w-[150px] font-bold text-xl px-2 whitespace-nowrap hover:bg-slate-200 cursor-pointer' onClick={()=>{setCaseNameEditing(true)}}>{canvas.name || "Title"}</div>                
                   }          
-                </Box>
+                </div>
                 <div style={{flexGrow:1}}/>
                 <IconButton sx={{ml:.5}} onClick={()=>{setOpenPublishDialog(true)}}><Tune/></IconButton>
                 <Switch checked={canvas.visibility=="public"} onChange={e=>{const newVal = e.target.checked ? "public":"private"; setCanvas(draft =>{draft.visibility=newVal})}}/>
-                <Typography variant='button' sx={{color: canvas.visibility=="public" ? "black": "gray", mr:1}}>{t["Publish"]}</Typography>
+                <Typography variant='button' sx={{color: canvas.visibility=="public" ? "black": "gray", mr:1}} className=' whitespace-nowrap'>{t["Publish"]}</Typography>
                 <Button
-                  className="font-bold text-white"
+                  className="font-bold text-white whitespace-nowrap"
                   variant='contained' 
                   disableElevation 
                   onClick={canvas.visibility=="private" || canvas.visibility=="public" && combinedData.data?.canvas?.visibility=="public" ? ()=>{updateCanvas()} : ()=>{setOpenPublishDialog(true)}}
@@ -451,18 +467,22 @@ const App = () => {
           <NextSeo title={t["Simulator"]}/>
           <Background/>
           <div className='md:hidden p-2'>
-            {
-              caseNameEditing ? 
-                <ReactiveInput 
-                  value={canvas.name} 
-                  updateValue={(newValue)=>{
-                    setCanvas(draft=>{draft.name=newValue})
-                    setCaseNameEditing(false)
-                  }} 
-                  type="text" autoFocus allowEmpty fullWidth
-                /> : 
-                <Typography variant="h5" fontWeight="bold" onClick={()=>{setCaseNameEditing(true)}} sx={{"&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"},cursor:"pointer",px:1,color:!canvas.name&&"gray"}}>{canvas.name || "Title"}</Typography>                
-              } 
+          {
+            caseNameEditing ? 
+              <TextareaAutosize
+                value={canvas.name} 
+                onChange={e=>{
+                  setCanvas(draft=>{draft.name=e.target.value})
+                }}
+                className= "w-full  tracking-wide text-lg resize-none appearance-none p-2 py-1 border-solid border-1 rounded-md bg-slate-100 border-slate-200 focus:outline focus:border-blue-500 focus:outline-2 focus:outline-[#bfdcff]"
+                onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
+                autoFocus
+                placeholder='Title'
+              />
+              : 
+              <div className='min-w-[150px] font-bold text-lg px-2 my-2  hover:bg-slate-200 cursor-pointer' onClick={()=>{setCaseNameEditing(true)}}>{canvas.name || "Title"}</div>                
+            } 
           </div>
           <div className='px-2 md:px-4 lg:px-6'>
             {canvas?.createdAt &&  

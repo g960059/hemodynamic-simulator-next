@@ -1,5 +1,5 @@
 import React,{useState,useEffect} from 'react';
-import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline, Button,Dialog, DialogContent,Avatar,DialogContentText, Menu, MenuItem,Divider,alpha, Popover} from '@mui/material';
+import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline, Button,Dialog, DialogContent,Avatar,DialogContentText, Menu, MenuItem,Divider,alpha, Popover,useMediaQuery} from '@mui/material';
 import {Logout,SettingsOutlined, FavoriteBorder,FeedOutlined,EventNoteOutlined,Feed,EventNote,Edit, MenuBookOutlined, StoreOutlined, PaidOutlined } from '@mui/icons-material';
 import { makeStyles} from '@mui/material/styles';
 import {useTranslation} from '../hooks/useTranslation'
@@ -69,6 +69,8 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 function Layout(props) {
   const t = useTranslation();
   const router = useRouter()
+  const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
+
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
   const [dialogOpen, setDialogOpen] = useState(false);
   const [signInWithGoogle, _, loading, error] = useSignInWithGoogle(auth);
@@ -94,17 +96,17 @@ function Layout(props) {
       <CssBaseline />
       <nav className="bg-white">
         <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
-          <div className='flex h-16 justify-between items-center'>
+          <div className='flex h-12 md:h-16 justify-between items-center'>
             <div onClick={()=>{router.push("/")}} className='cursor-pointer flex items-center justify-center'>
-              <Image src="/favicons/favicon_256x256.png" width={32} height={32} alt="favicon"/>
-              <h1 className='ml-1 text-2xl text-center font-normal'>CircleHeart</h1>
+              <Image src="/favicons/favicon_256x256.png" width={isUpMd ? 24 : 20} height={isUpMd ? 24 : 20} alt="favicon"/>
+              <h1 className='ml-1 text-xl md:text-2xl text-center font-bold'>CircleHeart</h1>
             </div>
             <div className='flex-grow'/>
             {
               user ? 
                 <div className='flex flex-row items-center justify-center'>
-                  <div className='w-10 h-10 rounded-full cursor-pointer' id="profile-button" aria-controls="profile-menu" aria-haspopup="true"  onClick={e=>setAnchorEl(e.currentTarget)}>
-                      {user?.photoURL ? <Image width={40} height={40} src={user?.photoURL} className='rounded-full' alt="userPhoto"/> : <span className='text-xl font-bold w-10 h-10 text-center text-white rounded-full bg-slate-600'>{user?.displayName[0]}</span>}
+                  <div className='w-8 h-8 md:w-10 md:h-10 rounded-full cursor-pointer' id="profile-button" aria-controls="profile-menu" aria-haspopup="true"  onClick={e=>setAnchorEl(e.currentTarget)}>
+                      {user?.photoURL ? <Image width={isUpMd ? 40 : 32} height={isUpMd ? 40 : 32} src={user?.photoURL} className='rounded-full' alt="userPhoto"/> : <span className='text-xl font-bold w-10 h-10 text-center text-white rounded-full bg-slate-600'>{user?.displayName[0]}</span>}
                   </div> 
                   <button onClick={createNewCase} className='ml-3 md:ml-5 bg-blue-500 text-white cursor-pointer font-medium py-1.5 px-2 md:px-3 text-base rounded-md text-center inline-flex items-center hover:bg-sky-700 border-none transition'>
                     <svg className='w-5 h-5 text-white md:mr-2' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >

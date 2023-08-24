@@ -11,15 +11,15 @@ const Footer = () => {
   return <>
     <Stack direction={isUpMd? "row" : "column"} spacing={{xs:0,md:3}} px={{xs:0,md:5,lg:8}} pb={2} pt={4} width={1}>
       <Box sx={{maxWidth:"260px",width:"100%",p:2,mr:3,display:"flex",justifyContent:{xs:"flex-start",md:"center"}}} >
-        <Stack sx={{mb:1}}>
-          <Stack direction="row">
-            <Box sx={{display:'block', mb:'-6px'}}><Image src="/HeaderIcon.png" width={30} height={30} alt="headerIcon"/></Box>            
-            <Typography variant="h5" noWrap component="div" sx={{fontFamily: "GT Haptik Regular" ,fontWeight: 'bold'}}>
+        <div className='mb-1 w-full'>
+          <Stack direction="row" justifyContent="start" alignItems="center">
+            <Box sx={{display:'block', mb:'-6px', mr: 1}}><Image src="/favicons/favicon_256x256.png" width={24} height={24} alt="headerIcon"/></Box>            
+            <Typography variant="h6" noWrap component="div" sx={{fontFamily: "GT Haptik Regular" ,fontWeight: 'bold'}}>
               {t['Title']}
             </Typography>
           </Stack>
-          <Typography variant="subtitle2" color="gray">{t["Description"]}</Typography>
-        </Stack>
+          <Typography variant="subtitle2" color="gray" className='whitespace-nowrap'>{t["Description"]}</Typography>
+        </div>
       </Box>
       <Grid container width={1}>
         <Grid item xs={12} md={4} sx={{justifyContent:{xs:"flex-start"},display:"flex"}}>
