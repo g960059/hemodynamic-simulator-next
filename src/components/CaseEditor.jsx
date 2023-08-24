@@ -82,7 +82,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
             </svg>
             <span className='pl-1.5 font-bold text-base'>{caseData.totalLikes || 0}</span>
           </button>  
-          <button onClick={()=>{if(bookmarked){removeBookmark()}else{addBookmark()}}} className={`mr-3 ${bookmarked ? "bg-red-100 hover:bg-red-200 fill-red-300 stroke-red-500 text-red-500 hover:fill-red-300 hover:stroke-red-600 hover:text-red-600" : "bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500 "} ${isLogin && "cursor-pointer"} ${isLogin && bookmarkd && "hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
+          <button onClick={()=>{if(bookmarked){removeBookmark()}else{addBookmark()}}} className={`mr-3 ${bookmarked ? "bg-red-100 hover:bg-red-200 fill-red-300 stroke-red-500 text-red-500 hover:fill-red-300 hover:stroke-red-600 hover:text-red-600" : "bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500 "} ${isLogin && "cursor-pointer"} ${isLogin && bookmarked && "hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
             <svg xmlns="http://www.w3.org/2000/svg" strokeWidth={2} height="20px" width="20px" fill={!bookmarked  && "none"} viewBox="0 0 24 24" >
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
             </svg>
