@@ -24,6 +24,8 @@ import Background from '../../src/elements/Background';
 import Layout from '../../src/components/layout';
 import Footer from '../../src/components/Footer';
 import TextareaAutosize from 'react-textarea-autosize';
+import Head from 'next/head';
+import {getOgpImageUrl} from "../../src/utils/cloudinary"
 
 const CaseEditor = dynamic(() => import('../../src/components/CaseEditor'),{ssr:false})
 
@@ -98,7 +100,7 @@ const App = () => {
   const isOwner = canvas.uid == user?.uid 
   const isLogin = !!user?.uid
 
-  const [caseNameEditing, setCaseNameEditing] = useState(true);
+  const [caseNameEditing, setCaseNameEditing] = useState(false);
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
 
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'), {noSsr: true});
@@ -194,7 +196,6 @@ const App = () => {
       setCanvas(combinedData.data.canvas)
       setLiked(combinedData.data.userLiked || 0)
       setBookmarked(combinedData.data.userBookmarked || 0)
-      setCaseNameEditing(false)
       engine.setIsPlaying(true);
     }else{
       if(router.query.newItem && combinedData.status == "success" && combinedData.data?.paramSets.length==0 && paramSets.length==0 && !canvas?.id){
@@ -342,6 +343,7 @@ const App = () => {
         }
         setCanvas(newCanvas);
         setDefaultCanvas(newCanvas);
+        setCaseNameEditing(true)
         engine.setIsPlaying(true);
       }
     }
@@ -418,10 +420,14 @@ const App = () => {
 
   
   if(loading || isOwner == undefined){ 
-    return <LoadingSkelton/> 
+    return <>
+      <SEO canvas={canvas}/>
+      <LoadingSkelton/> 
+    </>
   }else{
     if (isOwner){
       return <div>
+        <SEO canvas={canvas}/>
           <nav className="bg-white shadow ">
             <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
               <div className='flex h-16 justify-between items-center'>
@@ -464,7 +470,6 @@ const App = () => {
               </div>
             </div>
           </nav>  
-          <NextSeo title={t["Simulator"]}/>
           <Background/>
           <div className='md:hidden p-2'>
           {
@@ -575,6 +580,7 @@ const App = () => {
       </div>
     }else{
       return <>
+      <SEO canvas={canvas}/>
       <Layout>
         <div className='px-2 md:px-4 lg:px-6'>
           {canvas?.createdAt  &&  <CaseEditor engine={engine} caseData={canvas} setCaseData={setCanvas} patients={paramSets} setPatients={setParamSets} views={blocks} setViews={setBlocks} isLogin={isLogin} isOwner={isOwner} addLike={addLike} removeLike={removeLike} addBookmark={addBookmark} removeBookmark={removeBookmark} liked={liked} bookmarked ={bookmarked}/>}   
@@ -588,6 +594,22 @@ const App = () => {
 }
 
 export default App
+
+const SEO = (canvas) => {
+  if(!canvas?.photoURL) return null
+  const url = getOgpImageUrl(canvas?.name, canvas?.photoURL, canvas?.displayName)
+  return <Head>
+    <title>{canvas.name}</title>
+    <meta property="og:url" content={url} />
+    <meta property="og:title" content={canvas?.name} />
+    <meta property="og:site_name" content="CircleHeart" />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={url} />
+    <meta property="og:image:width" content={1200} />
+    <meta property="og:image:height" content={630} />
+  </Head>
+}
 
 
 const LoadingSkelton = () => {

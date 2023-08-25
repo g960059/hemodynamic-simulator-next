@@ -53,7 +53,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
 
   return <div className='w-full pb-3'> 
     <div className='flex flex-col mb-3 md:flex-row mx-3 md:mx-8 md:mt-5 md:mb-2 md:items-center justify-center'>
-      {!isOwner && <div className='my-3 md:my-0 md:mr-4 text-xl md:text-2xl font-bold text-slate-800 '>{caseData?.name}</div>}
+      {!isOwner && <div className='my-3 md:my-0 md:mr-4 text-xl md:text-2xl font-bold text-slate-800  whitespace-nowrap '>{caseData?.name}</div>}
       <div className='w-full flex flex-row items-center justify-center'>
         <div className='flex flex-row items-center justify-center'>
           { caseData.photoURL ?
@@ -74,19 +74,41 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
           </div>
         </div>    
         <div className="flex-grow"/>
-        <div className='flex flex-row justify-center items-center md:-mr-3'>
-          {(isUpMd || !isOwner) && <button onClick={()=>{if(liked){removeLike()}else{addLike()}}} className={`mr-3 ${liked ? "bg-red-100 hover:bg-red-200 fill-red-300 stroke-red-500 text-red-500 hover:fill-red-300 hover:stroke-red-600 hover:text-red-600" : "bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500 "} ${isLogin && "cursor-pointer"} ${isLogin && liked && "hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
-            <svg xmlns="http://www.w3.org/2000/svg" strokeWidth={2} height="20px" width="20px" fill={!liked  && "none"} viewBox="0 0 24 24" >
+        <div className='flex flex-row justify-center items-center -mr-3'>
+          {isUpMd && <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(caseData?.name)}&url=${encodeURIComponent(`https://www.circleheart.dev/canvas/${caseData.id}`)}`}role="button" className={`mr-2 md:mr-3 no-underline ${liked ? "bg-red-100 hover:bg-red-200 fill-red-300 stroke-red-500 text-red-500 hover:fill-red-300 hover:stroke-red-600 hover:text-red-600" : "bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500 "} ${isLogin && "cursor-pointer"} ${isLogin && !liked && "hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 md:py-2.5 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className='w-4 h-4 md:w-5 md:h-5'
+              fill="none"
+              strokeWidth={2}
+              viewBox="0 0 24 24">
+              <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+            </svg>
+            <span className='pl-1.5 font-bold text-base'>Tweet</span>
+          </a>}
+          {(isUpMd || !isOwner) && <button onClick={()=>{if(liked){removeLike()} else{addLike()}}} className={`mr-2 md:mr-3 ${liked ? "bg-red-100 hover:bg-red-200 fill-red-300 stroke-red-500 text-red-500 hover:fill-red-300 hover:stroke-red-600 hover:text-red-600" : "bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500 "} ${isLogin && "cursor-pointer"} ${isLogin && !liked && "hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-1.5 md:py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
+            <svg xmlns="http://www.w3.org/2000/svg" strokeWidth={2} className='w-4 h-4 md:w-5 md:h-5' fill={!liked  && "none"} viewBox="0 0 24 24" >
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
             </svg>
-            <span className='pl-1.5 font-bold text-base'>{caseData.totalLikes || 0}</span>
+            <span className='pl-1.5 font-bold text-sm md:text-base'>{caseData.totalLikes || 0}</span>
           </button>}  
-          {(isUpMd || !isOwner) && <button onClick={()=>{if(bookmarked){removeBookmark()}else{addBookmark()}}} className={`mr-3 ${bookmarked ? "bg-red-100 hover:bg-red-200 fill-red-300 stroke-red-500 text-red-500 hover:fill-red-300 hover:stroke-red-600 hover:text-red-600" : "bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500 "} ${isLogin && "cursor-pointer"} ${isLogin && bookmarked && "hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
-            <svg xmlns="http://www.w3.org/2000/svg" strokeWidth={2} height="20px" width="20px" fill={!bookmarked  && "none"} viewBox="0 0 24 24" >
+          {(isUpMd || !isOwner) && <button onClick={()=>{if(bookmarked){removeBookmark()}else{addBookmark()}}} className={`mr-2 md:mr-3 ${bookmarked ? "bg-red-100 hover:bg-red-200 fill-red-300 stroke-red-500 text-red-500 hover:fill-red-300 hover:stroke-red-600 hover:text-red-600" : "bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500 "} ${isLogin && "cursor-pointer"} ${isLogin && !bookmarked && "hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
+            <svg xmlns="http://www.w3.org/2000/svg" strokeWidth={2} className='w-4 h-4 md:w-5 md:h-5' fill={!bookmarked  && "none"} viewBox="0 0 24 24" >
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
             </svg>
-            <span className='pl-1.5 font-bold text-base'>{caseData.totalBookmarks || 0}</span>
+            {isUpMd &&<span className='pl-1.5 font-bold text-sm md:text-base'>{caseData.totalBookmarks || 0}</span>}
           </button>}
+          {!isUpMd && <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(caseData?.name)}&url=${encodeURIComponent(`https://www.circleheart.dev/canvas/${caseData.id}`)}`} role="button" className={`mr-2 md:mr-3 ${liked ? "bg-red-100 hover:bg-red-200 fill-red-300 stroke-red-500 text-red-500 hover:fill-red-300 hover:stroke-red-600 hover:text-red-600" : "bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500 "} ${isLogin && "cursor-pointer"} ${isLogin && !liked && "hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 md:py-2.5 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className='w-4 h-4 md:w-5 md:h-5'
+              fill="none"
+              strokeWidth={2}
+              viewBox="0 0 24 24">
+              <path
+                d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
+            </svg>
+          </a>}
           {isOwner && <>              
             <ParamSetsDialog 
               patients={patients} 
