@@ -595,20 +595,30 @@ const App = () => {
 
 export default App
 
-const SEO = (canvas) => {
+const SEO = ({canvas=null}) => {
   if(!canvas?.photoURL) return null
   const url = getOgpImageUrl(canvas?.name, canvas?.photoURL, canvas?.displayName)
-  return <Head>
-    <title>{canvas.name}</title>
-    <meta property="og:url" content={url} />
-    <meta property="og:title" content={canvas?.name} />
-    <meta property="og:site_name" content="CircleHeart" />
-    <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content={url} />
-    <meta property="og:image:width" content={1200} />
-    <meta property="og:image:height" content={630} />
-  </Head>
+  return <NextSeo
+      openGraph={{
+        type: 'website',
+        url: `https://www.circleheart.dev/canvas/${canvas?.id}`,
+        title: canvas?.name,
+        description: `${canvas?.displayName}さんの投稿`,
+        images: [
+          {
+            url: url,
+            width: 1200,
+            height: 630,
+            alt: 'Og Image Alt',
+          },
+        ],
+      }}
+      twitter={{
+        handle: '@handle',
+        site: '@site',
+        cardType: "summary_large_image",
+      }}
+    />
 }
 
 
