@@ -115,7 +115,7 @@ function Layout(props) {
                     <div className='hidden md:inline-block'>Create New</div>
                   </button>
                 </div> :
-                <button onClick={()=>{setDialogOpen(true)}} className='bg-blue-500 text-white cursor-pointer py-2 px-2 md:px-4 text-base rounded-md text-center inline-flex items-center hover:bg-sky-700 border-none transition'>
+                <button onClick={()=>{setDialogOpen(true)}} className='bg-blue-500 text-white cursor-pointer font-bold py-1 md:py-2 px-3 md:px-4  text-sm md:text-base rounded-md text-center inline-flex items-center hover:bg-sky-700 border-none transition'>
                   Log in
                 </button>
             }
