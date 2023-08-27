@@ -10,11 +10,12 @@ import { paramPresets} from '../../src/utils/presets'
 import dynamic from 'next/dynamic'
 import { NextSeo } from 'next-seo';
 import {useObservable} from "reactfire"
-import {db,auth} from "../../src/utils/firebase"
+import {db,auth, storage} from "../../src/utils/firebase"
 import { map, switchMap, catchError} from "rxjs/operators";
 import { combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs, limit, collectionGroup,  query, where} from 'firebase/firestore';
+import {ref, deleteObject } from 'firebase/storage';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
 import isEqual from "lodash/isEqual"
@@ -24,7 +25,6 @@ import Background from '../../src/elements/Background';
 import Layout from '../../src/components/layout';
 import Footer from '../../src/components/Footer';
 import TextareaAutosize from 'react-textarea-autosize';
-import Head from 'next/head';
 import {getOgpImageUrl} from "../../src/utils/cloudinary"
 
 const CaseEditor = dynamic(() => import('../../src/components/CaseEditor'),{ssr:false})
@@ -353,6 +353,36 @@ const App = () => {
 
   useLeavePageConfirmation(Boolean(isChanged && isOwner))
 
+  const deleteUnusedImagesFromStorage = async () => {
+    const allImageURLsInBlocks = blocks.flatMap(block => {
+      if (block.type === "Note" && block.content) {
+        return block.content.flatMap(contentItem => {
+          if (contentItem.type === "image") {
+            return contentItem.props.src;
+          }
+          return [];
+        });
+      }
+      return [];
+    });
+  
+    const allImagesInStorage = canvas.allImagesInStorage || [];
+  
+    // allImagesInStorageの中で、allImageURLsInBlocksに存在しないものを削除
+    console.log(allImageURLsInBlocks, allImagesInStorage)
+    for (const imageUrl of allImagesInStorage) {
+      if (!allImageURLsInBlocks.includes(imageUrl) && imageUrl ) {
+        const imagePath = new URL(imageUrl).pathname.split('/o/')[1].split('?')[0];
+        const decodedPath = decodeURIComponent(imagePath);
+        
+        const imageRef = ref(storage, decodedPath);
+        await deleteObject(imageRef);
+      }
+    }
+    setCanvas(draft => {
+      draft.allImagesInStorage = allImageURLsInBlocks.filter(Boolean);
+    });
+  };
 
   const updateCanvas = async () =>{
     const batch = writeBatch(db);
@@ -416,6 +446,7 @@ const App = () => {
       }
     })
     await batch.commit()
+    await deleteUnusedImagesFromStorage();
   }
 
   

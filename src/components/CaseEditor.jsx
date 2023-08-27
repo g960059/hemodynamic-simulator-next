@@ -197,7 +197,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
       isResizable = {isOwner}
     >
       { views?.filter(view => view.type !="PlaySpeed").map(view =>
-        <div key={view.id}  className='bg-white border border-solid border-slate-200 rounded overflow-hidden'>
+        <div key={view.id}  className={`bg-white border border-solid border-slate-200 rounded ${view.type !="Note" && "overflow-hidden"}`}>
           {view.type === "Controller" && 
             <ControllerPanelNext
               key = {view.id}
@@ -321,6 +321,8 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                 })
               }}
               isOwner={isOwner}
+              caseData={caseData}
+              setCaseData={setCaseData}
             />
           }
         </div>
@@ -747,6 +749,8 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
     
   </>
 }
+
+
 
 // const ControllerEdittor = ({initialItem=null, handleClose, handleUpdate, patient}) =>{
 //   const t = useTranslation()

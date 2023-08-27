@@ -1,9 +1,10 @@
 'use client';
 
-import React,{useState, useEffect} from 'react';
+import React,{useState, useEffect, useRef} from 'react';
 import {Popover} from '@mui/material'
 
-import { BlockNoteView, useBlockNote } from "@blocknote/react";
+import { BlockNoteView, useBlockNote, ReactSlashMenuItem, getDefaultReactSlashMenuItems,createReactBlockSpec,InlineContent,lightDefaultTheme } from "@blocknote/react";
+import { defaultBlockSchema, defaultProps} from "@blocknote/core";
 import "@blocknote/core/style.css";
 import { useDebounce } from '../hooks/index';
 
@@ -11,23 +12,166 @@ import {useTranslation} from '../hooks/useTranslation'
 import DeleteMenuItemWithDialog from './DeleteMenuItemWithDialog'
 import NoteDialog from './NoteDialog';
 import { nanoid } from 'nanoid';
+import {db, storage} from '../utils/firebase'
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { arrayUnion, doc, updateDoc } from "firebase/firestore";
+import {RiImage2Fill} from 'react-icons/ri'
+import { useImmer } from 'use-immer';
+
+const theme = {
+  ...lightDefaultTheme,
+  componentStyles: (theme) => ({
+    Editor: {
+      overflow: 'scroll',
+      height: '100%',
+    },
+  }),
+}
 
 
-
-
-const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner}) => {
+const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner,caseData, setCaseData}) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [content, setContent] = useState(view?.content ? view?.content : [{id:nanoid(),type:"paragraph",props:{textColor:"default",backgroundColor:"default",textAlignment:"left"},content:[],children:[]}])
+  const [content, setContent] = useImmer(view?.content ? view?.content : [{id:nanoid(),type:"paragraph",props:{textColor:"default",backgroundColor:"default",textAlignment:"left"},content:[],children:[]}])
   const debouncedContent = useDebounce(content, 250);
 
+  const uploadImageToStorage = async (file) => {
+    const imageRef = ref(storage, `images/${caseData.id}/${file.name}`);
+    await uploadBytes(imageRef, file);
+    return await getDownloadURL(imageRef);
+  }
+  
+  function ImageResizer({ src, alt, widthPercentage: initialWidthPercentage, onSizeChange }) {
+    const [widthPercentage, setWidthPercentage] = useState(initialWidthPercentage);
+    const containerRef = useRef(null);
+    const imageRef = useRef(null);
+  
+    const handleMouseDown = (e) => {
+      const startX = e.clientX;
+      const startWidth = imageRef.current.offsetWidth;
+  
+      const handleMouseMove = (e) => {
+        const newWidth = startWidth + (e.clientX - startX);
+        const containerWidth = containerRef.current.offsetWidth;
+        const newWidthPercentage = (newWidth / containerWidth) * 100;
+        setWidthPercentage(newWidthPercentage);
+        onSizeChange && onSizeChange(newWidthPercentage);
+      };
+  
+      const handleMouseUp = () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+  
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    };
+  
+    return (
+      <div ref={containerRef} className="relative inline-block w-full" >
+        <div ref={imageRef} className='group cursor-default relative mx-auto block border border-solid border-slate-200' style={{ width: `${widthPercentage}%` }}>
+          <img 
+            src={src} 
+            alt={alt} 
+            className="block mx-auto w-full "
+          />
+          <div 
+            className="flex justify-center items-center absolute top-0 w-5 h-full cursor-col-resize left-0"
+            onMouseDown={handleMouseDown}
+          >
+            <div className='opacity-0 group-hover:opacity-100 transition-opacity w-2 h-10 border border-solid border-blue-500 bg-blue-50 rounded'/>
+          </div>
+          <div 
+            className="flex justify-center items-center absolute top-0 w-5 h-full cursor-col-resize right-0"
+            onMouseDown={handleMouseDown}
+          >
+            <div className='opacity-0 group-hover:opacity-100 transition-opacity w-2 h-10 border border-solid border-blue-500 bg-blue-50 rounded'/>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  const ImageBlock = createReactBlockSpec({
+    type: 'image',
+    propSchema: {
+      ...defaultProps,
+      src: { default: 'https://via.placeholder.com/1000' },
+      alt: { default: 'image' },
+      width: { default: 60 },
+    },
+    containsInlineContent: true,
+    render: ({ block }) => (
+      <div id="image-wrapper">
+        <ImageResizer 
+          src={block.props.src} 
+          alt={block.props.alt} 
+          widthPercentage={block.props.width}
+          onSizeChange={(newWidthPercentage) => {
+            setContent(draft =>{
+              const index = draft.findIndex(item => item.props?.id === block.props?.id);
+              console.log(block)
+              console.log(content)
+              console.log(newWidthPercentage,index)
+              draft[index].props.width = newWidthPercentage || 60;
+            });
+            editor.updateBlock(block, { props: { width: newWidthPercentage || 60 } })
+          }}
+        />
+        <InlineContent />
+      </div>
+    ),
+  });
+  
+  const insertImageMenuItem = {
+    name: 'Insert Image',
+    execute: async (editor) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = async () => {
+        if (!input.files?.length) return;
+        const file = input.files[0];
+        const src = await uploadImageToStorage(file);
+        const id = nanoid();
+        editor.insertBlocks(
+          [{id, type: 'image', props: {src, alt: file.name, width:60 } }],
+          editor.getTextCursorPosition().block,
+          'after'
+        );
+        setContent(draft =>{
+          draft.push({ id, type: 'image', props: { src, alt: file.name, width:60 } })
+        })
+        
+        await updateDoc(doc(db,'canvas',caseData.id),{allImagesInStorage: arrayUnion(src)})
+        setCaseData(draft=>{
+          draft.allImagesInStorage.push(src)
+        })
+      };
+      input.click();
+    },
+    aliases: ['image', 'img', 'picture', 'media'],
+    group: 'Media',
+    icon: <RiImage2Fill/>,
+    hint: 'Insert an image',
+  };
+  
+  const customSchema = {
+    ...defaultBlockSchema,
+    image: ImageBlock,
+  }
 
   const editor = useBlockNote({
     initialContent: content,
     editable: isOwner,
     onEditorContentChange : (editor) => {
       setContent(editor?.topLevelBlocks)
-    }
+    },
+    blockSchema: customSchema,
+    slashMenuItems: [
+      ...getDefaultReactSlashMenuItems(customSchema),
+      insertImageMenuItem,
+    ],
   });
 
   useEffect(() => {
@@ -35,7 +179,8 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner}) => 
   }, [debouncedContent]);
 
   return <>
-    <div className='w-full h-full overflow-hidden'>
+    <div className='w-full h-full '>
+      {console.log(editor?.topLevelBlocks)}
       <div className='flex items-center p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200 relative h-10'>
         <div className='draggable cursor-move font-bold text-lg pl-1'>{view?.name || "Note"}</div>
         <div className='draggable cursor-move flex-grow h-full'></div>
@@ -45,8 +190,8 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner}) => 
           </svg>
         </div>}
       </div>
-      <div className='w-full h-[calc(100%_-_48px)] relative overflow-auto'>
-        <BlockNoteView editor={editor}  theme="light" />
+      <div className='w-full h-[calc(100%_-_48px)] relative '>
+        <BlockNoteView editor={editor}  theme={theme} />
       </div>
     </div>
     <Popover 
@@ -88,3 +233,6 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner}) => 
 })
 
 export default NotePanel;
+
+
+
