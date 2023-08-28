@@ -10,18 +10,14 @@ import {user$} from '../../src/hooks/usePvLoop'
 import {useObservable} from "reactfire"
 import { useImmer } from "use-immer";
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc,} from 'firebase/firestore';
-import { ref, getDownloadURL ,uploadString,uploadBytesResumable} from "firebase/storage";
+import { ref, getDozwnloadURL ,uploadString,uploadBytesResumable} from "firebase/storage";
 import { nanoid } from 'nanoid'
 import Cropper from 'react-easy-crop'
 import Layout from "../../src/components/layout"
 import {getCroppedImg,readFile,deepEqual3} from "../../src/utils/utils"
 import Billing from "../../src/components/Billing"
-import { bank_options } from '../../src/utils/bank';
-
-
 
 const Settings = () => {
-  const el = useRef(null);
   const router = useRouter()
   const [tabValue, setTabValue] = useState(router.query.tabValue || "account");
   const loadedUser =  useObservable(`user_${auth?.currentUser?.uid}`,user$) 
@@ -37,16 +33,19 @@ const Settings = () => {
   const [isDuplicatedId, setIsDuplicatedId] = useState(false);
   const isChangedUser = !deepEqual3(user,loadedUser.data, ["updatedAt"],false, true)
 
-  const updateUser= async ()=>{
-    const batch = writeBatch(db);                  
-    if(user.userId != loadedUser.data.userId){
-      batch.delete(doc(db,"userIds",loadedUser.data.userId))
-      batch.set(doc(db,"userIds",user.userId),{uid:user.uid,createdAt:serverTimestamp()})
-      batch.update(doc(db,"users",user.uid),{...user,updatedAt:serverTimestamp()})
-    }else{
-      batch.update(doc(db,"users",user.uid),{...user,updatedAt:serverTimestamp()})
+  const updateUser = async () => {
+    const batch = writeBatch(db);
+
+    // userIdが変更された場合
+    if (user.userId !== loadedUser.data.userId) {
+      batch.delete(doc(db, "userIds", loadedUser.data.userId));
+      batch.set(doc(db, "userIds", user.userId), { uid: user.uid, createdAt: serverTimestamp() });
+      batch.update(doc(db, "users", user.uid), { ...user, updatedAt: serverTimestamp() });
+    } else {
+      batch.update(doc(db, "users", user.uid), { ...user, updatedAt: serverTimestamp() });
     }
-    await batch.commit()
+
+    await batch.commit();
   }
 
   useEffect(() => {

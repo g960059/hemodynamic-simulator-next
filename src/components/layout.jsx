@@ -96,10 +96,10 @@ function Layout(props) {
       <CssBaseline />
       <nav className="bg-white">
         <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
-          <div className='flex h-12 md:h-16 justify-between items-center'>
+          <div className='flex h-14 md:h-16 justify-between items-center'>
             <div onClick={()=>{router.push("/")}} className='cursor-pointer flex items-center justify-center'>
-              <Image src="/favicons/favicon_256x256.png" width={isUpMd ? 24 : 20} height={isUpMd ? 24 : 20} alt="favicon"/>
-              <h1 className='ml-1 text-xl md:text-2xl text-center font-bold'>CircleHeart</h1>
+              <Image src="/favicons/favicon_256x256.png" width={isUpMd ? 24 : 24} height={isUpMd ? 24 : 24} alt="favicon"/>
+              <h1 className='ml-1 text-2xl text-center font-bold'>CircleHeart</h1>
             </div>
             <div className='flex-grow'/>
             {
@@ -125,7 +125,7 @@ function Layout(props) {
       <Dialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} sx={{'& .firebaseui-idp-button':{borderRadius: "0.45em"}, '& .MuiDialog-paper':{borderRadius: '9px'},'& .MuiDialogContent-root':{maxWidth:"400px"}, '& .MuiBackdrop-root':{background:"rgba(0, 0, 0, 0.2)"}}}>
         <DialogContent>
           <Box width={1} display='flex' justifyContent='center' alignItems='center' sx={{mt:2,mb:3}}>
-            <Image src="/HeaderIcon.png" width={40} height={40} alt="headerIcon"/>
+            <Image src="/favicons/favicon_256x256.png" width={28} height={28} alt="headerIcon" className='mr-1'/>
             <Typography variant="h5" noWrap component="div" sx={{fontFamily: "GT Haptik Regular",fontWeight: 'bold', fontSize:{xs:'h6.fontSize',sm:'h5.fontSize'}}}>
               {t['Title']}
             </Typography>

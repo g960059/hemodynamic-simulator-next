@@ -1,6 +1,5 @@
-import React,{ useEffect, useRef,useState,useCallback}  from 'react'
-import {Box, Grid, Typography, Divider,Button,Stack, Tab,Avatar, useMediaQuery,NoSsr} from '@mui/material'
-import {TabContext,TabList,TabPanel} from '@mui/lab';
+import React,{ useEffect, useRef,useState,useCallback,Popover}  from 'react'
+import {Box, Grid, Typography, Divider,Button,Stack, Tab,Avatar, useMediaQuery,NoSsr, Dialog} from '@mui/material'
 import {Twitter,Facebook, Link as LinkIcon,FavoriteBorder} from "@mui/icons-material"
 import { useRouter } from 'next/router'
 import Footer from "../../src/components/Footer"
@@ -9,56 +8,105 @@ import {useObservable} from "reactfire"
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc, getDocs, arrayUnion, arrayRemove, where,} from 'firebase/firestore';
 import Layout from "../../src/components/layout"
 import { collectionData, docData } from 'rxfire/firestore';
-import { filter, map, mergeMap, of, tap } from 'rxjs';
+import { filter, map, mergeMap, of, tap,  combineLatest } from 'rxjs';
 import Image from 'next/image'
 import { formatDateDiff } from '../../src/utils/utils';
-import { user$ } from '../../src/hooks/usePvLoop';
-import clsx from 'clsx';
 import { query } from 'firebase/database';
 import { useAuthState} from 'react-firebase-hooks/auth';
-import {useDocumentData} from "react-firebase-hooks/firestore"
 import Background from '../../src/elements/Background';
-import Link from 'next/link';
-
+import {CanvasItem} from "../../pages/index"
+import Link from 'next/link'
 
 function UserSummary(){
   const router = useRouter()
 
-
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
-  // const [user, setUser] = useState();
   const [canvas, setCanvas] = useState();
+  const [openFollowers, setOpenFollowers] = useState(false);
+  const [openFollowing, setOpenFollowing] = useState(false);
 
-  const [followerDiff, setFollowerDiff] = useState(0);
   const [currentUser] = useAuthState(auth)
+  const myFollowingIds$ = currentUser?.uid ? collectionData(collection(db, 'users', currentUser?.uid, 'following')) : of([]);
+  const {data:myFollowingIds} = useObservable(`myFollowingIds_${currentUser?.uid}`, myFollowingIds$);
   const uid$ = of(router.query.userId).pipe(
     filter(Boolean),
     mergeMap(userId=> docData(doc(db,'userIds',userId))),
     map(user => user.uid)
   );
   const {data:uid} = useObservable(`uid_${router.query.userId}`, uid$);
-  const {data:followers} = useObservable(`followedUser_${router.query.userId}`,uid$.pipe(
-    filter(Boolean),
-    mergeMap(uid=>docData(doc(db,'followers',uid))),
-    map(followers => followers.users)
-  ));
   const {data:user} = useObservable(`user_${router.query.userId}`,uid$.pipe(
     filter(Boolean),
     mergeMap(uid=>docData(doc(db,'users',uid))),
   ));
-  const isFollowing = followers?.includes(auth.currentUser?.uid);
-  const follow = async () => {
-    if(!followers){
-      await setDoc(doc(db,"followers",uid),{users: [auth.currentUser?.uid]})
-    }else{
-      await updateDoc(doc(db,"followers",uid),{users: arrayUnion(auth.currentUser?.uid)})
-    }
-    setFollowerDiff(followerDiff+1)
+  const followerIds$ = uid$.pipe(
+    filter(Boolean),
+    mergeMap(uid => collectionData(collection(db, 'users', uid, 'followers'))),
+  );
+  const {data: followerIds} = useObservable(`followerIds_${router.query.userId}`, followerIds$);
+  const followingIds$ = uid$.pipe(
+    filter(Boolean),
+    mergeMap(uid => collectionData(collection(db, 'users', uid, 'following'))),
+  );
+  const {data: followingIds} = useObservable(`followingIds_${router.query.userId}`, followingIds$);
+  const followersWithDetails$ = followerIds$.pipe(
+    mergeMap(followerIds => {
+      const userDetailsObservables = followerIds.map(follower => docData(doc(db, 'users', follower.uid),{idField:'uid'}));
+      return combineLatest(userDetailsObservables);
+    })
+  );
+  const { data: followers } = useObservable(`followersWithDetails_${router.query.userId}`, followersWithDetails$);
+  
+  const followingWithDetails$ = followingIds$.pipe(
+    mergeMap(followingIds => {
+      const userDetailsObservables = followingIds.map(followee => docData(doc(db, 'users', followee.uid),{idField:'uid'}));
+      return combineLatest(userDetailsObservables);
+    })
+  );
+  const { data: followings } = useObservable(`followingWithDetails_${router.query.userId}`, followingWithDetails$);
+  const isFollowing = followerIds?.some(followee => followee?.uid === currentUser?.uid);
+
+  const follow = async (currentUid, targetUid) => {
+    console.log(currentUid, targetUid)
+    const batch = writeBatch(db);
+  
+    // currentUidのfollowingサブコレクションにtargetUidを追加
+    const followingRef = doc(collection(db, 'users', currentUid, 'following'), targetUid);
+    batch.set(followingRef, {
+      uid: targetUid,
+      timestamp: new Date()
+    });
+  
+    // targetUidのfollowersサブコレクションにcurrentUidを追加
+    const followerRef = doc(collection(db, 'users', targetUid, 'followers'), currentUid);
+    batch.set(followerRef, {
+      uid: currentUid,
+      timestamp: new Date()
+    });
+  
+    await batch.commit();
   }
-  const unfollow = async () => {
-    await updateDoc(doc(db,"followers",uid),{users: arrayRemove(auth.currentUser?.uid)})
-    setFollowerDiff(followerDiff-1)
+  
+  const unfollow = async (currentUid, targetUid) => {
+    const batch = writeBatch(db);
+  
+    // currentUidのfollowingサブコレクションからtargetUidを削除
+    const followingRef = doc(collection(db, 'users', currentUid, 'following'), targetUid);
+    batch.delete(followingRef);
+  
+    // targetUidのfollowersサブコレクションからcurrentUidを削除
+    const followerRef = doc(collection(db, 'users', targetUid, 'followers'), currentUid);
+    batch.delete(followerRef);
+  
+    await batch.commit();
+  }  
+
+  const handleFollow = async () => {
+    await follow(currentUser?.uid, user?.uid);
   }
+  const handleUnfollow = async () => {
+    await unfollow(currentUser?.uid, user?.uid);
+  }
+  
 
   useEffect(() => {
     (async ()=>{
@@ -74,37 +122,44 @@ function UserSummary(){
   }, [uid]);
 
 
-
   return <>
     {
       user && <>
         <Stack width={1} justifyContent="center" alignItems="center" className='bg-white'>
           <NoSsr>
-            <Stack className='w-full max-w-6xl mx-auto' direction={isUpMd ?"row" : "column"} pt={isUpMd?8:4} pb={isUpMd?4:1} px={isUpMd?10:2} spacing={3}>
+            <div className='w-full max-w-4xl mx-auto py-4 md:py-8 px-4 flex flex-col md:flex-row md:space-x-10 space-y-3' >
               <div className='flex flex-row items-center'>
                 <Avatar src={user?.photoURL} className='w-20 h-20'>
                   {user?.displayName[0]}
                 </Avatar>
                 <div className='flex-grow'/>
-                {!isUpMd && (user.uid === currentUser?.uid  ? <Button onClick={()=>{router.push(`/settings/profile`)}} className="btn-neumorphic">プロフィールを編集</Button> : (isFollowing ? <Button variant="contained" onClick={unfollow} className="text-white font-bold" disableElevation size="small">フォロー中</Button> : <Button variant="outlined" onClick={follow} size="small">フォローする</Button>))}
+                {!isUpMd && currentUser?.uid && (user.uid === currentUser?.uid ? 
+                  <Button onClick={()=>{router.push(`/settings/profile`)}} className="btn-neumorphic">プロフィールを編集</Button> : 
+                  (isFollowing ? <button onClick={handleUnfollow} className=" bg-blue-500 text-white cursor-pointer py-2 px-2 md:px-4 text-sm md:text-base rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition">フォロー中</button> :
+                   <button className=' border-1 border-solid border-blue-500 bg-white text-blue-500 cursor-pointer py-1.5 px-2 md:px-4 text-sm md:text-base rounded-md flex justify-center items-center hover:bg-blue-50 transition' onClick={handleFollow}>フォローする</button>)
+                )}
               </div>
               <Stack flexGrow={1} spacing={1}>
                 <Stack direction="row" >
                   <Typography variant="h5" fontWeight="bold">{user?.displayName}</Typography>
                   <div style={{flexGrow:1}}/>
-                  {isUpMd && (user.uid === currentUser?.uid  ? <Button onClick={()=>{router.push(`/settings/profile`)}} className="btn-neumorphic">プロフィールを編集</Button> : (isFollowing ? <Button variant="contained" onClick={unfollow} className="text-white font-bold" disableElevation size="small">フォロー中</Button> : <Button variant="outlined" onClick={follow} size="small">フォローする</Button>))}
+                  {isUpMd && currentUser?.uid && (user.uid === currentUser?.uid  ? <Button onClick={()=>{router.push(`/settings/profile`)}} className="btn-neumorphic">プロフィールを編集</Button> : (isFollowing ? <button onClick={handleUnfollow} className=" bg-blue-500 text-white cursor-pointer py-2 px-2 md:px-4 text-sm md:text-base rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition">フォロー中</button> : <button className=' border-1 border-solid border-blue-500 bg-white text-blue-500 cursor-pointer py-1.5 px-2 md:px-4 text-sm md:text-base rounded-md flex justify-center items-center hover:bg-blue-50 transition' onClick={handleFollow}>フォローする</button>))}
                 </Stack>
                 {user?.description && <Typography variant="body1">{user?.description}</Typography>}
                 <Stack direction="row" spacing={2}>
-                  {user?.caseHeartCount+user?.articleHeartCount >0 && <Box display="flex" alignItems="center"> 
+                  {/* {user?.caseHeartCount+user?.articleHeartCount >0 && <Box display="flex" alignItems="center"> 
                       <Typography variant="subtitle1" sx={{fontWeight:"bold",mr:.5}}>{user?.caseHeartCount+user?.articleHeartCount}</Typography>
                       <Typography variant="body2" color="secondary">Likes</Typography>
                     </Box>
-                  }
-                  {followers?.length+followerDiff >0 && <Box display="flex" alignItems="center">
-                    <Typography variant="subtitle1" sx={{fontWeight:"bold",mr:.5}}>{followers?.length+followerDiff}</Typography>
-                    <Typography variant="body2" color="secondary">Followers</Typography>
-                  </Box> }
+                  } */}
+                  {<div onClick={()=>{setOpenFollowers(true)}} className='cursor-pointer flex items-center justify-center'>
+                    <div className='text-slate-600 text-base font-bold mr-0.5 text-center'>{followerIds?.length || 0}</div>
+                    <div className=' text-base text-slate-500 text-center'>Followers</div>
+                  </div> }
+                  {<div onClick={()=>{setOpenFollowing(true)}} className='cursor-pointer flex items-center justify-center'>
+                    <div className='text-slate-600 text-base font-bold mr-0.5 text-center'>{followingIds?.length || 0}</div>
+                    <div className=' text-base text-slate-500 text-center'>Followings</div>
+                  </div> }
                 </Stack>
                 <Stack direction="row" spacing={isUpMd ? 2 :1.5}>
                   {user?.twitterUserName && <a href={"https://twitter.com/"+user?.twitterUserName} target="_blank" style={{color:"#93a5b1"}}><Twitter sx={{"&:hover":{color:"#000000d1"}}}/></a>}
@@ -112,16 +167,102 @@ function UserSummary(){
                   {user?.url && <a href={user?.url} target="_blank" style={{color:"#93a5b1"}}><LinkIcon sx={{"&:hover":{color:"#000000d1"}}}/></a>}
                 </Stack>
               </Stack>
-            </Stack>
+            </div>
           </NoSsr>
         </Stack>
         <div className='max-w-4xl w-full mx-auto py-6 px-4 min-h-[440px]'>
           <div className="grid md:grid-cols-2 gap-4 md:gap-8">
             {
-              canvas?.map(c=><CanvasItem canvas={c}/>)
+              canvas?.map(c=><CanvasItem canvasItem={c}/>)
             }
           </div>         
-        </div>    
+        </div>
+        <Dialog open={openFollowers} onClose={()=>setOpenFollowers(false)}>
+          <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
+            <div className='text-base font-bold text-center inline-flex items-center'>            
+              フォロワー
+            </div>
+            <div className='flex-grow md:w-52'/>
+            <button onClick={()=>setOpenFollowers(false)} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+              <svg className='stroke-slate-400 hover:stroke-slate-600 w-4 md:w-6 h-4 md:h-6 transition' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className='w-full h-80 px-4 py-2 overflow-y-auto'> 
+            <div className='w-full max-w-2xl mx-auto p-2'>
+              {followers?.map(follower=>(
+                <div className='flex flex-row items-center justify-center py-2'>
+                  { follower.photoURL ?
+                    <div className="h-10 w-10 rounded-full overflow-hidden cursor-pointer hover:opacity-60" onClick={()=>{router.push(`/users/${follower.userId}`)}}>
+                      <Image src={follower.photoURL} height="40" width="40" alt="userPhoto"/>
+                    </div> :
+                    <div className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${follower.userId}`)}}>
+                      <span className="text-xs font-medium leading-none text-white">{follower?.displayName?.length > 0 &&follower?.displayName[0]}</span>
+                    </div>
+                  }
+                  <div className='ml-2 text-slate-500'>
+                    <Link href={`/users/${follower.userId}`} className='text-sm font-medium no-underline hover:underline text-slate-500'>
+                        {follower.displayName}
+                    </Link>
+                    <div className='flex flex-row items-center justify-between'>
+                      <span className=' text-xs font-medium '>@{follower.userId?.length>14 ? follower.userId?.slice(0,14)+ ".." : follower.userId}</span>
+                    </div>
+                  </div>
+                  <div className='flex-grow'/>
+                  {myFollowingIds.map(({uid})=>uid)?.includes(follower.uid) ? 
+                    <button onClick={()=>{unfollow(currentUser.uid, follower.uid)}} className=" bg-blue-500 text-white cursor-pointer py-2 px-2 text-sm rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition">フォロー中</button> : 
+                    <button onClick={async ()=>{await follow(currentUser.uid, follower.uid)}} className=' border-1 border-solid border-blue-500 bg-white text-blue-500 cursor-pointer py-1.5 px-2 text-sm rounded-md flex justify-center items-center hover:bg-blue-50 transition' >フォローする</button>
+                  }
+                </div>
+                ))
+              } 
+            </div>
+          </div>        
+        </Dialog>
+        <Dialog open={openFollowing} onClose={()=>setOpenFollowing(false)}>
+          <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
+            <div className='text-base font-bold text-center inline-flex items-center'>            
+              フォロー中
+            </div>
+            <div className='flex-grow md:w-52'/>
+            <button onClick={()=>setOpenFollowing(false)} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+              <svg className='stroke-slate-400 hover:stroke-slate-600 w-4 md:w-6 h-4 md:h-6 transition' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className='w-full h-80 px-4 py-2 overflow-y-auto'> 
+            <div className='w-full max-w-2xl mx-auto p-2'>
+              {followings?.map(following=>(
+                <div className='flex flex-row items-center justify-center py-2'>
+                  { following.photoURL ?
+                    <div className="h-10 w-10 rounded-full overflow-hidden cursor-pointer hover:opacity-60" onClick={()=>{router.push(`/users/${following.userId}`)}}>
+                      <Image src={following.photoURL} height="40" width="40" alt="userPhoto"/>
+                    </div> :
+                    <div className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${following.userId}`)}}>
+                      <span className="text-xs font-medium leading-none text-white">{following?.displayName?.length > 0 &&following?.displayName[0]}</span>
+                    </div>
+                  }
+                  <div className='ml-2 text-slate-500'>
+                    <Link href={`/users/${following.userId}`} className='text-sm font-medium no-underline hover:underline text-slate-500'>
+                        {following.displayName}
+                    </Link>
+                    <div className='flex flex-row items-center justify-between'>
+                      <span className=' text-xs font-medium '>@{following.userId?.length>14 ? following.userId?.slice(0,14)+ ".." : following.userId}</span>
+                    </div>
+                  </div>
+                  <div className='flex-grow'/>
+                  {myFollowingIds.map(({uid})=>uid)?.includes(following.uid) ? 
+                    <button onClick={()=>{unfollow(currentUser.uid, following.uid)}} className=" bg-blue-500 text-white cursor-pointer py-2 px-2 text-sm rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition">フォロー中</button> : 
+                    <button onClick={async ()=>{await follow(currentUser.uid, following.uid)}} className=' border-1 border-solid border-blue-500 bg-white text-blue-500 cursor-pointer py-1.5 px-2 text-sm rounded-md flex justify-center items-center hover:bg-blue-50 transition' >フォローする</button>
+                  }
+                </div>
+                ))
+              } 
+            </div>
+          </div>        
+        </Dialog>         
       </>
     }
     <Footer/>   
@@ -129,47 +270,7 @@ function UserSummary(){
   </>
 }
 
-export const CanvasItem = ({canvas}) => {
-  const router = useRouter()
-  return (
-    <div key={canvas?.id} onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/canvas/${canvas?.id}`})}}  className="w-full flex flex-col py-3 px-4 bg-white cursor-pointer border border-solid border-slate-200 rounded-md overflow-hidden hover:shadow transition">
-      <div className='flex flex-row items-center'>
-        {canvas?.photoURL ?
-          <div className="h-8 w-8 rounded-full overflow-hidden" onClick={(e)=>{e.stopPropagation(); router.push(`/users/${canvas.userId}`)}}>
-            <Image src={canvas?.photoURL} height="32" width="32" alt="userPhoto"/>
-          </div> :
-          <div className="flex items-center justify-center h-8 w-8 rounded-full bg-slate-500" onClick={(e)=>{e.stopPropagation();router.push(`/users/${canvas.userId}`)}}>
-            <span className="text-xs font-medium leading-none text-white">{canvas?.displayName[0]}</span>
-          </div>
-        }
-        <div className='ml-2 text-slate-500' >
-          <div onClick={(e)=>{e.stopPropagation(); router.push(`/users/${canvas.userId}`)}} className='text-sm font-medium no-underline hover:underline text-slate-500'>
-              {canvas?.displayName}
-          </div>
-          <div className='flex flex-row items-center justify-between'>
-            <span className='text-sm font-medium '>{ formatDateDiff(new Date(), new Date(canvas?.updatedAt?.seconds * 1000)) } </span>
-          </div>
-        </div>
-      </div>
-      <div className='ml-10 mt-2' >
-        <div onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/canvas/${canvas?.id}`})}} className='font-bold text-xl text-slate-800 no-underline hover:underline'>
-            {canvas?.name || "Untitled"}
-        </div>
-        <div className='flex flex-row items-center justify-start mt-2'>
-          {canvas.tags?.map(tag=><span class="inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium bg-slate-100 text-slate-800">{tag}</span>)}
-        </div>
-      </div>
-      <div className='ml-10 mt-2'>
-        <span className='text-sm flex flex-row items-center justify-start text-slate-500'>
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 " fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-          <span className='text-sm ml-0.5'>{canvas?.heartCount || 0}</span>
-        </span>
-      </div>
-    </div>
-  )
-}
+
 
 UserSummary.getLayout = (page) => {
   return (
@@ -180,9 +281,8 @@ UserSummary.getLayout = (page) => {
 }
 
 
-
-
 export default UserSummary;
+
 
 
 // const useStyles = makeStyles((theme) =>({
