@@ -10,7 +10,7 @@ import Layout from "../../src/components/layout"
 import { collectionData, docData } from 'rxfire/firestore';
 import { filter, map, mergeMap, of, tap,  combineLatest } from 'rxjs';
 import Image from 'next/image'
-import { formatDateDiff } from '../../src/utils/utils';
+import { user$ } from '../../src/hooks/usePvLoop';
 import { query } from 'firebase/database';
 import { useAuthState} from 'react-firebase-hooks/auth';
 import Background from '../../src/elements/Background';
@@ -25,7 +25,8 @@ function UserSummary(){
   const [openFollowers, setOpenFollowers] = useState(false);
   const [openFollowing, setOpenFollowing] = useState(false);
 
-  const [currentUser] = useAuthState(auth)
+  const {data:currentUser} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
+
   const myFollowingIds$ = currentUser?.uid ? collectionData(collection(db, 'users', currentUser?.uid, 'following')) : of([]);
   const {data:myFollowingIds} = useObservable(`myFollowingIds_${currentUser?.uid}`, myFollowingIds$);
   const uid$ = of(router.query.userId).pipe(
@@ -73,14 +74,14 @@ function UserSummary(){
     const followingRef = doc(collection(db, 'users', currentUid, 'following'), targetUid);
     batch.set(followingRef, {
       uid: targetUid,
-      timestamp: new Date()
+      timestamp: serverTimestamp(),
     });
   
     // targetUidのfollowersサブコレクションにcurrentUidを追加
     const followerRef = doc(collection(db, 'users', targetUid, 'followers'), currentUid);
     batch.set(followerRef, {
       uid: currentUid,
-      timestamp: new Date()
+      timestamp: serverTimestamp(),
     });
   
     await batch.commit();
@@ -152,11 +153,11 @@ function UserSummary(){
                       <Typography variant="body2" color="secondary">Likes</Typography>
                     </Box>
                   } */}
-                  {<div onClick={()=>{setOpenFollowers(true)}} className='cursor-pointer flex items-center justify-center'>
+                  {followerIds?.length > 0 && <div onClick={()=>{setOpenFollowers(true)}} className='cursor-pointer flex items-center justify-center'>
                     <div className='text-slate-600 text-base font-bold mr-0.5 text-center'>{followerIds?.length || 0}</div>
                     <div className=' text-base text-slate-500 text-center'>Followers</div>
                   </div> }
-                  {<div onClick={()=>{setOpenFollowing(true)}} className='cursor-pointer flex items-center justify-center'>
+                  {followingIds?.length > 0 && <div onClick={()=>{setOpenFollowing(true)}} className='cursor-pointer flex items-center justify-center'>
                     <div className='text-slate-600 text-base font-bold mr-0.5 text-center'>{followingIds?.length || 0}</div>
                     <div className=' text-base text-slate-500 text-center'>Followings</div>
                   </div> }
@@ -177,7 +178,7 @@ function UserSummary(){
             }
           </div>         
         </div>
-        <Dialog open={openFollowers} onClose={()=>setOpenFollowers(false)}>
+        <Dialog open={openFollowers} onClose={()=>setOpenFollowers(false)} fullWidth={!isUpMd}>
           <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
             <div className='text-base font-bold text-center inline-flex items-center'>            
               フォロワー
@@ -189,8 +190,8 @@ function UserSummary(){
               </svg>
             </button>
           </div>
-          <div className='w-full h-80 px-4 py-2 overflow-y-auto'> 
-            <div className='w-full max-w-2xl mx-auto p-2'>
+          <div className='w-full h-80 px-2 md:px-4 py-2 overflow-y-auto'> 
+            <div className='w-full max-w-3xl mx-auto p-2'>
               {followers?.map(follower=>(
                 <div className='flex flex-row items-center justify-center py-2'>
                   { follower.photoURL ?
@@ -206,13 +207,13 @@ function UserSummary(){
                         {follower.displayName}
                     </Link>
                     <div className='flex flex-row items-center justify-between'>
-                      <span className=' text-xs font-medium '>@{follower.userId?.length>14 ? follower.userId?.slice(0,14)+ ".." : follower.userId}</span>
+                      <span className=' text-xs font-medium '>@{follower.userId?.length>12 ? follower.userId?.slice(0,12)+ ".." : follower.userId}</span>
                     </div>
                   </div>
                   <div className='flex-grow'/>
                   {myFollowingIds.map(({uid})=>uid)?.includes(follower.uid) ? 
-                    <button onClick={()=>{unfollow(currentUser.uid, follower.uid)}} className=" bg-blue-500 text-white cursor-pointer py-2 px-2 text-sm rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition">フォロー中</button> : 
-                    <button onClick={async ()=>{await follow(currentUser.uid, follower.uid)}} className=' border-1 border-solid border-blue-500 bg-white text-blue-500 cursor-pointer py-1.5 px-2 text-sm rounded-md flex justify-center items-center hover:bg-blue-50 transition' >フォローする</button>
+                    <button onClick={()=>{unfollow(currentUser.uid, follower.uid)}} className=" bg-blue-500 text-white cursor-pointer py-1.5 md:py-2 px-1 md:px-2 text-xs md:text-sm rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition">フォロー中</button> : 
+                    <button onClick={async ()=>{await follow(currentUser.uid, follower.uid)}} className=' border-1 border-solid border-blue-500 bg-white text-blue-500 cursor-pointer py-1 md:py-1.5 px-1 md:px-2 text-xs md:text-sm rounded-md flex justify-center items-center hover:bg-blue-50 transition'>{isUpMd ? "フォローする" : "フォロー"}</button>
                   }
                 </div>
                 ))

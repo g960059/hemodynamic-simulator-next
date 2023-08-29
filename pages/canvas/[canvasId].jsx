@@ -11,7 +11,7 @@ import dynamic from 'next/dynamic'
 import { NextSeo } from 'next-seo';
 import {useObservable} from "reactfire"
 import {db,auth, storage} from "../../src/utils/firebase"
-import { map, switchMap, catchError} from "rxjs/operators";
+import { map, switchMap, catchError, tap} from "rxjs/operators";
 import { combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs, limit, collectionGroup,  query, where} from 'firebase/firestore';
@@ -45,15 +45,7 @@ const App = () => {
         return combineLatest({
           canvas: docData(doc(db,"canvas",cid),{idField:"id"}),
           paramSets: collectionData(query(collection(db,"paramSets"),where("canvasId","==",cid)),{idField: 'id'}),
-          blocks: collectionData(collection(db,"canvas",cid,"blocks"),{idField: 'id'}),
-          userLiked: docData(doc(db, "likes", `${user?.uid}_${cid}`)).pipe(
-            map(likeDoc => !!likeDoc), 
-            catchError(() => of(false)) 
-          ),
-          userBookmarked: docData(doc(db, "bookmarks", `${user?.uid}_${cid}`)).pipe(
-            map(bookmarkDoc => !!bookmarkDoc), 
-            catchError(() => of(false)) 
-          )          
+          blocks: collectionData(collection(db,"canvas",cid,"blocks"),{idField: 'id'}),        
         }).pipe(
         map(data => {
           const updatedData = { ...data };
@@ -85,7 +77,35 @@ const App = () => {
   )
 
   const combinedData = useObservable("combinedData"+canvasId, combinedData$)
+  const liked$ = combineLatest([of(canvasId), user$]).pipe(
+    switchMap(([cid, user]) => {
+      if (cid && user?.uid) {
+        return docData(doc(db, "likes", `${user.uid}_${cid}`)).pipe(
+          map(likeDoc => !!likeDoc),
+          catchError(() => of(false))
+        );
+      } else {
+        return of(false);
+      }
+    })
+  );
+  const {data: liked} = useObservable(`liked_${canvasId}`, liked$);
+  const bookmarked$ = combineLatest([of(canvasId), user$]).pipe(
+    switchMap(([cid, user]) => {
+      if (cid  && user?.uid) {
+        return docData(doc(db, "bookmarks", `${user.uid}_${cid}`)).pipe(
+          map(bookmarkDoc => !!bookmarkDoc),
+          catchError(() => of(false))
+        );
+      } else {
+        return of(false);
+      }
+    })
+  );
   
+  
+  const {data: bookmarked} = useObservable(`bookmarked_${canvasId}`, bookmarked$);  
+
   const [loading, setLoading] = useState(true);
 
   const engine = useEngine()
@@ -95,8 +115,7 @@ const App = () => {
   const [defaultBlocks, setDefaultBlocks] = useState([]);
   const [canvas, setCanvas] = useImmer({});
   const [defaultCanvas, setDefaultCanvas] = useState({});
-  const [liked, setLiked] = useState(false);
-  const [bookmarked, setBookmarked] = useState(false);
+
   const isOwner = canvas.uid == user?.uid 
   const isLogin = !!user?.uid
 
@@ -131,18 +150,16 @@ const App = () => {
   isChanged = isCanvasChanged || isNewCanvasChanged || isParamsetsChanged || isNewParamsetsChanged || isBlocksChanged || isNewBlocksChanged
  
   const addLike = async () =>{
-  if(!isLogin) return
+    if(!isLogin) return
     setCanvas(draft=>{draft.totalLikes+=1})
-    setLiked(true)
     const batch = writeBatch(db);
     batch.update(doc(db,"canvas",canvasId),{totalLikes:canvas.totalLikes+1})
-    batch.set(doc(db,"likes",`${user?.uid}_${canvasId}`),{uid:user?.uid,canvasId:canvasId,createdAt:serverTimestamp()})
+    batch.set(doc(db,"likes",`${user?.uid}_${canvasId}`),{uid:user?.uid,canvasId:canvasId,canvasOwnerId: canvas.uid,createdAt:serverTimestamp()})
     await batch.commit() 
   }
   const removeLike = async () =>{
     if(!isLogin) return;
     setCanvas(draft=>{draft.totalLikes-=1})
-    setLiked(false)
     const batch = writeBatch(db);
     batch.update(doc(db,"canvas",canvasId),{totalLikes:canvas.totalLikes-1})
     batch.delete(doc(db,"likes",`${user?.uid}_${canvasId}`))
@@ -151,20 +168,19 @@ const App = () => {
   const addBookmark = async () => {
     if(!isLogin) return;
     setCanvas(draft=>{draft.totalBookmarks+=1})
-    setBookmarked(true)
     const batch = writeBatch(db);
     batch.update(doc(db, "canvas", canvasId), { totalBookmarks: canvas.totalBookmarks + 1 });
     batch.set(doc(db, "bookmarks", `${user?.uid}_${canvasId}`), {
         uid: user?.uid,
         canvasId: canvasId,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        canvasOwnerId: canvas.uid,
     });
     await batch.commit();
   }
   const removeBookmark = async () => {
     if(!isLogin) return;
     setCanvas(draft=>{draft.totalBookmarks-=1})
-    setBookmarked(false)
     const batch = writeBatch(db);
     batch.update(doc(db, "canvas", canvasId), { totalBookmarks: canvas.totalBookmarks - 1 });
     batch.delete(doc(db, "bookmarks", `${user?.uid}_${canvasId}`));
@@ -194,8 +210,6 @@ const App = () => {
       setParamSets(engine.getAllPatinets().map(p=>({...p,...combinedData.data.paramSets.find(_p=>_p.id==p.id)})));
       setBlocks(combinedData.data.blocks)
       setCanvas(combinedData.data.canvas)
-      setLiked(combinedData.data.userLiked || 0)
-      setBookmarked(combinedData.data.userBookmarked || 0)
       engine.setIsPlaying(true);
     }else{
       if(router.query.newItem && combinedData.status == "success" && combinedData.data?.paramSets.length==0 && paramSets.length==0 && !canvas?.id){
@@ -369,7 +383,6 @@ const App = () => {
     const allImagesInStorage = canvas.allImagesInStorage || [];
   
     // allImagesInStorageの中で、allImageURLsInBlocksに存在しないものを削除
-    console.log(allImageURLsInBlocks, allImagesInStorage)
     for (const imageUrl of allImagesInStorage) {
       if (!allImageURLsInBlocks.includes(imageUrl) && imageUrl ) {
         const imagePath = new URL(imageUrl).pathname.split('/o/')[1].split('?')[0];

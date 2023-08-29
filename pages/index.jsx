@@ -264,7 +264,7 @@ export const CanvasItem = ({canvasItem,removeCanvas=null, isOwner=false}) => {
             {canvasItem?.name || "Untitled"}
         </div>
         <div className='flex flex-row items-center justify-start mt-2'>
-          {canvasItem.tags?.map(tag=><span class="inline-flex items-center gap-1.5 py-1 px-2 rounded-md text-xs font-medium bg-slate-100 text-slate-800">{tag}</span>)}
+          {canvasItem.tags?.map(tag=><span class="inline-flex items-center gap-1.5 py-1 px-2 mr-2 rounded-md text-xs font-medium bg-slate-100 text-slate-800">{tag}</span>)}
         </div>
       </div>
       <div className='flex-grow'/>

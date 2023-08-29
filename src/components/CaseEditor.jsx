@@ -57,15 +57,15 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
       <div className='w-full flex flex-row items-center justify-center'>
         <div className='flex flex-row items-center justify-center'>
           { caseData.photoURL ?
-            <div className="h-10 w-10 rounded-full overflow-hidden cursor-pointer hover:opacity-60" onClick={()=>{router.push(`/users/${caseData.uid}`)}}>
+            <div className="h-10 w-10 rounded-full overflow-hidden cursor-pointer hover:opacity-60" onClick={()=>{router.push(`/users/${caseData.userId}`)}}>
               <Image src={caseData.photoURL} height="40" width="40" alt="userPhoto"/>
             </div> :
-            <div className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${caseData.uid}`)}}>
+            <div className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${caseData.userId}`)}}>
               <span className="text-xs font-medium leading-none text-white">{caseData?.displayName?.length > 0 &&caseData?.displayName[0]}</span>
             </div>
           }
           <div className='ml-2 text-slate-500'>
-            <Link href={`/users/${caseData.uid}`} className='text-sm font-medium no-underline hover:underline text-slate-500'>
+            <Link href={`/users/${caseData.userId}`} className='text-sm font-medium no-underline hover:underline text-slate-500'>
                 {caseData.displayName}
             </Link>
             <div className='flex flex-row items-center justify-between'>
@@ -488,7 +488,7 @@ const ParamSetsDialog = ({patients, engine, setPatients,setViews,caseData}) => {
               handleUpdate={(newPatient)=>{
                 const insertPatient = {...newPatient,id:nanoid()}
                 engine.register(insertPatient);
-                setPatients(draft=>{draft.push({...insertPatient,uid:caseData.uid, canvasId: caseData.canvasId , ...engine.getPatient(insertPatient.id)})})
+                setPatients(draft=>{draft.push({...insertPatient,uid:caseData.userId, canvasId: caseData.canvasId , ...engine.getPatient(insertPatient.id)})})
               }}
             />
           </div> 

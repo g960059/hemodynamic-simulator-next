@@ -6,10 +6,15 @@ import {useTranslation} from '../hooks/useTranslation'
 import Image from 'next/image'
 import {user$,} from '../hooks/usePvLoop'
 import {useObservable} from "reactfire"
-import {StyledAuth,app,auth,db} from '../utils/firebase'
+import {auth,db} from '../utils/firebase'
+import { switchMap, map,  mergeMap, tap } from 'rxjs/operators';
+import { combineLatest, of, BehaviorSubject,from } from 'rxjs';  
+import { collection, query, where, doc , writeBatch, orderBy, limit, getDocs,getDoc, startAfter} from 'firebase/firestore';
+import { collectionData, docData } from 'rxfire/firestore';
+
 import {signOut} from "firebase/auth";
 import { useRouter } from 'next/router'
-import {nanoid} from '../utils/utils'
+import {nanoid, formatDateDiff} from '../utils/utils'
 
 import {Elements} from '@stripe/react-stripe-js';
 import {loadStripe} from '@stripe/stripe-js';
@@ -19,63 +24,66 @@ import { spawn } from 'child_process';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
-
-// const useStyles = makeStyles((theme) =>({
-//     root: {
-//       display: 'flex',
-//     },
-//     appBar: { 
-//       width: "100%",
-//       backgroundColor: 'transparent',
-//       color: 'inherit'
-//     },
-//     menuButton: {
-//       marginRight: theme.spacing(2),
-//       [theme.breakpoints.up('xs')]: {
-//         display: 'none',
-//       },
-    // },
-    // responsiveIcon:{
-    //   [theme.breakpoints.up('xs')]: {
-    //     width: "34px",
-    //     height: "34px",
-    //   },
-    //   [theme.breakpoints.up('md')]: {
-    //     width: "40px",
-    //     height: "40px",
-    //   }
-    // },
-    // menuList: {
-    //   '& .MuiMenu-list': {
-    //     padding: '0',
-    //   },
-    //   '& .MuiMenuItem-root': {
-    //     '& .MuiSvgIcon-root': {
-    //       fontSize: 18,
-    //       color: theme.palette.text.secondary,
-    //       marginRight: theme.spacing(1.5),
-    //     },
-    //     '&:active': {
-    //       backgroundColor: alpha(
-    //         theme.palette.primary.main,
-    //         theme.palette.action.selectedOpacity,
-    //       ),
-    //     },
-    //   },
-    // }
-//   }),
-// );
-
 function Layout(props) {
   const t = useTranslation();
   const router = useRouter()
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
 
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
+
+  const [notificationsWithDetails, setNotificationsWithDetails] = useState(null);
+  const [lastVisible, setLastVisible] = useState(null);
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  const loadMoreNotifications = async () => {
+    let baseQuery = query(
+      collection(db, 'notifications'),
+      where('uid', '==', auth?.currentUser?.uid),
+      orderBy('createdAt', 'desc')
+    );
+  
+    if (lastVisible) {
+      baseQuery = query(baseQuery, startAfter(lastVisible));
+    }
+  
+    const limitedQuery = query(baseQuery, limit(10));
+    const snapshot = await getDocs(limitedQuery);
+  
+    let newNotifications = [];
+    snapshot.forEach(doc => {
+      newNotifications.push({ ...doc.data(), id: doc.id });
+    });
+  
+    if (newNotifications.length > 0) {
+      const newLastVisible = newNotifications[newNotifications.length - 1];  
+      setLastVisible(newLastVisible?.createdAt);
+      // actorとcanvasの詳細を取得
+      const newDetails = await Promise.all(newNotifications.map(async (notification) => {
+        const actor = await getDoc(doc(db, `users/${notification.actorUid}`));
+        const canvas = notification.canvasId ? await getDoc(doc(db, `canvas/${notification.canvasId}`)) : null;
+  
+        return {
+          ...notification,
+          actor: actor.data(),
+          canvas: canvas ? canvas.data() : null
+        };
+      }));
+  
+      setNotificationsWithDetails(prevDetails => {
+        if (prevDetails === null) {
+          return newDetails;
+        }
+        return [...prevDetails, ...newDetails];
+      });
+    }
+  };
+  
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [signInWithGoogle, _, loading, error] = useSignInWithGoogle(auth);
 
   const [anchorEl, setAnchorEl] = useState(null);
+  const [notificationAnchorEl, setNotificationAnchorEl] = useState(null);
   const [newItemAnchorEl, setNewItemAnchorEl] = useState(null);
 
   const createNewCase =  async () => {
@@ -85,9 +93,22 @@ function Layout(props) {
   }
 
 
+  const markNotificationsAsRead = async () => {
+    setNotificationCount(0)
+    const batch = writeBatch(db);
+    notificationsWithDetails?.filter(notification => !notification?.read)?.forEach((notification) => {
+      const notificationRef = doc(db, 'notifications', notification.id);
+      batch.update(notificationRef, { read: true });
+    });
+    await batch.commit();
+  };  
+
+
   useEffect(() => {
     if(user){
       setDialogOpen(false)
+      loadMoreNotifications();
+      setNotificationCount(notificationsWithDetails?.filter(notification => !notification?.read)?.length)
     }
   }, [user]);
 
@@ -104,11 +125,19 @@ function Layout(props) {
             <div className='flex-grow'/>
             {
               user ? 
-                <div className='flex flex-row items-center justify-center'>
-                  <div className='w-8 h-8 md:w-10 md:h-10 rounded-full cursor-pointer' id="profile-button" aria-controls="profile-menu" aria-haspopup="true"  onClick={e=>setAnchorEl(e.currentTarget)}>
+                <div className='flex flex-row items-center justify-center h-full'>
+                  <div onClick={e=>{setNotificationAnchorEl(e.currentTarget);markNotificationsAsRead() }} className='relative mr-3 md:mr-4 mt-2'>
+                    <button className='bg-transparent border-none cursor-pointer  p-0  text-slate-500 hover:text-slate-600 '>
+                      <svg className='h-6 w-6 md:h-7 md:w-7' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                      </svg>
+                      {notificationCount>0 && <span className='bg-blue-500 text-white text-xs rounded-full absolute -top-1 -right-1 h-4.5 min-w-5.5 px-1 inline-block border border-solid border-white'>{notificationCount >=10 ? "10+" : notificationCount}</span>}
+                    </button>
+                  </div>
+                  <div onClick={e=>setAnchorEl(e.currentTarget)} className='w-8 h-8 md:w-10 md:h-10 rounded-full cursor-pointer' id="profile-button" aria-controls="profile-menu" aria-haspopup="true"  >
                       {user?.photoURL ? <Image width={isUpMd ? 40 : 32} height={isUpMd ? 40 : 32} src={user?.photoURL} className='rounded-full' alt="userPhoto"/> : <span className='text-xl font-bold w-10 h-10 text-center text-white rounded-full bg-slate-600'>{user?.displayName[0]}</span>}
                   </div> 
-                  <button onClick={createNewCase} className='ml-3 md:ml-5 bg-blue-500 text-white cursor-pointer font-medium py-1.5 px-2 md:px-3 text-base rounded-md text-center inline-flex items-center hover:bg-sky-700 border-none transition'>
+                  <button onClick={createNewCase} className='ml-3 md:ml-5 bg-blue-500 text-white cursor-pointer font-bold py-1.5 px-2 md:px-3 text-base rounded-md text-center inline-flex items-center hover:bg-sky-700 border-none transition'>
                     <svg className='w-5 h-5 text-white md:mr-2' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
                       <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                     </svg>
@@ -134,7 +163,7 @@ function Layout(props) {
             循環動態シミュレーターで様々な病態や治療法への理解を深めていきましょう。
           </DialogContentText>
             <button variant='contained' onClick={()=>{signInWithGoogle()}} className="btn-neumorphic mx-auto text-base cursor-pointer flex items-center justify-center my-4 text-black py-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" class="abcRioButtonSvg mr-3"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" ><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
               Sign in with Google
             </button>
           <DialogContentText sx={{mt:.5}} variant="body2">
@@ -183,6 +212,71 @@ function Layout(props) {
           </div>
         </div>
       </Popover>
+      <Popover 
+        open={Boolean(notificationAnchorEl)}
+        anchorEl={notificationAnchorEl}
+        onClose={(e)=>{setNotificationAnchorEl(null)}}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'center',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'center',
+        }}
+        elevation={0}
+        marginThreshold={0}
+        slotProps={{paper:{className:'bg-white  border-solid border border-slate-200 rounded-md shadow-md m-2 shadow-lg'}}}
+      >
+        <div >
+          {notificationsWithDetails?.length > 0 && <div className='w-[330px] max-h-80  overflow-auto'>
+            { notificationsWithDetails?.map((notification,index) => (
+              <div onClick={()=>{if(notification.type != "follow"){router.push(`/canvas/${notification.canvasId}`)}else{setNotificationAnchorEl(null)}}} className={`flex flex-row justify-center items-center py-3 px-4 border-0 ${index!=0 && "border-t"} border-solid border-slate-200 hover:bg-slate-50 cursor-pointer`}>
+                { notification?.actor?.photoURL ?
+                  <div className="h-10 w-10 rounded-full overflow-hidden cursor-pointer hover:opacity-60" onClick={()=>{router.push(`/users/${notification?.actor?.userId}`)}}>
+                    <Image src={notification?.actor?.photoURL} height="40" width="40" alt="userPhoto"/>
+                  </div> :
+                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-slate-500" onClick={()=>{router.push(`/users/${notification?.actor?.userId}`)}}>
+                    <span className="text-xs font-medium leading-none text-white">{notification?.actor?.displayName?.length > 0 &&notification?.actor?.displayName[0]}</span>
+                  </div>
+                }
+                <div className='ml-2 w-[calc(100%_-_50px)] flex flex-col items-start justify-center'>
+                  <div className='w-full text-sm text-slate-500'>
+                    <span className='font-bold text-slate-800'>{notification?.actor?.displayName}</span>
+                    さんが
+                    {notification.type != "follow" && <span className=' text-slate-800'>{notification?.canvas?.name || "Untitled"}</span>}
+                    { ( () =>{ switch(notification.type){
+                      case "follow":
+                        return <>
+                          <span className=' text-slate-800'>あなた</span>
+                          をフォローしました
+                        </>
+                      case "like":
+                        return "にLikeをつけました"
+                      case "bookmark":
+                        return "をブックマークしました"
+                    } })()}
+                  </div>
+                  <div className='flex flex-row items-center justify-between'>
+                    <span className='text-sm text-slate-500'>{ formatDateDiff(new Date(), new Date(notification?.createdAt?.seconds * 1000)) } </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {notificationsWithDetails?.length >0 && notificationsWithDetails?.length % 10 ==0 && <div className={`flex flex-row justify-center items-center py-3 px-4 border-0 border-t border-solid border-slate-200`}>
+              <button onClick={()=>{loadMoreNotifications()}} type="button" className='w-full bg-white shadow stroke-slate-500 text-slate-500 cursor-pointer py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center hover:bg-slate-100 border border-solid border-slate-200 transition'>
+                さらに読み込む
+              </button>
+            </div>}
+          </div>}
+          {(!notificationsWithDetails || notificationsWithDetails?.length==0 ) &&<div className='flex items-center justify-center py-3 px-4 w-[330px] h-20'>
+              <div className='text-sm text-slate-500'>
+                通知はありません
+              </div>
+            </div>
+          }
+        </div>
+      </Popover>      
       <Background/>
       <Elements stripe={stripePromise} >
         {props.children}

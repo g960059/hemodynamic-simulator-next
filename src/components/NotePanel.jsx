@@ -180,7 +180,6 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner,caseD
 
   return <>
     <div className='w-full h-full '>
-      {console.log(editor?.topLevelBlocks)}
       <div className='flex items-center p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200 relative h-10'>
         <div className='draggable cursor-move font-bold text-lg pl-1'>{view?.name || "Note"}</div>
         <div className='draggable cursor-move flex-grow h-full'></div>
