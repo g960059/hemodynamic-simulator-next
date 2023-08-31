@@ -701,6 +701,7 @@ export async function getServerSideProps(context) {
       canvasName: canvas.name,
     }
   }
+}
 
 
   // const cases = useObservable("cases", combineLatest([user$,cases$]).pipe(
