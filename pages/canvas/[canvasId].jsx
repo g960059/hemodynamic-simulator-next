@@ -14,7 +14,7 @@ import {db,auth, storage} from "../../src/utils/firebase"
 import { map, switchMap, catchError, tap} from "rxjs/operators";
 import { combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
-import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs, limit, collectionGroup,  query, where} from 'firebase/firestore';
+import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDoc,  query, where} from 'firebase/firestore';
 import {ref, deleteObject } from 'firebase/storage';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
@@ -32,7 +32,7 @@ const CaseEditor = dynamic(() => import('../../src/components/CaseEditor'),{ssr:
 
 
 
-const App = ({canvasId,displayName,photoURL,canvasName}) => {
+const App = ({ogpData}) => {
 
   const t = useTranslation();
   const router = useRouter()
@@ -464,7 +464,7 @@ const App = ({canvasId,displayName,photoURL,canvasName}) => {
   }
 
   return <>
-   <SEO canvasId={canvasId} displayName = {displayName} photoURL={photoURL} canvasName={canvasName} />
+   <SEO ogpData={ogpData} />
   {
     (loading || isOwner == undefined) ? <>
         <LoadingSkelton/> 
@@ -625,21 +625,21 @@ const App = ({canvasId,displayName,photoURL,canvasName}) => {
 
 export default App
 
-const SEO = ({canvasName, photoURL, displayName, canvasId}) => {
-  if(!photoURL) return null
-  const url = getOgpImageUrl(canvasName, photoURL, displayName)
+const SEO = ({ogpData}) => {
+  if(!ogpData.photoURL) return null
+  const url = getOgpImageUrl(ogpData.canvasName, ogpData.photoURL, ogpData.displayName)
   return <Head>
-    <title>{canvasName || "Untitled"}</title>
-    <meta property="og:title" content={canvasName || "Untitled"} />
-    <meta property="og:description" content={`${displayName}さんの投稿`} />
-    <meta property="og:image" content={url} />
-    <meta property="og:url" content={`https://www.circleheart.dev/canvas/${canvasId}`} />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@CircleHeart_dev" />
-    <meta name="twitter:creator" content="@CircleHeart_dev" />
-    <meta name="twitter:title" content={canvasName || "Untitled"} />
-    <meta name="twitter:description" content={`${displayName}さんの投稿`} />
-    <meta name="twitter:image" content={url} />
+    <title>{ogpData.canvasName || "Untitled"}</title>
+    <meta property="og:title" content={ogpData.canvasName || "Untitled"} key="og:title"/>
+    <meta property="og:description" content={`${ogpData.displayName}さんの投稿`} key="og:description" />
+    <meta property="og:image" content={url}  key="og:image"/>
+    <meta property="og:url" content={`https://www.circleheart.dev/canvas/${ogpData.canvasId}`} key="og:url" />
+    <meta name="twitter:card" content="summary_large_image" key="twitter:card"/>
+    <meta name="twitter:site" content="@CircleHeart_dev" key="twitter:site"/>
+    <meta name="twitter:creator" content="@CircleHeart_dev" key="twitter:creator"/>
+    <meta name="twitter:title" content={ogpData.canvasName || "Untitled"} key="twitter:title"/>
+    <meta name="twitter:description" content={`${ogpData.displayName}さんの投稿`} key="twitter:description"/>
+    <meta name="twitter:image" content={url} key="twitter:image"/>
     </Head>
 }
 
@@ -685,7 +685,8 @@ const LoadingSkelton = () => {
 
 export async function getServerSideProps(context) {
   // ogpDataを取得する
-  const canvasId = context.params.id;
+  const canvasId = context.params.canvasId;
+  console.log(canvasId)
   const canvasSnap = await getDoc(doc(db,"canvas",canvasId))
   const canvas = canvasSnap.data();
   if(!canvas){
@@ -693,12 +694,16 @@ export async function getServerSideProps(context) {
       notFound: true,
     }
   }
-  return {
-    props:{
+  const ogpData =
+    {
       canvasId: canvasId,
       displayName: canvas.displayName,
       photoURL: canvas.photoURL,
       canvasName: canvas.name,
+    }
+  return {
+    props:{
+      ogpData
     }
   }
 }

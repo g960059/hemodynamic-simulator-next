@@ -51,14 +51,14 @@ export default function MyApp({Component, pageProps }: AppPropsWithLayout) {
         <Head>
           <meta name="viewport" content="initial-scale=1, width=device-width" />
           <title>CircleHeart</title>
-          <meta name="description" content={t["Description"]} />
-          <meta property="og:title" content="CircleHeart" />
-          <meta property="og:description" content={t["Description"]} />
-          <meta property="og:url" content="https://www.circleheart.dev/" />
+          <meta name="description" content={t["Description"]} key="description"/>
+          <meta property="og:title" content="CircleHeart" key="og:title"/>
+          <meta property="og:description" content={t["Description"]} key="og:description"/>
+          <meta property="og:url" content="https://www.circleheart.dev/" key="og:url"/>
           <meta name="twitter:site" content="@CircleHeart_dev" />
-          <meta name="twitter:creator" content="@CircleHeart_dev" />
-          <meta name="twitter:title" content="CircleHeart" />
-          <meta name="twitter:description" content={t["Description"]} />
+          <meta name="twitter:creator" content="@CircleHeart_dev" key="twitter:creator"/>
+          <meta name="twitter:title" content="CircleHeart" key="twitter:title"/>
+          <meta name="twitter:description" content={t["Description"]} key="twitter:description"/>
         </Head>
 
         <GoogleAnalytics />
