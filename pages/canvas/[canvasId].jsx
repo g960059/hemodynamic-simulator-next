@@ -642,6 +642,7 @@ export default App
 const SEO = ({canvas=null}) => {
   if(!canvas?.photoURL) return null
   const url = getOgpImageUrl(canvas?.name, canvas?.photoURL, canvas?.displayName)
+  console.log(url)
   return <NextSeo
       openGraph={{
         type: 'website',
@@ -650,7 +651,7 @@ const SEO = ({canvas=null}) => {
         description: `${canvas?.displayName}さんの投稿`,
         images: [
           {
-            url: url,
+            url,
             width: 1200,
             height: 630,
             alt: 'Og Image Alt',

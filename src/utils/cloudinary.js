@@ -1,4 +1,4 @@
-import { Cloudinary } from "@cloudinary/url-gen";
+import { Cloudinary, CloudinaryImage } from "@cloudinary/url-gen";
  import { source } from "@cloudinary/url-gen/actions/overlay";
  import { fit, fill } from "@cloudinary/url-gen/actions/resize";
  import { Position } from "@cloudinary/url-gen/qualifiers";
@@ -6,6 +6,8 @@ import { Cloudinary } from "@cloudinary/url-gen";
  import { text } from "@cloudinary/url-gen/qualifiers/source";
  import { TextStyle } from "@cloudinary/url-gen/qualifiers/textStyle";
  import { fetch } from "@cloudinary/url-gen/qualifiers/source";
+ import { format } from "@cloudinary/url-gen/actions/delivery";
+import { auto } from "@cloudinary/url-gen/qualifiers/format";
 
  const cld = new Cloudinary({
   cloud: {
@@ -13,40 +15,35 @@ import { Cloudinary } from "@cloudinary/url-gen";
   },
 });
 
+
+
 export const getOgpImageUrl = (title, userProfileImageURL, userName) => {
   const ogpImage = cld.image('CircleHeartOGPBackground.png');
   // タイトルのオーバーレイ
   ogpImage
-    .resize(fit())
-    .overlay(
-      source(
-        text(title, new TextStyle('Sawarabi Gothic',50)
-          .fontWeight('bold'))
-          .textColor('#000')
-      )
-      .position(new Position().gravity(compass('north_west')).offsetY(105).offsetX(110)) 
+    .addTransformation(
+      `c_scale,w_1200/c_fit,l_text:notosansjpBold.ttf_55_bold:${encodeURIComponent(title)},w_950/fl_layer_apply,g_north,y_150/`
     )
     .overlay(
       source(
-        text("@" + userName, new TextStyle('Sawarabi Gothic',30))
+        text("@" + userName, new TextStyle('notosansjpMedium.ttf',35))
           .textColor('#000')
       )
-      .position(new Position().gravity(compass('south_west')).offsetY(120).offsetX(110))
+      .position(new Position().gravity(compass('south_west')).offsetY(110).offsetX(130))
     )
     .overlay(
       source(
-        text("CircleHeart", new TextStyle('Sawarabi Gothic',35).fontWeight('bold'))
+        text("CircleHeart", new TextStyle('notosansjpBold.ttf',35).fontWeight('bold'))
           .textColor('#000')
       )
-      .position(new Position().gravity(compass('south_east')).offsetY(120).offsetX(110))
+      .position(new Position().gravity(compass('south_east')).offsetY(110).offsetX(130))
     )
-  ogpImage.overlay(
-    source(fetch("https://res.cloudinary.com/drqmm6lsn/image/upload/v1692972758/CircleHeartIcon.png").transformation(fill().width(40).height(40)))
-    .position(
-      new Position().gravity(compass("south_east")).offsetX(295).offsetY(115)
+    .overlay(
+      source(fetch("https://res.cloudinary.com/drqmm6lsn/image/upload/v1692972758/CircleHeartIcon.png").transformation(fill().width(40).height(40)))
+      .position(
+        new Position().gravity(compass("south_east")).offsetX(330).offsetY(105)
+      )
     )
-  );
-
   // ユーザー名のテキストオーバーレイ
   // ogpImage.overlay(
   //   source(
