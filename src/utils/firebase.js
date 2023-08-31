@@ -32,7 +32,7 @@ const uiConfig = {
 export const app = firebase.initializeApp(firebaseConfig);
 
 // Initialize Firebase
-const FIREBASE_INITIALIZED = 'FIREBASE_INITIALIZED';
+export const FIREBASE_INITIALIZED = 'FIREBASE_INITIALIZED';
 if(!global[FIREBASE_INITIALIZED]) {
   initializeFirestore(app, {
     ignoreUndefinedProperties: true,

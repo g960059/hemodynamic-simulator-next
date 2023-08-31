@@ -6,8 +6,7 @@ import { Cloudinary, CloudinaryImage } from "@cloudinary/url-gen";
  import { text } from "@cloudinary/url-gen/qualifiers/source";
  import { TextStyle } from "@cloudinary/url-gen/qualifiers/textStyle";
  import { fetch } from "@cloudinary/url-gen/qualifiers/source";
- import { format } from "@cloudinary/url-gen/actions/delivery";
-import { auto } from "@cloudinary/url-gen/qualifiers/format";
+
 
  const cld = new Cloudinary({
   cloud: {
