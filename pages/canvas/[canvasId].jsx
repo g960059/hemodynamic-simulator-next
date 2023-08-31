@@ -628,6 +628,7 @@ export default App
 const SEO = ({canvas=null}) => {
   if(!canvas?.photoURL) return null
   const url = getOgpImageUrl(canvas?.name, canvas?.photoURL, canvas?.displayName)
+  console.log(url)
   // return <NextSeo
   //     openGraph={{
   //       type: 'website',
@@ -657,8 +658,8 @@ const SEO = ({canvas=null}) => {
     <meta property="og:image" content={url} />
     <meta property="og:url" content={`https://www.circleheart.dev/canvas/${canvas?.id}`} />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@circleheartdev" />
-    <meta name="twitter:creator" content="@circleheartdev" />
+    <meta name="twitter:site" content="@CircleHeart_dev" />
+    <meta name="twitter:creator" content="@CircleHeart_dev" />
     <meta name="twitter:title" content={canvas?.name || "Untitled"} />
     <meta name="twitter:description" content={`${canvas?.displayName}さんの投稿`} />
     <meta name="twitter:image" content={url} />

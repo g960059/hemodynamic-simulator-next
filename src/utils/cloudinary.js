@@ -22,7 +22,7 @@ export const getOgpImageUrl = (title, userProfileImageURL, userName) => {
   // タイトルのオーバーレイ
   ogpImage
     .addTransformation(
-      `c_scale,w_1200/c_fit,l_text:notosansjpBold.ttf_55_bold:${encodeURIComponent(title)},w_950/fl_layer_apply,g_north,y_150/`
+      `c_scale,w_1200,h_627/c_fit,l_text:notosansjpBold.ttf_55_bold:${encodeURIComponent(title)},w_950/fl_layer_apply,g_north,y_150/`
     )
     .overlay(
       source(

@@ -53,7 +53,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
 
   return <div className='w-full pb-3'> 
     <div className='flex flex-col mb-3 md:flex-row mx-3 md:mx-8 md:mt-5 md:mb-2 md:items-center justify-center'>
-      {!isOwner && <div className='my-3 md:my-0 md:mr-4 text-xl md:text-2xl font-bold text-slate-800  whitespace-nowrap '>{caseData?.name}</div>}
+      {!isOwner && <div className='my-3 md:my-0 md:mr-4 text-xl md:text-2xl font-bold text-slate-800  '>{caseData?.name}</div>}
       <div className='w-full flex flex-row items-center justify-center'>
         <div className='flex flex-row items-center justify-center'>
           { caseData.photoURL ?
