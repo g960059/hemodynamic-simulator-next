@@ -683,27 +683,28 @@ const LoadingSkelton = () => {
     </>
 }
 
-export async function getServerSideProps(context) {
+export const getServerSideProps = async (context) => {
   // ogpDataを取得する
-  const canvasId = context.params.canvasId;
+  const canvasId = context.params?.canvasId;
   console.log(canvasId)
-  const canvasSnap = await getDoc(doc(db,"canvas",canvasId))
-  const canvas = canvasSnap.data();
-  if(!canvas){
+  if(canvasId){
+    const canvasSnap = await getDoc(doc(db,"canvas",canvasId))
+    const canvas = canvasSnap.data();
+    const ogpData =
+      {
+        canvasId: canvasId,
+        displayName: canvas.displayName,
+        photoURL: canvas.photoURL,
+        canvasName: canvas.name,
+      }
     return {
-      notFound: true,
+      props:{
+        ogpData
+      }
     }
-  }
-  const ogpData =
-    {
-      canvasId: canvasId,
-      displayName: canvas.displayName,
-      photoURL: canvas.photoURL,
-      canvasName: canvas.name,
-    }
-  return {
-    props:{
-      ogpData
+  }else{
+    return {
+      props:{}
     }
   }
 }

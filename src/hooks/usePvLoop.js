@@ -297,7 +297,6 @@ export const useEngine = () => {
   const getAllPatinets = () => idsRef.current.map(id=>getPatient(id))
   const getPatientData = id =>({id, initialHdps:initialHdpsRef.current[id], initialData:initialDatasRef.current[id],initialTime: initialTimesRef.current[id],name: namesRef.current[id] })
   const getAllPatientsData = ()=>idsRef.current.map(id=>getPatientData(id));
-  console.log(subscriptionsRef.current)
   return {register,unregister,clear,subscribe,unsubscribe, isPlaying,setIsPlaying,setSpeed,getPatient,getAllPatinets,getPatientData, getAllPatientsData, ids:idsRef.current}
 }
 
