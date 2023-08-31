@@ -685,8 +685,9 @@ const LoadingSkelton = () => {
 
 export const getServerSideProps = async (context) => {
   // ogpDataを取得する
-  const canvasId = context.params?.canvasId;
-  console.log(canvasId)
+  console.log(context)
+  const canvasId = context.query?.canvasId;
+  console.log(context.query)
   if(canvasId){
     const canvasSnap = await getDoc(doc(db,"canvas",canvasId))
     const canvas = canvasSnap.data();
