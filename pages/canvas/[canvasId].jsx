@@ -32,7 +32,7 @@ const CaseEditor = dynamic(() => import('../../src/components/CaseEditor'),{ssr:
 
 
 
-const App = () => {
+const App = ({canvasId,displayName,photoURL,canvasName}) => {
 
   const t = useTranslation();
   const router = useRouter()
@@ -464,7 +464,7 @@ const App = () => {
   }
 
   return <>
-   <SEO canvas={canvas}/>
+   <SEO canvasId={canvasId} displayName = {displayName} photoURL={photoURL} canvasName={canvasName} />
   {
     (loading || isOwner == undefined) ? <>
         <LoadingSkelton/> 
@@ -625,43 +625,20 @@ const App = () => {
 
 export default App
 
-const SEO = ({canvas=null}) => {
-  if(!canvas?.photoURL) return null
-  const url = getOgpImageUrl(canvas?.name, canvas?.photoURL, canvas?.displayName)
-  console.log(url)
-  // return <NextSeo
-  //     openGraph={{
-  //       type: 'website',
-  //       url: `https://www.circleheart.dev/canvas/${canvas?.id}`,
-  //       title: canvas?.name,
-  //       description: `${canvas?.displayName}さんの投稿`,
-  //       images: [
-  //         {
-  //           url,
-  //           width: 1200,
-  //           height: 630,
-  //           alt: 'Og Image Alt',
-  //         },
-  //       ],
-  //     }}
-  //     twitter={{
-  //       handle: '@handle',
-  //       site: '@site',
-  //       cardType: "summary_large_image",
-  //       image: url,
-  //     }}
-  //   />
+const SEO = ({canvasName, photoURL, displayName, canvasId}) => {
+  if(!photoURL) return null
+  const url = getOgpImageUrl(canvasName, photoURL, displayName)
   return <Head>
-    <title>{canvas?.name || "Untitled"}</title>
-    <meta property="og:title" content={canvas?.name || "Untitled"} />
-    <meta property="og:description" content={`${canvas?.displayName}さんの投稿`} />
+    <title>{canvasName || "Untitled"}</title>
+    <meta property="og:title" content={canvasName || "Untitled"} />
+    <meta property="og:description" content={`${displayName}さんの投稿`} />
     <meta property="og:image" content={url} />
-    <meta property="og:url" content={`https://www.circleheart.dev/canvas/${canvas?.id}`} />
+    <meta property="og:url" content={`https://www.circleheart.dev/canvas/${canvasId}`} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@CircleHeart_dev" />
     <meta name="twitter:creator" content="@CircleHeart_dev" />
-    <meta name="twitter:title" content={canvas?.name || "Untitled"} />
-    <meta name="twitter:description" content={`${canvas?.displayName}さんの投稿`} />
+    <meta name="twitter:title" content={canvasName || "Untitled"} />
+    <meta name="twitter:description" content={`${displayName}さんの投稿`} />
     <meta name="twitter:image" content={url} />
     </Head>
 }
@@ -705,6 +682,27 @@ const LoadingSkelton = () => {
       <Footer/>
     </>
 }
+
+export async function getServerSideProps(context) {
+  // ogpDataを取得する
+  const canvasId = context.params.id;
+  const canvasSnap = await getDoc(doc(db,"canvas",canvasId))
+  const canvas = canvasSnap.data();
+  if(!canvas){
+    return {
+      notFound: true,
+    }
+  }
+  return {
+    props:{
+      canvasId: canvasId,
+      displayName: canvas.displayName,
+      photoURL: canvas.photoURL,
+      canvasName: canvas.name,
+    }
+  }
+
+
   // const cases = useObservable("cases", combineLatest([user$,cases$]).pipe(
   //   filter(([user_])=>!!user_?.uid),
   //   mergeMap(([user_,cases_]) =>
