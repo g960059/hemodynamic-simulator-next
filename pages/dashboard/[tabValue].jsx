@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect,} from 'react'
 import {Box, NoSsr, Grid, Tab,Tabs, Divider,Typography,Stack,Tooltip, Button, Avatar, Menu, IconButton, useMediaQuery} from '@mui/material'
 import {Add,FavoriteBorder,ExpandMore,EditOutlined,FeedOutlined,EventNoteOutlined,MenuBookOutlined,PlayArrowOutlined, StoreOutlined, PaidOutlined} from "@mui/icons-material";
-import {user$, articles$,cases$,books$, purchases$, salesDetail$, payableHistory$, withdrawals$, favorites$} from '../../src/hooks/usePvLoop'
+import {user$} from '../../src/hooks/usePvLoop'
 // import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../src/hooks/useTranslation'
 import { FaintNeumoIconButton } from '../../src/components/StyledComponents';
@@ -56,14 +56,14 @@ const DashBoard = React.memo(() => {
   const db = getFirestore()
   const router = useRouter()
   const user = useObservable("user",user$)
-  const cases = useObservable("cases", cases$);
-  const articles = useObservable("articles", articles$);
-  const books = useObservable("books",books$);
-  const purchases = useObservable("purchases",purchases$);
-  const sales = useObservable(`sales`,salesDetail$)
-  const payableHistory = useObservable(`payable_history`,payableHistory$)
-  const withdrawals = useObservable(`withdrawals`,withdrawals$)
-  const favorites = useObservable(`favorites`, favorites$)
+  // const cases = useObservable("cases", cases$);
+  // const articles = useObservable("articles", articles$);
+  // const books = useObservable("books",books$);
+  // const purchases = useObservable("purchases",purchases$);
+  // const sales = useObservable(`sales`,salesDetail$)
+  // const payableHistory = useObservable(`payable_history`,payableHistory$)
+  // const withdrawals = useObservable(`withdrawals`,withdrawals$)
+  // const favorites = useObservable(`favorites`, favorites$)
 
   const [tabValue, setTabValue] = useState(router.query.tabValue || "cases");
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));

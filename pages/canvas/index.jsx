@@ -1,10 +1,9 @@
 import React,{ useEffect, useRef, useState }  from 'react'
 import { useRouter } from 'next/router'
 import Footer from "../../src/components/Footer"
-import {auth,db} from '../../src/utils/firebase'
 
 import Layout from "../../src/components/layout"
-import { collectionGroup, endBefore, getDocs, limit, orderBy, query, startAfter, startAt, where } from 'firebase/firestore';
+import { collectionGroup, endBefore, getDocs, getFirestore, limit, orderBy, query, startAfter, startAt, where } from 'firebase/firestore';
 import Image from 'next/image'
 import { formatDateDiff } from '../../src/utils/utils';
 import Link from 'next/link';
@@ -14,6 +13,7 @@ import { ChevronLeftOutlined, ChevronRightOutlined } from '@mui/icons-material'
 
 const Cases = () => {
   const router = useRouter()
+  const db = getFirestore()
   const [cases, setCases] = useState([]);
   const [casesSnap, setCasesSnap] = useState(null);
   const [lastDoc, setLastDoc] = useState(null);
