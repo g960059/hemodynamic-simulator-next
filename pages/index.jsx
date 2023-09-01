@@ -13,7 +13,7 @@ import { doc,collection,collectionGroup, getDocs,getDoc, limit, orderBy, query, 
 import { collectionData, docData} from 'rxfire/firestore';
 import Image from 'next/image'
 import { formatDateDiff } from '../src/utils/utils';
-import {useObservable} from "reactfire"
+import {useObservable} from  "../src/hooks/useObservable"
 import {user$} from '../src/hooks/usePvLoop'
 import Link from 'next/link';
 import { mergeMap, of, BehaviorSubject, switchMap, map, from, combineLatest } from 'rxjs';

@@ -3,7 +3,7 @@ import {Box, Grid, Typography, Divider,Button,Stack, Tab,Avatar, useMediaQuery,N
 import {Twitter,Facebook, Link as LinkIcon,FavoriteBorder} from "@mui/icons-material"
 import { useRouter } from 'next/router'
 import Footer from "../../src/components/Footer"
-import {useObservable} from "reactfire"
+import {useObservable} from "../../src/hooks/useObservable"
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc, getDocs, arrayUnion, arrayRemove, where, getFirestore,} from 'firebase/firestore';
 import Layout from "../../src/components/layout"
 import { collectionData, docData } from 'rxfire/firestore';

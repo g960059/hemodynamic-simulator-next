@@ -8,7 +8,7 @@ import ReactiveInput from "../../src/components/ReactiveInput";
 import { paramPresets} from '../../src/utils/presets'
 
 import dynamic from 'next/dynamic'
-import {useObservable} from "reactfire"
+import {useObservable} from "../../src/hooks/useObservable"
 import { map, switchMap, catchError, tap} from "rxjs/operators";
 import { combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
@@ -23,7 +23,6 @@ import Background from '../../src/elements/Background';
 import Layout from '../../src/components/layout';
 import Footer from '../../src/components/Footer';
 import TextareaAutosize from 'react-textarea-autosize';
-import {getOgpImageUrl} from "../../src/utils/cloudinary"
 import Head from 'next/head'
 import { getAuth } from 'firebase/auth';
 
@@ -78,7 +77,7 @@ const App = ({initialCanvas}) => {
     })
   )
 
-  const combinedData = useObservable("combinedData"+canvasId, combinedData$)
+  const combinedData = useObservable("combinedData_"+canvasId, combinedData$)
   const liked$ = combineLatest([of(canvasId), user$]).pipe(
     switchMap(([cid, user]) => {
       if (cid && user?.uid) {

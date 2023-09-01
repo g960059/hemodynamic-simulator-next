@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import Footer from "../../src/components/Footer"
 import ReactiveInput from '../../src/components/ReactiveInput';
 import {user$} from '../../src/hooks/usePvLoop'
-import {useObservable} from "reactfire"
+import {useObservable} from '../../src/hooks/useObservable'
 import { useImmer } from "use-immer";
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc, getFirestore,} from 'firebase/firestore';
 import { ref, getDownloadURL ,uploadString,uploadBytesResumable, getStorage} from "firebase/storage";

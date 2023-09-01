@@ -7,7 +7,7 @@ import {useTranslation} from '../../src/hooks/useTranslation'
 import { FaintNeumoIconButton } from '../../src/components/StyledComponents';
 import { useRouter } from 'next/router'
 import {formatDateDiff, nanoid} from "../../src/utils/utils"
-import {useObservable} from "reactfire"
+import {useObservable} from "../../src/hooks/useObservable"
 import Layout from '../../src/components/layout'
 import DeleteMenuItemWithDialog from "../../src/components/DeleteMenuItemWithDialog";
 import { doc, deleteDoc, writeBatch, collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
