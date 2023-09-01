@@ -6,25 +6,26 @@ import {useTranslation} from '../hooks/useTranslation'
 import Image from 'next/image'
 import {user$,} from '../hooks/usePvLoop'
 import {useObservable} from "reactfire"
-import {auth,db} from '../utils/firebase'
 import { switchMap, map,  mergeMap, tap } from 'rxjs/operators';
 import { combineLatest, of, BehaviorSubject,from } from 'rxjs';  
-import { collection, query, where, doc , writeBatch, orderBy, limit, getDocs,getDoc, startAfter} from 'firebase/firestore';
+import { collection, query, where, doc , writeBatch, orderBy, limit, getDocs,getDoc, startAfter, getFirestore} from 'firebase/firestore';
 import { collectionData, docData } from 'rxfire/firestore';
 
-import {signOut} from "firebase/auth";
+import {getAuth, signOut} from "firebase/auth";
 import { useRouter } from 'next/router'
 import {nanoid, formatDateDiff} from '../utils/utils'
 
-import {Elements} from '@stripe/react-stripe-js';
+// import {Elements} from '@stripe/react-stripe-js';
 import {loadStripe} from '@stripe/stripe-js';
 import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import Background from '../elements/Background'
 import { spawn } from 'child_process';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
+// const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
 function Layout(props) {
+  const auth = getAuth()
+  const db = getFirestore()
   const t = useTranslation();
   const router = useRouter()
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
@@ -278,9 +279,8 @@ function Layout(props) {
         </div>
       </Popover>      
       <Background/>
-      <Elements stripe={stripePromise} >
-        {props.children}
-      </Elements>
+      {props.children}
+
     </>
   );
 }

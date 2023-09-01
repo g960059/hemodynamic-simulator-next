@@ -2,8 +2,8 @@
 import { getAuth,GoogleAuthProvider, connectAuthEmulator } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore, initializeFirestore } from 'firebase/firestore';
 import StyledFirebaseAuth from "../components/StyledFirebaseAuth";
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
+import firebase from 'firebase/compat/app';;
+import { initializeApp, getApp, getApps } from 'firebase/app';
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions';
 import { connectStorageEmulator, getStorage } from 'firebase/storage';
 
@@ -29,23 +29,14 @@ const uiConfig = {
   },
 };
 
-export const app = firebase.initializeApp(firebaseConfig);
 
+export const initializeFirebaseApp = () =>
+  !getApps().length ? initializeApp(firebaseConfig) : getApp()
 // Initialize Firebase
-export const FIREBASE_INITIALIZED = 'FIREBASE_INITIALIZED';
-if(!global[FIREBASE_INITIALIZED]) {
-  initializeFirestore(app, {
-    ignoreUndefinedProperties: true,
-  })
-}
 
 // export const analytics = getAnalytics(app);
 
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const functions = getFunctions(app)
-export const storage = getStorage(app)
 
 // const EMULATORS_STARTED = 'EMULATORS_STARTED';
 // if (process.env.NEXT_PUBLIC_ENV == 'test' && !global[EMULATORS_STARTED]){

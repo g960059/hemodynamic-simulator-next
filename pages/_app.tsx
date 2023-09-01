@@ -11,6 +11,7 @@ import {useTranslation} from '../src/hooks/useTranslation'
 import "../src/styles/globals.css"
 import { NextPage } from 'next';
 import createEmotionCache from '../src/utils/createEmotionCache'
+import { initializeFirebaseApp } from '../src/utils/firebase';
 
 let theme = createTheme({
   palette: {
@@ -34,6 +35,7 @@ type AppPropsWithLayout = AppProps & {
 
 const cache = createEmotionCache();
 
+initializeFirebaseApp();
 export default function MyApp({Component, pageProps }: AppPropsWithLayout) {
   const t = useTranslation();
   const getLayout = Component.getLayout ?? ((page) => page)

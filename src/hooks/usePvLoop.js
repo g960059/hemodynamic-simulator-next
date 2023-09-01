@@ -8,12 +8,13 @@ import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS} from '../utils/pre
 
 import { authState} from 'rxfire/auth';
 import { collectionData, docData,collection as collectionRef } from 'rxfire/firestore';
-import {collection,doc,query,where,setDoc,addDoc,updateDoc,collectionGroup,orderBy,limit, serverTimestamp, writeBatch, Timestamp } from 'firebase/firestore';
+import {collection,doc,query,where,setDoc,addDoc,updateDoc,collectionGroup,orderBy,limit, serverTimestamp, writeBatch, Timestamp, getFirestore } from 'firebase/firestore';
 import {auth,db} from "../utils/firebase"
 import { concatMap,map,tap,switchMap,filter,mergeMap} from "rxjs/operators";
 import { combineLatest, of,zip } from 'rxjs';
 import {useObservable} from "reactfire"
 import { addDays } from 'date-fns'
+import { getAuth } from 'firebase/auth'
 
 
 export const useAnimationFrame = (callback,deps=[]) =>{
@@ -357,9 +358,10 @@ class Patient {
 //   map(([userDocData,user])=> userDocData),
 // );
 
-export const user$ = authState(auth).pipe(
+export const user$ = authState(getAuth()).pipe(
   switchMap(user => {
     if (user) {
+      const db = getFirestore()
       return docData(doc(db, 'users', user.uid), { idField: 'uid' }).pipe(
         tap(userDocData => {
           if (!userDocData) {
@@ -393,106 +395,106 @@ export const user$ = authState(auth).pipe(
 
 
 
-export const nextUser$ = user$.pipe(
-  mergeMap(user => docData(doc(db,'users',user.uid),{idField: 'uid'})),
-)
+// export const nextUser$ = user$.pipe(
+//   mergeMap(user => docData(doc(db,'users',user.uid),{idField: 'uid'})),
+// )
 
 
-export const myPatients$ = user$.pipe(
-  mergeMap(user =>user ? collectionData(collection(db, 'users',user?.uid,'patients'),{idField: 'id'}) : of([])),
-)
-export const allPatients$ = collectionData(query(collectionGroup(db,'patients')),{idField: 'id'})
+// export const myPatients$ = user$.pipe(
+//   mergeMap(user =>user ? collectionData(collection(db, 'users',user?.uid,'patients'),{idField: 'id'}) : of([])),
+// )
+// export const allPatients$ = collectionData(query(collectionGroup(db,'patients')),{idField: 'id'})
 
-export const selectedPatient$ = combineLatest([myPatients$,user$]).pipe(
-  map(([patients,user])=>{
-    if(user){
-      console.log(user.selectedPatientId)
-      return patients.find(p=>p.id==user.selectedPatientId)
-    }else{
-      return of(null)
-    }
-  })
-)
-export const patientsRef$ =  user$.pipe(
-  filter(user => !!user.uid),
-  map(user => collection(db, 'users',user?.uid,'patients'))
-)
-export const cases$ = user$.pipe(
-  mergeMap(user => user ? collectionData(collection(db,'users',user?.uid,'cases'),{idField: 'id'}): of([])),
-)
-export const articles$ = user$.pipe(
-  mergeMap(user => user ? collectionData(collection(db,'users',user?.uid,'articles'),{idField: 'id'}): of([])),
-)
-export const books$ = user$.pipe(
-  mergeMap(user => user ? collectionData(collection(db,'users',user?.uid,'books'),{idField: 'id'}): of([])),
-)
+// export const selectedPatient$ = combineLatest([myPatients$,user$]).pipe(
+//   map(([patients,user])=>{
+//     if(user){
+//       console.log(user.selectedPatientId)
+//       return patients.find(p=>p.id==user.selectedPatientId)
+//     }else{
+//       return of(null)
+//     }
+//   })
+// )
+// export const patientsRef$ =  user$.pipe(
+//   filter(user => !!user.uid),
+//   map(user => collection(db, 'users',user?.uid,'patients'))
+// )
+// export const cases$ = user$.pipe(
+//   mergeMap(user => user ? collectionData(collection(db,'users',user?.uid,'cases'),{idField: 'id'}): of([])),
+// )
+// export const articles$ = user$.pipe(
+//   mergeMap(user => user ? collectionData(collection(db,'users',user?.uid,'articles'),{idField: 'id'}): of([])),
+// )
+// export const books$ = user$.pipe(
+//   mergeMap(user => user ? collectionData(collection(db,'users',user?.uid,'books'),{idField: 'id'}): of([])),
+// )
 
-export const userRef$ = user$.pipe(
-  filter(user => !!user.uid),
-  map(user => doc(db,'users',user?.uid))
-)
+// export const userRef$ = user$.pipe(
+//   filter(user => !!user.uid),
+//   map(user => doc(db,'users',user?.uid))
+// )
 
-export const allCases$ = collectionData(query(collectionGroup(db,'cases'),orderBy("favs"),limit(50)),{idField: 'id'})
+// export const allCases$ = collectionData(query(collectionGroup(db,'cases'),orderBy("favs"),limit(50)),{idField: 'id'})
 
-export const purchases$ = user$.pipe(
-  mergeMap(user => user?.uid ?
-    collectionData(collection(db,'users/'+user?.uid+'/purchases'),{idField:"id"}):
-    of([])
-  ),
-  mergeMap(purchases => combineLatest(
-    purchases?.map(purchase => 
-      combineLatest({timestamp:of(purchase.timestamp.toDate()), bookData: docData(doc(db,`users/${purchase.sellerId}/books/${purchase.itemId}`),{idField:"id"}), authorData: docData(doc(db,`users/${purchase.sellerId}`))})
-    )
-  ))
-)
-export const favorites$ = user$.pipe(
-  mergeMap(user => user?.uid ?
-    collectionData(collection(db,'users/'+user?.uid+'/favorites'),{idField:"id"}):
-    of([])
-  ),
-  mergeMap(favorites => combineLatest(
-    favorites?.map(favorite =>{
-      if(favorite.type =="book"){
-        return  combineLatest({timestamp:of(favorite.timestamp?.toDate()), bookData: docData(doc(db,`users/${favorite.authorId}/books/${favorite.bookId}`),{idField:"id"}), authorData: docData(doc(db,`users/${favorite.authorId}`))})
-      }
-      if(favorite.type =="article"){
-        return  combineLatest({timestamp:of(favorite.timestamp?.toDate()), articleData: docData(doc(db,`users/${favorite.authorId}/articles/${favorite.articleId}`),{idField:"id"}), authorData: docData(doc(db,`users/${favorite.authorId}`))})
-      }
-      return of(null)
-    })
-  ))
-)
-export const following$ = user$.pipe(
-  mergeMap(user => user?.uid ?
-    collectionData(query(collection(db,'followers'),where('users', 'array-contains', user.uid)),{idField:"id"}): of([])
-  ),
-  mergeMap(following => combineLatest(
-    following?.map(({id:uid}) => combineLatest({userData: docData(doc(db,'users',uid),{idField: "uid"}), articles: collectionData(query(collection(db,'users',uid,'articles'),where("updatedAt",">",Timestamp.fromDate(addDays(new Date(),-30)))),{idField: "id"}), books: collectionData(query(collection(db,'users',uid,'books'),where("updatedAt",">",Timestamp.fromDate(addDays(new Date(),-30)))),{idField: "id"})}))
-  ))
-)
+// export const purchases$ = user$.pipe(
+//   mergeMap(user => user?.uid ?
+//     collectionData(collection(db,'users/'+user?.uid+'/purchases'),{idField:"id"}):
+//     of([])
+//   ),
+//   mergeMap(purchases => combineLatest(
+//     purchases?.map(purchase => 
+//       combineLatest({timestamp:of(purchase.timestamp.toDate()), bookData: docData(doc(db,`users/${purchase.sellerId}/books/${purchase.itemId}`),{idField:"id"}), authorData: docData(doc(db,`users/${purchase.sellerId}`))})
+//     )
+//   ))
+// )
+// export const favorites$ = user$.pipe(
+//   mergeMap(user => user?.uid ?
+//     collectionData(collection(db,'users/'+user?.uid+'/favorites'),{idField:"id"}):
+//     of([])
+//   ),
+//   mergeMap(favorites => combineLatest(
+//     favorites?.map(favorite =>{
+//       if(favorite.type =="book"){
+//         return  combineLatest({timestamp:of(favorite.timestamp?.toDate()), bookData: docData(doc(db,`users/${favorite.authorId}/books/${favorite.bookId}`),{idField:"id"}), authorData: docData(doc(db,`users/${favorite.authorId}`))})
+//       }
+//       if(favorite.type =="article"){
+//         return  combineLatest({timestamp:of(favorite.timestamp?.toDate()), articleData: docData(doc(db,`users/${favorite.authorId}/articles/${favorite.articleId}`),{idField:"id"}), authorData: docData(doc(db,`users/${favorite.authorId}`))})
+//       }
+//       return of(null)
+//     })
+//   ))
+// )
+// export const following$ = user$.pipe(
+//   mergeMap(user => user?.uid ?
+//     collectionData(query(collection(db,'followers'),where('users', 'array-contains', user.uid)),{idField:"id"}): of([])
+//   ),
+//   mergeMap(following => combineLatest(
+//     following?.map(({id:uid}) => combineLatest({userData: docData(doc(db,'users',uid),{idField: "uid"}), articles: collectionData(query(collection(db,'users',uid,'articles'),where("updatedAt",">",Timestamp.fromDate(addDays(new Date(),-30)))),{idField: "id"}), books: collectionData(query(collection(db,'users',uid,'books'),where("updatedAt",">",Timestamp.fromDate(addDays(new Date(),-30)))),{idField: "id"})}))
+//   ))
+// )
 
-export const sales$ = user$.pipe(
-  mergeMap(user => 
-    combineLatest({user: of(user), sales: (user?.uid ? collectionData(collection(db,'users/'+user?.uid+'/sales'),{idField:"id"}) : of([]))})
-  ),
-)
-export const salesDetail$ =  combineLatest([sales$,books$]).pipe(
-  mergeMap(([sales,books]) => 
-    combineLatest(sales.sales.map(sale => combineLatest({customerData: docData(doc(db,`users/${sale.customerId}`),{idField:"uid"}), saleData: of(sale), bookData: of(books.find(p=>p.id==sale.itemId))}) )) 
-  )
-)
-export const payableHistory$ = user$.pipe(
-  mergeMap(user => user?.uid ?
-    collectionData(collection(db,'users/'+user?.uid+'/payable_history'),{idField:"id"}):
-    of([])
-  )
-)
-export const withdrawals$ = user$.pipe(
-  mergeMap(user => user?.uid ?
-    collectionData(collection(db,'users/'+user?.uid+'/withdrawals'),{idField:"id"}):
-    of([])
-  )
-)
+// export const sales$ = user$.pipe(
+//   mergeMap(user => 
+//     combineLatest({user: of(user), sales: (user?.uid ? collectionData(collection(db,'users/'+user?.uid+'/sales'),{idField:"id"}) : of([]))})
+//   ),
+// )
+// export const salesDetail$ =  combineLatest([sales$,books$]).pipe(
+//   mergeMap(([sales,books]) => 
+//     combineLatest(sales.sales.map(sale => combineLatest({customerData: docData(doc(db,`users/${sale.customerId}`),{idField:"uid"}), saleData: of(sale), bookData: of(books.find(p=>p.id==sale.itemId))}) )) 
+//   )
+// )
+// export const payableHistory$ = user$.pipe(
+//   mergeMap(user => user?.uid ?
+//     collectionData(collection(db,'users/'+user?.uid+'/payable_history'),{idField:"id"}):
+//     of([])
+//   )
+// )
+// export const withdrawals$ = user$.pipe(
+//   mergeMap(user => user?.uid ?
+//     collectionData(collection(db,'users/'+user?.uid+'/withdrawals'),{idField:"id"}):
+//     of([])
+//   )
+// )
 
 
 // export const useEngine= ({id,name,hdps,initialData,initialTime}) => {

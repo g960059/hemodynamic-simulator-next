@@ -3,9 +3,8 @@ import {Box, Grid, Typography, Divider,Button,Stack, Tab,Avatar, useMediaQuery,N
 import {Twitter,Facebook, Link as LinkIcon,FavoriteBorder} from "@mui/icons-material"
 import { useRouter } from 'next/router'
 import Footer from "../../src/components/Footer"
-import {auth,db} from '../../src/utils/firebase'
 import {useObservable} from "reactfire"
-import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc, getDocs, arrayUnion, arrayRemove, where,} from 'firebase/firestore';
+import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, setDoc, getDoc, getDocs, arrayUnion, arrayRemove, where, getFirestore,} from 'firebase/firestore';
 import Layout from "../../src/components/layout"
 import { collectionData, docData } from 'rxfire/firestore';
 import { filter, map, mergeMap, of, tap,  combineLatest } from 'rxjs';
@@ -16,10 +15,12 @@ import { useAuthState} from 'react-firebase-hooks/auth';
 import Background from '../../src/elements/Background';
 import {CanvasItem} from "../../pages/index"
 import Link from 'next/link'
+import { getAuth } from 'firebase/auth'
 
 function UserSummary(){
   const router = useRouter()
-
+  const auth = getAuth()
+  const db = getFirestore()
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const [canvas, setCanvas] = useState();
   const [openFollowers, setOpenFollowers] = useState(false);

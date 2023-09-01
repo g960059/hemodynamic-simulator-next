@@ -6,11 +6,10 @@ import {useTranslation} from "../src/hooks/useTranslation"
 import { makeStyles} from '@mui/material/styles';
 import { useRouter } from 'next/router'
 import Footer from "../src/components/Footer"
-import {auth,db} from '../src/utils/firebase'
 import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
 
 import Layout from "../src/components/layout"
-import { doc,collection,collectionGroup, getDocs,getDoc, limit, orderBy, query, where, writeBatch, startAfter} from 'firebase/firestore';
+import { doc,collection,collectionGroup, getDocs,getDoc, limit, orderBy, query, where, writeBatch, startAfter, getFirestore} from 'firebase/firestore';
 import { collectionData, docData} from 'rxfire/firestore';
 import Image from 'next/image'
 import { formatDateDiff } from '../src/utils/utils';
@@ -19,10 +18,13 @@ import {user$} from '../src/hooks/usePvLoop'
 import Link from 'next/link';
 import { mergeMap, of, BehaviorSubject, switchMap, map, from, combineLatest } from 'rxjs';
 import DeleteMenuItemWithDialog from '../src/components/DeleteMenuItemWithDialog';
+import { getAuth } from 'firebase/auth';
 
 const PAGE_SIZE = 20;
 
 const TopPage = ({initialCanvas}) => {
+  const auth = getAuth()
+  const db = getFirestore()
   const t = useTranslation();
   const router = useRouter()
   const canvas$ = user$.pipe(
@@ -329,6 +331,7 @@ export const CanvasItem = ({canvasItem,removeCanvas=null, isOwner=false}) => {
 }
 
 export const getStaticProps = async () => {
+  const db = getFirestore()
   const convertTimestampToJson = (data)=>{
     const newData = {...data}
     if(data?.updatedAt){

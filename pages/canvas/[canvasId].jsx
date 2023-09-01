@@ -9,12 +9,11 @@ import { paramPresets} from '../../src/utils/presets'
 
 import dynamic from 'next/dynamic'
 import {useObservable} from "reactfire"
-import {db,auth, storage,FIREBASE_INITIALIZED} from "../../src/utils/firebase"
 import { map, switchMap, catchError, tap} from "rxjs/operators";
 import { combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDoc,  query, where, getFirestore} from 'firebase/firestore';
-import {ref, deleteObject } from 'firebase/storage';
+import {ref, deleteObject, getStorage } from 'firebase/storage';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
 import isEqual from "lodash/isEqual"
@@ -26,13 +25,16 @@ import Footer from '../../src/components/Footer';
 import TextareaAutosize from 'react-textarea-autosize';
 import {getOgpImageUrl} from "../../src/utils/cloudinary"
 import Head from 'next/head'
+import { getAuth } from 'firebase/auth';
 
 const CaseEditor = dynamic(() => import('../../src/components/CaseEditor'),{ssr:false})
 
 
 
-const App = () => {
-
+const App = ({initialCanvas}) => {
+  const auth = getAuth()
+  const db = getFirestore()
+  const storage = getStorage();
   const t = useTranslation();
   const router = useRouter()
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
@@ -113,7 +115,7 @@ const App = () => {
   const [blocks, setBlocks] = useImmer([]);
   const [defaultParamSets, setDefaultParamSets] = useState([]);
   const [defaultBlocks, setDefaultBlocks] = useState([]);
-  const [canvas, setCanvas] = useImmer({});
+  const [canvas, setCanvas] = useImmer(initialCanvas || {});
   const [defaultCanvas, setDefaultCanvas] = useState({});
 
   const isOwner = canvas.uid == user?.uid 
@@ -474,7 +476,7 @@ const App = () => {
       <meta name="twitter:creator" content="@CircleHeart_dev" key="twitter:creator"/>
       <meta name="twitter:title" content={canvas?.name|| "Untitled"} key="twitter:title"/>
       <meta name="twitter:description" content={`${canvas?.displayName}さんの投稿`} key="twitter:description"/>
-      <meta name="twitter:image" content={canvas?.ogpUrl} key="twitter:image"/>
+      <meta name="twitter:image" content={canvas.ogpUrl} key="twitter:image"/>
     </Head>
   {
     (loading || isOwner == undefined) ? <>
@@ -677,23 +679,28 @@ const LoadingSkelton = () => {
     </>
 }
 
-// export const getServerSideProps = async (context) => {
-//   // ogpDataを取得する
-//   const canvasId = context.query?.canvasId;
-//   const getData = async () => {
-//     const canvasSnap = await getDoc(doc(db,"canvas",canvasId))
-//     const canvas = canvasSnap.data();
-//     return ({
-//       ogCanvasId: canvasId,
-//       ogDisplayName: canvas?.displayName,
-//       ogPhotoURL: canvas?.photoURL,
-//       ogCanvasName: canvas?.name,
-//       ogUrl: getOgpImageUrl(canvas?.name, canvas?.photoURL, canvas?.displayName)
-//     })
-//   }
-//   const res = await getData()
-//   return {props: res}
-// }
+const convertTimestampToJson = (data)=>{
+  const newData = {...data}
+  if(data?.updatedAt){
+    newData.updatedAt = data.updatedAt.toJSON()
+  }
+  if(data?.createdAt){
+    newData.createdAt = data.createdAt.toJSON()
+  }
+  return newData
+}
+
+export const getServerSideProps = async (context) => {
+  const db = getFirestore()
+  const canvasId = context.query.canvasId;
+  const canvasSnap = await getDoc(doc(db,"canvas",canvasId))
+  const initialCanvas = convertTimestampToJson({id: canvasId, ...canvasSnap.data()});
+  return {
+    props: {
+      initialCanvas
+    }
+  }
+}
 
 
 
