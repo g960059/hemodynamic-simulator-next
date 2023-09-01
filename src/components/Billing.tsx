@@ -1,8 +1,7 @@
 import React, { useState,  FormEvent } from 'react';
 import { NextPage } from 'next';
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
-import { httpsCallable, HttpsCallableResult, } from 'firebase/functions'
-import {functions} from "../utils/firebase";
+import { getFunctions, httpsCallable, HttpsCallableResult, } from 'firebase/functions'
 import { SetupIntent } from '@stripe/stripe-js';
 import toast, { Toaster } from 'react-hot-toast';
 import {useWallet} from "../hooks"
@@ -16,6 +15,7 @@ import {NeumoLoadingButton} from "./StyledComponents"
 const Billing: NextPage = () => {
   const stripe = useStripe();
   const elements = useElements();  
+  const functions = getFunctions()
 
   const {wallet,updateWallet, loading:walletLoading} = useWallet();
   const [attaching, setAttaching] = useState(false);
