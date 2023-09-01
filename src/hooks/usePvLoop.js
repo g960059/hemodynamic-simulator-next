@@ -9,7 +9,6 @@ import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS} from '../utils/pre
 import { authState} from 'rxfire/auth';
 import { collectionData, docData,collection as collectionRef } from 'rxfire/firestore';
 import {collection,doc,query,where,setDoc,addDoc,updateDoc,collectionGroup,orderBy,limit, serverTimestamp, writeBatch, Timestamp, getFirestore } from 'firebase/firestore';
-import {auth,db} from "../utils/firebase"
 import { concatMap,map,tap,switchMap,filter,mergeMap} from "rxjs/operators";
 import { combineLatest, of,zip } from 'rxjs';
 import {useObservable} from "./useObservable"

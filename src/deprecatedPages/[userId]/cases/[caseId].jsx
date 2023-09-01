@@ -6,14 +6,14 @@ import { useRouter } from 'next/router'
 import {useTranslation} from '../../../../hooks/useTranslation'
 import CaseEditor from "../../../../components/CaseEditor"
 import Image from 'next/image'
-import {signOut} from "firebase/auth";
+import {getAuth, signOut} from "firebase/auth";
 
 
 import { NextSeo } from 'next-seo';
 import {useObservable} from '../../../hooks/useObservable'
-import {db,StyledAuth,auth} from "../../../../utils/firebase"
+import {StyledAuth} from "../../../../utils/firebase"
 
-import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs, getDoc, query, collectionGroup, orderBy, limit, increment} from 'firebase/firestore';
+import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs, getDoc, query, collectionGroup, orderBy, limit, increment, getFirestore} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import {nanoid,formatDateDiff} from "../../../../utils/utils"
 import Lottie from 'react-lottie-player' 
@@ -42,6 +42,8 @@ const CaseReader = () => {
   const classes = useStyles();
   const t = useTranslation();
   const router = useRouter()
+  const db = getFirestore()
+  const auth = getAuth()
   const [allCases, setAllCases] = useState([]);
   const uid$ = of(router.query.userId).pipe(
     filter(Boolean),

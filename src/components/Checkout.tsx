@@ -1,17 +1,18 @@
 import { Button, Dialog, DialogContent, DialogContentText, Theme, Typography, useMediaQuery } from "@mui/material";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { PaymentIntent } from "@stripe/stripe-js";
-import { httpsCallable, HttpsCallableResult } from "firebase/functions";
+import { getFunctions, httpsCallable, HttpsCallableResult } from "firebase/functions";
 import { NextPage } from "next";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useWallet } from "../hooks";
-import { auth, functions, StyledAuth } from "../utils/firebase";
+import { StyledAuth } from "../utils/firebase";
 import toast, { Toaster } from 'react-hot-toast';
 import { Box } from "@mui/system";
 import { useTranslation } from "../hooks/useTranslation";
+import { getAuth } from "firebase/auth";
 
 interface Item {
   id:string;
@@ -30,6 +31,8 @@ type Props = {
 
 const Checkout: NextPage<Props> = ({item, size="medium", fullWidth=false}) =>{
   const {wallet,setWallet,updateWallet} = useWallet();
+  const auth = getAuth()
+  const functions = getFunctions()
   const [user] = useAuthState(auth);
   const stripe = useStripe()
   const elements = useElements();

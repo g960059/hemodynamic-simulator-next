@@ -172,7 +172,7 @@ const TopPage = ({initialCanvas}) => {
       </div>
       {
         tabValue == "trending" && (
-          <div className='max-w-4xl w-full mx-auto py-4 md:py-6 px-4 min-h-[440px]'>
+          <div className='max-w-4xl w-full mx-auto py-4 md:py-10 px-4 min-h-[440px]'>
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {
                 canvasList.map(c => <CanvasItem canvasItem={c} />)
@@ -189,7 +189,7 @@ const TopPage = ({initialCanvas}) => {
       {
         tabValue=="mypage" && (
           user ? 
-          <div className='max-w-4xl w-full mx-auto py-4 md:py-6 px-4 min-h-[440px] '>
+          <div className='max-w-4xl w-full mx-auto py-4 md:py-10 px-4 min-h-[440px] '>
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {
                 myCases?.map(c=><CanvasItem canvasItem={c} removeCanvas={removeCanvas} isOwner={true}/>)
@@ -208,7 +208,7 @@ const TopPage = ({initialCanvas}) => {
       {
         tabValue == "bookmark"  && (
           user ? 
-          <div className='max-w-4xl w-full mx-auto py-4 md:py-6 px-4 min-h-[440px]'>
+          <div className='max-w-4xl w-full mx-auto py-4 md:py-10 px-4 min-h-[440px]'>
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {
                 bookmarkedCanvases?.map(c => <CanvasItem canvasItem={c} />)

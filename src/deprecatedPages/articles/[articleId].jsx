@@ -9,10 +9,10 @@ import {useTranslation} from '../../../hooks/useTranslation'
 import ReactiveInput from "../../../components/ReactiveInput";
 
 import {useObservable} from '../../hooks/useObservable'
-import {db, storage, auth} from "../../../utils/firebase"
+
 import { mergeMap,filter,tap,map} from "rxjs/operators";
 import { docData, collectionData} from 'rxfire/firestore';
-import {collection,doc, updateDoc,serverTimestamp, setDoc} from 'firebase/firestore';
+import {collection,doc, updateDoc,serverTimestamp, setDoc, getFirestore} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
 import isEqual from "lodash/isEqual"
@@ -22,8 +22,9 @@ import Lottie from 'react-lottie-player'
 import LoadingAnimation from "../../../lotties/LoadingAnimation.json"
 import { Plate,createPlugins,createPlateUI, createParagraphPlugin, createBlockquotePlugin, createHeadingPlugin,createLinkPlugin,createImagePlugin,HeadingToolbar, usePlateEditorRef, getPluginType,BlockToolbarButton,ELEMENT_H1,ELEMENT_H2,ELEMENT_BLOCKQUOTE,toggleNodeType,LinkToolbarButton,ListToolbarButton,MediaEmbedToolbarButton,ImageToolbarButton,ELEMENT_DEFAULT,MarkToolbarButton, MARK_BOLD, MARK_ITALIC, MARK_UNDERLINE,createBasicMarksPlugin,createListPlugin,createSelectOnBackspacePlugin,MARK_STRIKETHROUGH, ELEMENT_UL, ELEMENT_OL, ELEMENT_MEDIA_EMBED, createPluginFactory,MediaEmbedUrlInput, getMediaEmbedElementStyles, setNodes, getRootProps, ELEMENT_IMAGE, getParent, insertNodes,ToolbarButton,insertMediaEmbed,BalloonToolbar, createResetNodePlugin, ELEMENT_PARAGRAPH,isBlockAboveEmpty,isSelectionAtBlockStart} from '@udecode/plate'
 import Sticky from 'react-stickynode';
-import { ref, getDownloadURL ,uploadString,uploadBytesResumable} from "firebase/storage";
+import { ref, getDownloadURL ,uploadString,uploadBytesResumable, getStorage} from "firebase/storage";
 import { FaTwitter, FaSlideshare,FaYoutube,FaVimeo,FaSpeakerDeck} from 'react-icons/fa';
+import { getAuth } from 'firebase/auth';
 
 const ELEMENT_CASE_EMBED = 'case-embed';
 const useStyles = makeStyles((theme) =>(
@@ -106,6 +107,9 @@ const Article = () => {
   const classes = useStyles();
   const t = useTranslation();
   const router = useRouter()
+  const db = getFirestore()
+  const auth = getAuth()
+  const storage = getStorage()
   const {data:user} = useObservable("user",user$)
 
   const loadedArticle = useObservable("article"+router.query.articleId,user$.pipe(

@@ -10,8 +10,7 @@ import {formatDateDiff, nanoid} from "../../src/utils/utils"
 import {useObservable} from "../../src/hooks/useObservable"
 import Layout from '../../src/components/layout'
 import DeleteMenuItemWithDialog from "../../src/components/DeleteMenuItemWithDialog";
-import { doc, deleteDoc, writeBatch, collection, getDocs, addDoc, serverTimestamp } from "firebase/firestore";
-import {db} from "../../src/utils/firebase";
+import { doc, deleteDoc, writeBatch, collection, getDocs, addDoc, serverTimestamp, getFirestore } from "firebase/firestore";
 import isEqual from "lodash/isEqual"
 import clsx from 'clsx';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -54,6 +53,7 @@ import { ja } from 'date-fns/locale';
 
 const DashBoard = React.memo(() => {
   const t = useTranslation();
+  const db = getFirestore()
   const router = useRouter()
   const user = useObservable("user",user$)
   const cases = useObservable("cases", cases$);

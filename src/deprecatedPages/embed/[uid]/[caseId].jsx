@@ -15,11 +15,12 @@ import {COLORS} from '../../../styles/chartConstants'
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import dynamic from 'next/dynamic'
 import {useObservable} from "../../../hooks/useObservable"
-import {db,auth,app} from "../../../utils/firebase"
+
+
 import { mergeMap,filter,tap,map} from "rxjs/operators";
 import {forkJoin, combine, combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
-import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc} from 'firebase/firestore';
+import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getFirestore} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
 import {objectWithoutKey,objectWithoutKeys,getRandomEmoji,useLeavePageConfirmation} from "../../../utils/utils"
@@ -37,6 +38,7 @@ SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 
 const App = () => {
   const router = useRouter()
+  const db = getFirestore()
   const loadedCase = useObservable("case"+router.query.caseId,combineLatest([of(router.query?.uid),of(router.query?.caseId)]).pipe(
     filter(([uid,caseId])=>uid && caseId),
     mergeMap(([uid,caseId]) => combineLatest([

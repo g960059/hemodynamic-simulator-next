@@ -8,16 +8,15 @@ import {useTranslation} from '../../../src/hooks/useTranslation'
 import ReactiveInput from "../../../src/components/ReactiveInput";
 
 import {useObservable} from '../../../hooks/useObservable'
-import {db, storage, auth} from "../../../src/utils/firebase"
 import { mergeMap,filter,tap,map} from "rxjs/operators";
 import { docData, collectionData} from 'rxfire/firestore';
-import {collection,doc, updateDoc,serverTimestamp, setDoc, addDoc, deleteDoc, arrayUnion, arrayRemove, writeBatch} from 'firebase/firestore';
+import {collection,doc, updateDoc,serverTimestamp, setDoc, addDoc, deleteDoc, arrayUnion, arrayRemove, writeBatch, getFirestore} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import isEqual from "lodash/isEqual"
 import {readFile,objectWithoutKeys,getRandomEmoji,formatDateDiff,getCroppedImg,nanoid} from "../../../src/utils/utils"
 import Cropper from 'react-easy-crop'
 
-import { ref, getDownloadURL ,uploadString,uploadBytesResumable} from "firebase/storage";
+import { ref, getDownloadURL ,uploadString,uploadBytesResumable, getStorage} from "firebase/storage";
 import Image from 'next/image';
 import clsx from 'clsx';
 import { combineLatest, of } from 'rxjs';
@@ -81,6 +80,8 @@ const Book = () => {
   const classes = useStyles();
   const router = useRouter()
   const t = useTranslation()
+  const db = getFirestore()
+  const storage = getStorage()
 
   const book$ = user$.pipe(
     mergeMap(user => user ?  docData(doc(db,'users',user?.uid,"books",router.query.bookId)) : of(null)),
