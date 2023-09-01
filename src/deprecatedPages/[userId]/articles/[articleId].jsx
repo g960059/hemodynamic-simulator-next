@@ -3,15 +3,15 @@ import {Box, Grid, Typography, Divider,Button,Stack,Link, CircularProgress, Tab,
 import {CalendarToday, Facebook, Twitter, Link as LinkIcon, FavoriteBorderOutlined, ExpandMore, FavoriteBorder, Favorite} from "@mui/icons-material"
 import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
-import Footer from "../../../src/components/Footer"
-import {auth,db} from '../../../src/utils/firebase'
+import Footer from "../../../components/Footer"
+import {auth,db} from '../../../utils/firebase'
 import {doc, getDoc,writeBatch,increment, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp} from 'firebase/firestore';
-import Layout from "../../../src/components/layout"
+import Layout from "../../../components/layout"
 import {format} from "date-fns";
 import {TwitterTweetEmbed } from 'react-twitter-embed';
 import tocbot from 'tocbot'
 import clsx from 'clsx';
-import { useObservable } from 'reactfire';
+import { useObservable } from '../../../hooks/useObservable'
 import { docData } from 'rxfire/firestore';
 import {  combineLatest, filter, map, mergeMap, mergeMapTo, of, tap, zip} from 'rxjs';
 import { useAuthState } from 'react-firebase-hooks/auth';

@@ -11,7 +11,7 @@ import {TwitterTweetEmbed } from 'react-twitter-embed';
 import tocbot from 'tocbot'
 import clsx from 'clsx';
 import { user$ } from '../../../../../../hooks/usePvLoop';
-import { useObservable } from 'reactfire';
+import { useObservable } from '../../../../hooks/useObservable'
 import { collectionData, docData } from 'rxfire/firestore';
 import {mergeMap, of} from 'rxjs';
 import Image from 'next/image';

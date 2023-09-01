@@ -5,7 +5,7 @@ import { makeStyles} from '@mui/material/styles';
 import {useTranslation} from '../hooks/useTranslation'
 import Image from 'next/image'
 import {user$,} from '../hooks/usePvLoop'
-import {useObservable} from "reactfire"
+import {useObservable} from "../hooks/useObservable"
 import { switchMap, map,  mergeMap, tap } from 'rxjs/operators';
 import { combineLatest, of, BehaviorSubject,from } from 'rxjs';  
 import { collection, query, where, doc , writeBatch, orderBy, limit, getDocs,getDoc, startAfter, getFirestore} from 'firebase/firestore';

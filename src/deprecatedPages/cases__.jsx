@@ -8,7 +8,7 @@ import Lottie from 'react-lottie-player'
 import DoctorPrescription from "../../lotties/DoctorPrescription.json"
 import { useRouter } from 'next/router'
 import {formatDateDiff, nanoid} from "../../utils/utils"
-import {useObservable} from "reactfire"
+import {useObservable} from "../hooks/useObservable"
 import Layout from '../../components/layout'
 import Image from 'next/image'
 

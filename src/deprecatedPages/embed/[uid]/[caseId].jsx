@@ -14,7 +14,7 @@ import {COLORS} from '../../../styles/chartConstants'
 
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import dynamic from 'next/dynamic'
-import {useObservable} from "reactfire"
+import {useObservable} from "../../../hooks/useObservable"
 import {db,auth,app} from "../../../utils/firebase"
 import { mergeMap,filter,tap,map} from "rxjs/operators";
 import {forkJoin, combine, combineLatest,of} from "rxjs"

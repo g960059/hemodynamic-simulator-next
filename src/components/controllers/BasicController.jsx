@@ -14,7 +14,7 @@ import { collectionData, docData,collection as collectionRef } from 'rxfire/fire
 import {collection,doc,query,where,setDoc,addDoc,updateDoc } from 'firebase/firestore';
 import {auth,db} from "../../utils/firebase"
 import { concatMap,map,tap,switchMap,filter} from "rxjs/operators";
-import {useObservable} from "reactfire"
+import {useObservable} from "../../hooks/useObservable"
 
 const Vessels = ["Ra","Rv","Ca","Cv","Rc"]
 const AdvancedVessels = ["Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp"]

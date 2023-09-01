@@ -8,7 +8,7 @@ import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../../hooks/useTranslation'
 import ReactiveInput from "../../../components/ReactiveInput";
 
-import {useObservable} from "reactfire"
+import {useObservable} from '../../hooks/useObservable'
 import {db, storage, auth} from "../../../utils/firebase"
 import { mergeMap,filter,tap,map} from "rxjs/operators";
 import { docData, collectionData} from 'rxfire/firestore';

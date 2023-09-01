@@ -10,7 +10,7 @@ import {signOut} from "firebase/auth";
 
 
 import { NextSeo } from 'next-seo';
-import {useObservable} from "reactfire"
+import {useObservable} from '../../../hooks/useObservable'
 import {db,StyledAuth,auth} from "../../../../utils/firebase"
 
 import {collection,doc, updateDoc,serverTimestamp,writeBatch,deleteDoc, getDocs, getDoc, query, collectionGroup, orderBy, limit, increment} from 'firebase/firestore';

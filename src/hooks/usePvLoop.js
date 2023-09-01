@@ -12,7 +12,7 @@ import {collection,doc,query,where,setDoc,addDoc,updateDoc,collectionGroup,order
 import {auth,db} from "../utils/firebase"
 import { concatMap,map,tap,switchMap,filter,mergeMap} from "rxjs/operators";
 import { combineLatest, of,zip } from 'rxjs';
-import {useObservable} from "reactfire"
+import {useObservable} from "./useObservable"
 import { addDays } from 'date-fns'
 import { getAuth } from 'firebase/auth'
 

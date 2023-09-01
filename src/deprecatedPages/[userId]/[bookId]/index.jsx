@@ -3,17 +3,17 @@ import {Box, Grid, Typography, Divider,Button,Stack,Link, CircularProgress, Tab,
 import {CalendarTodayOutlined, Facebook, Twitter, Link as LinkIcon, ExpandMore, FavoriteBorder, Favorite,FormatListBulletedOutlined} from "@mui/icons-material"
 import { makeStyles} from '@mui/styles';
 import { useRouter } from 'next/router'
-import Footer from "../../../../src/components/Footer"
-import {auth, db} from '../../../../src/utils/firebase'
+import Footer from "../../components/Footer"
+import {auth, db} from '../../utils/firebase'
 import {doc, getDoc,getDocs,collection, writeBatch,increment, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp} from 'firebase/firestore';
-import Layout from "../../../../src/components/layout"
-import Checkout from "../../../../src/components/Checkout"
+import Layout from "../../components/layout"
+import Checkout from "../../components/Checkout"
 import {format} from "date-fns";
-import {useWallet } from '../../../../src/hooks';
+import {useWallet } from '../../hooks';
 import tocbot from 'tocbot'
 
-import { user$ } from '../../../../src/hooks/usePvLoop';
-import { useObservable } from 'reactfire';
+import { user$ } from '../../hooks/usePvLoop';
+import { useObservable } from "../../../hooks/useObservable";
 import { collectionData, docData } from 'rxfire/firestore';
 import {  filter, mergeMap, of} from 'rxjs';
 import { authState } from 'rxfire/auth';
