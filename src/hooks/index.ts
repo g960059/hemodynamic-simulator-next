@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth , functions} from '../utils/firebase';
-import { httpsCallable, HttpsCallableResult } from 'firebase/functions'
+import { getFunctions, httpsCallable, HttpsCallableResult } from 'firebase/functions'
 import { PaymentMethod } from '@stripe/stripe-js';
+import { getAuth } from 'firebase/auth';
 
 export const useWallet = () => {
+  const auth = getAuth()
+  const functions = getFunctions()
   const [user] = useAuthState(auth);
   const [wallet, setWallet] = useState<PaymentMethod | null>(null);
   const [loading, setLoading] = useState(false);

@@ -2,21 +2,21 @@ import { empty, Observable, Subject, Subscriber, Subscription } from 'rxjs';
 import { catchError, shareReplay, tap } from 'rxjs/operators';
 
 
-interface ObservableStatusBase<T> {
+interface ObservableStatusBase {
 }
 
-export interface ObservableStatusSuccess<T> extends ObservableStatusBase<T> {
+export interface ObservableStatusSuccess<T> extends ObservableStatusBase {
   status: 'success';
   data: T;
 }
 
-export interface ObservableStatusError<T> extends ObservableStatusBase<T> {
+export interface ObservableStatusError extends ObservableStatusBase {
 }
 
-export interface ObservableStatusLoading<T> extends ObservableStatusBase<T> {
+export interface ObservableStatusLoading extends ObservableStatusBase {
 }
 
-export type ObservableStatus<T> = ObservableStatusLoading<T> | ObservableStatusError<T> | ObservableStatusSuccess<T>;
+export type ObservableStatus<T> = ObservableStatusLoading | ObservableStatusError | ObservableStatusSuccess<T>;
 
 
 export class SuspenseSubject<T> extends Subject<T> {
