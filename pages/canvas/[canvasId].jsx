@@ -469,6 +469,7 @@ const App = ({initialCanvas}) => {
       <meta property="og:title" content={canvas?.name || "Untitled"} key="og:title"/>
       <meta property="og:description" content={`${canvas?.displayName}さんの投稿`} key="og:description" />
       <meta property="og:image" content={canvas?.ogpUrl}  key="og:image"/>
+      <meta property='og:type' content='article' />
       <meta property="og:url" content={`https://www.circleheart.dev/canvas/${canvasId}`} key="og:url" />
       <meta name="twitter:card" content="summary_large_image" key="twitter:card"/>
       <meta name="twitter:site" content="@CircleHeart_dev" key="twitter:site"/>
@@ -693,10 +694,18 @@ export const getServerSideProps = async (context) => {
   const db = getFirestore()
   const canvasId = context.query.canvasId;
   const canvasSnap = await getDoc(doc(db,"canvas",canvasId))
-  const initialCanvas = convertTimestampToJson({id: canvasId, ...canvasSnap.data()});
-  return {
-    props: {
-      initialCanvas
+  if(canvasSnap.exists()){
+    const initialCanvas = convertTimestampToJson({id: canvasId, ...canvasSnap.data()});
+    return {
+      props: {
+        initialCanvas
+      }
+    }
+  }else{
+    return {
+      props:{
+        initialCanvas:null
+      }
     }
   }
 }
