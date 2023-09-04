@@ -1,15 +1,12 @@
 import React from 'react'
-import {Box, Grid, Typography,Stack,Link, Divider, useMediaQuery} from '@mui/material'
+import {Box, Grid, Typography,Stack,Link, Divider} from '@mui/material'
 import {useTranslation} from "../hooks/useTranslation"
-import { useRouter } from 'next/router'
 import Image from 'next/image'
 
 const Footer = () => {
   const t = useTranslation();
-  const router = useRouter()
-  const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   return <>
-    <Stack direction={isUpMd? "row" : "column"} spacing={{xs:0,md:3}} px={{xs:0,md:5,lg:8}} pb={2} pt={4} width={1}>
+    <div className='flex flex-col md:flex-row md:space-x-6 pt-8 pb-4 md:px-10 lg:px-16 w-full ' >
       <Box sx={{maxWidth:"260px",width:"100%",p:2,mr:3,display:"flex",justifyContent:{xs:"flex-start",md:"center"}}} >
         <div className='mb-1 w-full'>
           <Stack direction="row" justifyContent="start" alignItems="center">
@@ -27,8 +24,8 @@ const Footer = () => {
             <Typography variant="h5" fontWeight="bold">About</Typography>
             <Divider flexItem sx={{borderColor:"#5c93bb2b",mt:1, display:{md:"none"}}} light/>
             <Stack sx={{pt:2}}>
-              <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} onClick={()=>router.push("/about")}>{t["About"]}</Link>
-              <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} onClick={()=>router.push("/changelog")}>{t["ChangeLog"]}</Link>
+              <Link href="/about" underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} >{t["About"]}</Link>
+              {/* <Link href="/changelog" underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} >{t["ChangeLog"]}</Link> */}
               {/* <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}}>{t["HowToUse"]}</Link> */}
               <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} href="https://github.com/g960059/hemodynamic-simulator-next/projects/1">{t["Roadmap"]}</Link>
             </Stack>
@@ -39,8 +36,8 @@ const Footer = () => {
             <Typography variant="h5" fontWeight="bold">Legal</Typography>
             <Divider flexItem sx={{borderColor:"#5c93bb2b",mt:1, display:{md:"none"}}} light/>
             <Stack sx={{pt:2}}>
-              <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} onClick={()=>router.push("/terms")}>{t["Terms"]}</Link>
-              <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} onClick={()=>router.push("/privacy")}>{t["PrivaryPolicy"]}</Link>
+              <Link href="/terms" underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} >{t["Terms"]}</Link>
+              <Link href="/privacy" underline="hover" color="inherit" sx={{cursor:"pointer",my:1}}>{t["PrivaryPolicy"]}</Link>
               <Link underline="hover" color="inherit" sx={{cursor:"pointer",my:1}} href="https://forms.gle/CDNpcKRTFKfn2Ejn7">{t["Contact"]}</Link>
             </Stack>
           </Box>
@@ -56,7 +53,7 @@ const Footer = () => {
           </Box>
         </Grid>    
       </Grid>         
-    </Stack>        
+    </div>        
   </>
 }
 

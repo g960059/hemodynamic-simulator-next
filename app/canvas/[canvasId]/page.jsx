@@ -1,14 +1,16 @@
-import React, {useRef, useState, useEffect} from 'react'
-import {Box,Typography,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,useMediaQuery, NoSsr} from '@mui/material'
-import {ArrowBack,Add,Check,Tune} from '@mui/icons-material';
-import {useEngine, user$} from '../../src/hooks/usePvLoop'
-import { useRouter } from 'next/router'
-import {useTranslation} from '../../src/hooks/useTranslation'
-import ReactiveInput from "../../src/components/ReactiveInput";
-import { paramPresets} from '../../src/utils/presets'
+'use client'
+
+import React, { useState, useEffect, use} from 'react'
+import {Box,Typography,Button,IconButton,Stack,Switch,Dialog, Autocomplete,TextField,useMediaQuery} from '@mui/material'
+import {ArrowBack,Check,Tune} from '@mui/icons-material';
+import {useEngine, user$} from '../../../src/hooks/usePvLoop'
+import { useRouter, useParams , useSearchParams} from 'next/navigation'
+import {useTranslation} from '../../../src/hooks/useTranslation'
+import ReactiveInput from "../../../src/components/ReactiveInput";
+import { paramPresets} from '../../../src/utils/presets'
 
 import dynamic from 'next/dynamic'
-import {useObservable} from "../../src/hooks/useObservable"
+import {useObservable} from "../../../src/hooks/useObservable"
 import { map, switchMap, catchError, tap} from "rxjs/operators";
 import { combineLatest,of} from "rxjs"
 import { docData, collectionData} from 'rxfire/firestore';
@@ -17,28 +19,28 @@ import {ref, deleteObject, getStorage } from 'firebase/storage';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
 import isEqual from "lodash/isEqual"
-import {getRandomEmoji,useLeavePageConfirmation, deepEqual,deepEqual2} from "../../src/utils/utils"
-import { getRandomColor } from '../../src/styles/chartConstants';
-import Background from '../../src/elements/Background';
-import Layout from '../../src/components/layout';
-import Footer from '../../src/components/Footer';
+import {getRandomEmoji,useLeavePageConfirmation, deepEqual,deepEqual2} from "../../../src/utils/utils"
+import { getRandomColor } from '../../../src/styles/chartConstants';
+import Background from '../../../src/elements/Background';
+import Layout from '../../../src/components/layout';
+import Footer from '../../../src/components/Footer';
 import TextareaAutosize from 'react-textarea-autosize';
 import Head from 'next/head'
 import { getAuth } from 'firebase/auth';
+import CaseEditor from '../../../src/components/CaseEditor';
 
-const CaseEditor = dynamic(() => import('../../src/components/CaseEditor'),{ssr:false})
+const sleep = (msec) => new Promise((resolve) => setTimeout(resolve, msec));
 
-
-
-const App = ({initialCanvas}) => {
+const App = () => {
   const auth = getAuth()
   const db = getFirestore()
   const storage = getStorage();
   const t = useTranslation();
   const router = useRouter()
+  const queryParams = useParams()
+  const searchParams = useSearchParams()
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
-
-  const canvasId = router.query.canvasId;
+  const canvasId = queryParams.canvasId;
   let isChanged = false;
   const combinedData$ = of(canvasId).pipe(
     switchMap(cid => {
@@ -114,7 +116,7 @@ const App = ({initialCanvas}) => {
   const [blocks, setBlocks] = useImmer([]);
   const [defaultParamSets, setDefaultParamSets] = useState([]);
   const [defaultBlocks, setDefaultBlocks] = useState([]);
-  const [canvas, setCanvas] = useImmer(initialCanvas || {});
+  const [canvas, setCanvas] = useImmer({});
   const [defaultCanvas, setDefaultCanvas] = useState({});
 
   const isOwner = canvas.uid == user?.uid 
@@ -213,7 +215,7 @@ const App = ({initialCanvas}) => {
       setCanvas(combinedData.data.canvas)
       engine.setIsPlaying(true);
     }else{
-      if(router.query.newItem && combinedData.status == "success" && combinedData.data?.paramSets.length==0 && paramSets.length==0 && !canvas?.id){
+      if(searchParams?.newItem && combinedData.status == "success" && combinedData.data?.paramSets.length==0 && paramSets.length==0 && !canvas?.id){
         engine.setIsPlaying(false);
         const newParamSetId = nanoid();
         const newParamSet = {
@@ -486,7 +488,7 @@ const App = ({initialCanvas}) => {
             <nav className="bg-white shadow ">
               <div className="mx-auto w-full px-4 sm:px-6 lg:px-8">
                 <div className='flex h-16 justify-between items-center'>
-                  <Box onClick={()=>{router.push({pathname : "/", query: {tab: "mypage"}})}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex"}}>
+                  <Box onClick={()=>{router.push(`/?tab=mypage`)}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex"}}>
                     <IconButton><ArrowBack/></IconButton>
                   </Box>
                   <div className='hidden md:block overflow-x-auto w-full'>
@@ -552,14 +554,14 @@ const App = ({initialCanvas}) => {
           <Dialog fullScreen={!isUpMd} sx={{ ".MuiDialog-paper": {m:0}}} open={openPublishDialog} onClose={()=>setOpenPublishDialog(false)}>
             <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
               <div className='text-base font-bold text-center inline-flex items-center'>
-                <svg className='w-6 h-5 mr-1.5 stroke-blue-500' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <svg className='w-6 h-5 mr-1.5 stroke-blue-500' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
                 </svg>   
                 タイトル・タグの設定
               </div>
               <div className='md:w-60 flex-grow'/>
               <button onClick={()=>setOpenPublishDialog(false)} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
-                <svg className='stroke-slate-600 w-4 h-4' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
+                <svg className='stroke-slate-600 w-4 h-4' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -679,36 +681,36 @@ const LoadingSkelton = () => {
     </>
 }
 
-const convertTimestampToJson = (data)=>{
-  const newData = {...data}
-  if(data?.updatedAt){
-    newData.updatedAt = data.updatedAt.toJSON()
-  }
-  if(data?.createdAt){
-    newData.createdAt = data.createdAt.toJSON()
-  }
-  return newData
-}
+// const convertTimestampToJson = (data)=>{
+//   const newData = {...data}
+//   if(data?.updatedAt){
+//     newData.updatedAt = data.updatedAt.toJSON()
+//   }
+//   if(data?.createdAt){
+//     newData.createdAt = data.createdAt.toJSON()
+//   }
+//   return newData
+// }
 
-export const getServerSideProps = async (context) => {
-  const db = getFirestore()
-  const canvasId = context.query.canvasId;
-  const canvasSnap = await getDoc(doc(db,"canvas",canvasId))
-  if(canvasSnap.exists()){
-    const initialCanvas = convertTimestampToJson({id: canvasId, ...canvasSnap.data()});
-    return {
-      props: {
-        initialCanvas
-      }
-    }
-  }else{
-    return {
-      props:{
-        initialCanvas:null
-      }
-    }
-  }
-}
+// export const getServerSideProps = async (context) => {
+//   const db = getFirestore()
+//   const canvasId = context.query.canvasId;
+//   const canvasSnap = await getDoc(doc(db,"canvas",canvasId))
+//   if(canvasSnap.exists()){
+//     const initialCanvas = convertTimestampToJson({id: canvasId, ...canvasSnap.data()});
+//     return {
+//       props: {
+//         initialCanvas
+//       }
+//     }
+//   }else{
+//     return {
+//       props:{
+//         initialCanvas:null
+//       }
+//     }
+//   }
+// }
 
 
 

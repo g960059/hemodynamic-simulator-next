@@ -1,6 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, IconButton,MenuList,ListItemIcon,Tab, CircularProgress,Select,FormControl,InputLabel, useMediaQuery, ToggleButtonGroup, ToggleButton} from '@mui/material'
-import {TabContext,TabList,TabPanel} from '@mui/lab';
 import {Tune,Delete,Add,DragIndicator,ExpandMore} from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";

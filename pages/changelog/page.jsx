@@ -1,10 +1,9 @@
 import React  from 'react'
-import {Box, Grid, Typography, Divider,Button,Stack} from '@mui/material'
-import {useTranslation} from "../src/hooks/useTranslation"
-import Footer from "../src/components/Footer"
-import {Timeline, TimelineConnector,TimelineItem,TimelineContent,TimelineSeparator,TimelineDot} from '@mui/lab'
-import Layout from '../src/components/layout';
-import Background from '../src/elements/Background';
+import {Grid, Typography, Divider,} from '@mui/material'
+import {useTranslation} from "../../src/hooks/useTranslation"
+import Footer from "../../src/components/Footer"
+// import {Timeline, TimelineConnector,TimelineItem,TimelineContent,TimelineSeparator,TimelineDot} from '@mui/lab'
+
 
 
 const Changelog = () => {
@@ -47,16 +46,8 @@ const Changelog = () => {
         </Grid>
         <Footer/>
       </Grid>
-      <Background/>
   </>
 }
 
-Changelog.getLayout = (page) => {
-  return (
-    <Layout>
-      {page}
-    </Layout>
-  )
-}
 
 export default Changelog;

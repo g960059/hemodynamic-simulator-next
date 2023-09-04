@@ -4,9 +4,7 @@ import {Box, Button, IconButton, Stack, Typography, Menu, MenuItem,Tooltip, useM
 
 import {PlayArrow,Pause,} from "@mui/icons-material";
 import DeleteMenuItemWithDialog from './DeleteMenuItemWithDialog';
-import { useRouter } from 'next/router'
-import en from '../locales/en'
-import ja from '../locales/ja'
+import { useTranslation } from '../hooks/useTranslation';
 import NeumoIconButton from '../elements/NeumoIconButton';
 
 
@@ -15,8 +13,7 @@ const PlaySpeedButtons = ({engine, removeView, isOwner}) =>{
   const [anchorEl, setAnchorEl] = useState(null);
   const [speedAnchorEl, setSpeedAnchorEl] = useState(null);
   const [speedDisplayed, setSpeedDisplayed] = useState(1.0);
-  const {locale} = useRouter()
-  const t = locale==='en' ? en : ja
+  const t = useTranslation();
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'), {noSsr: true});
 
     return (

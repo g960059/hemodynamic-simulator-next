@@ -1,24 +1,20 @@
-import React,{useState, useEffect,useReducer} from 'react';
-import {Box,Grid, Typography, Stack,MenuItem,Divider,Select, Popover, IconButton, Slider,Tab, Button, ButtonGroup,ToggleButtonGroup,ToggleButton,Dialog,DialogContent,DialogTitle,DialogActions, DialogContentText,Tooltip,List,ListItem,ListItemText,ListItemIcon,Breadcrumbs,Link,useMediaQuery,Slide,Autocomplete,TextField,Menu} from '@mui/material'
-import {TabContext,TabList,TabPanel} from '@mui/lab';
+import React,{useState, useEffect} from 'react';
+import {Box,Grid, Typography, Stack,MenuItem,Select, Popover, IconButton, Slider, Button, ButtonGroup,ToggleButtonGroup,ToggleButton,Dialog,DialogContent,DialogTitle,DialogActions, DialogContentText,Tooltip,List,ListItem,ListItemText,ListItemIcon,Breadcrumbs,Link,useMediaQuery,Slide,Autocomplete,TextField,Menu} from '@mui/material'
 import { DragDropContext,Droppable,Draggable} from 'react-beautiful-dnd';
 
 import {useTranslation} from '../../hooks/useTranslation'
 import {InputRanges,VDOptions} from '../../constants/InputSettings'
 import {DEFAULT_HEMODYANMIC_PROPS} from '../../utils/presets'
-import {Refresh,Delete,EditOutlined,ChevronRight,Add,DragIndicator,NavigateNext,ExpandMore,ContentCopy} from '@mui/icons-material';
+import {Refresh,Delete,Add,DragIndicator,} from '@mui/icons-material';
 import ReactiveInput from "../ReactiveInput";
 import EditableText from "../EditableText";
 import DeleteMenuItemWithDialog from "../DeleteMenuItemWithDialog";
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid';
-import produce from "immer"
 import ControllerDialog from '../ControllerDialog';
 
 
 const Severity = ["Trivial","Mild","Moderate","Severe"]
-
-
 
 const Hdps = [
   'Volume',"HR",

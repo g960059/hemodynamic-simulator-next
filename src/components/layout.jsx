@@ -1,3 +1,5 @@
+'use client'
+
 import React,{useState,useEffect} from 'react';
 import {AppBar, Box, Toolbar, Typography,IconButton, CssBaseline, Button,Dialog, DialogContent,Avatar,DialogContentText, Menu, MenuItem,Divider,alpha, Popover,useMediaQuery} from '@mui/material';
 import {Logout,SettingsOutlined, FavoriteBorder,FeedOutlined,EventNoteOutlined,Feed,EventNote,Edit, MenuBookOutlined, StoreOutlined, PaidOutlined } from '@mui/icons-material';
@@ -12,14 +14,14 @@ import { collection, query, where, doc , writeBatch, orderBy, limit, getDocs,get
 import { collectionData, docData } from 'rxfire/firestore';
 
 import {getAuth, signOut} from "firebase/auth";
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import {nanoid, formatDateDiff} from '../utils/utils'
 
 // import {Elements} from '@stripe/react-stripe-js';
-import {loadStripe} from '@stripe/stripe-js';
+// import {loadStripe} from '@stripe/stripe-js';
 import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import Background from '../elements/Background'
-import { spawn } from 'child_process';
+// import { spawn } from 'child_process';
 
 // const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY);
 
@@ -287,23 +289,3 @@ function Layout(props) {
 
 export default Layout
 
-      {/* <AppBar position="static" elevation={0} >
-        <Toolbar className="py-1">
-          <Box onClick={()=>{router.push("/")}} sx={{cursor:"pointer",fontFamily: "GT Haptik Regular" ,fontWeight: 'bold',display:"flex", alignItems:"center" ,justifyContent:"center"}}>
-            <Image src="/favicons/favicon_256x256.png" width={32} height={32}/>
-            <Typography variant="h5" noWrap component="div" fontWeight="bold" sx={{fontFamily: "'Josefin Sans', sans-serif", mb:-0.5,ml:1}}>
-              {t['Title']}
-            </Typography>
-          </Box>
-          <div style={{flexGrow:1}}></div>
-          {
-            user && <>
-              <IconButton size="small" id="profile-button" aria-controls="profile-menu" aria-haspopup="true"  onClick={e=>setAnchorEl(e.currentTarget)}><Avatar src={user?.photoURL} sx={{border:'1px solid lightgray'}}>{user?.displayName[0]}</Avatar></IconButton> 
-              <Button disableElevation variant='contained' className="text-white font-bold ml-4 hidden md:inline-flex" onClick={e=>setNewItemAnchorEl(e.currentTarget)} startIcon={<Edit/>}>投稿</Button>
-              <Button disableElevation size="small" variant='contained' className="text-white" onClick={e=>setNewItemAnchorEl(e.currentTarget)} sx={{ml:1.2,display:{xs:"inherit",md:"none"},minWidth:"34px", padding:"4px 0"}}><Edit fontSize='small'/></Button>
-            </>
-          }{
-            !user && <Button variant='contained' onClick={()=>{setDialogOpen(true)}} disableElevation className="font-bold text-white">Log in</Button>
-          }        
-        </Toolbar>
-      </AppBar> */}

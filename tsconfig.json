@@ -23,6 +23,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
   "exclude": [
     "node_modules"
@@ -33,6 +38,7 @@
     "**/*.tsx",
     "pages/index.jsx",
     "src/utils/firebase.js",
-    "src/styles/theme.jsx"
+    "src/styles/theme.jsx",
+    ".next/types/**/*.ts"
   ]
 }
