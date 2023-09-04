@@ -235,9 +235,7 @@ const TopPage = ({initialCanvas}) => {
 export const CanvasItem = ({canvasItem,removeCanvas=null, isOwner=false}) => {
   const router = useRouter()
   const [anchorEl, setAnchorEl] = useState(null);
-  useEffect(() => {
-    router.prefetch({pathname:`/canvas/${canvasItem?.id}`})
-  }, [router]);
+
   return <>
     <div key={canvasItem?.id} onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/canvas/${canvasItem?.id}`},undefined,{shallow:true})}}  className="w-full flex flex-col py-3 px-4 bg-white cursor-pointer border border-solid border-slate-200 rounded-md overflow-hidden hover:shadow transition">
       <div className='flex flex-row items-center'>

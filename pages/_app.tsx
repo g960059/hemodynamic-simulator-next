@@ -12,6 +12,7 @@ import "../src/styles/globals.css"
 import { NextPage } from 'next';
 import createEmotionCache from '../src/utils/createEmotionCache'
 import { initializeFirebaseApp } from '../src/utils/firebase';
+import Router from 'next/router';
 
 let theme = createTheme({
   palette: {
@@ -47,6 +48,11 @@ export default function MyApp({Component, pageProps }: AppPropsWithLayout) {
       jssStyles.parentElement!.removeChild(jssStyles);
     }
   }, []);
+  React.useEffect(() => {
+    if (Object.keys(pageProps).length === 0) {
+      Router.reload()
+    }
+  }, [pageProps]);
 
   return (
       <CacheProvider value={cache}>
