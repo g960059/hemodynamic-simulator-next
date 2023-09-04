@@ -81,7 +81,7 @@ const Billing: NextPage = () => {
           </div>
         </div>
         <div className='w-full text-center mt-4'>
-          {/* <LoadingButton className='font-bold text-white' variant='contained' disableElevation onClick={attachCard} loading={attaching}>登録する</LoadingButton> */}
+          <button className='font-bold text-white'  onClick={attachCard} disabled={attaching}>登録する</button>
         </div>
       </div> : 
       <div className="px-4 py-4">
@@ -93,7 +93,7 @@ const Billing: NextPage = () => {
           </div>
           <div className='text-slate-400 text-sm mt-4'>有効期限 : {wallet.card?.exp_year}年{wallet.card?.exp_month}月</div>
           <div className='flex justify-end mt-2 '>
-            {/* <NeumoLoadingButton onClick={detachCard} loading={attaching}>削除する</NeumoLoadingButton> */}
+            <button onClick={detachCard} disabled={attaching}>削除する</button>
           </div>
         </div>
       </div>
