@@ -1,7 +1,6 @@
 import React  from 'react'
 import {Grid, Typography, Divider,} from '@mui/material'
-import {useTranslation} from "../../src/hooks/useTranslation"
-import Footer from "../../src/components/Footer"
+import {useTranslation} from "../../../src/hooks/useTranslation"
 
 
 
@@ -16,7 +15,7 @@ const Changelog = () => {
   
   return <>
       <Grid container justifyContent="center"> 
-        <Grid item xs={12} md={10} lg={8}  sx={{mt:4,p:5,pb:3}} className='bg-white rounded-lg border-solid border border-slate-200 shadow'>
+        {/* <Grid item xs={12} md={10} lg={8}  sx={{mt:4,p:5,pb:3}} className='bg-white rounded-lg border-solid border border-slate-200 shadow'>
           <Typography variant="h4" fontWeight="bold" sx={{textAlign:"center"}}>{t["ChangeLog"]}</Typography>
           <Divider variant="middle" sx={{my:3}}/>
           <Timeline position='right' sx={{"& .MuiTimelineItem-positionRight::before":{display:"none"}}}>
@@ -42,8 +41,7 @@ const Changelog = () => {
               </TimelineContent>
             </TimelineItem>
           </Timeline>
-        </Grid>
-        <Footer/>
+        </Grid> */}
       </Grid>
   </>
 }
