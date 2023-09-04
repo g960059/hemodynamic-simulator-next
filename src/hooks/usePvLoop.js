@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {useDocumentVisibilityChange, getVisibilityPropertyNames} from "./useDocumentVisibility"
 import {rk4}  from '../utils/RungeKutta/Rk4'
