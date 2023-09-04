@@ -235,8 +235,11 @@ const TopPage = ({initialCanvas}) => {
 export const CanvasItem = ({canvasItem,removeCanvas=null, isOwner=false}) => {
   const router = useRouter()
   const [anchorEl, setAnchorEl] = useState(null);
+  useEffect(() => {
+    router.prefetch({pathname:`/canvas/${canvasItem?.id}`})
+  }, [router]);
   return <>
-    <div key={canvasItem?.id} onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/canvas/${canvasItem?.id}`})}}  className="w-full flex flex-col py-3 px-4 bg-white cursor-pointer border border-solid border-slate-200 rounded-md overflow-hidden hover:shadow transition">
+    <div key={canvasItem?.id} onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/canvas/${canvasItem?.id}`},undefined,{shallow:true})}}  className="w-full flex flex-col py-3 px-4 bg-white cursor-pointer border border-solid border-slate-200 rounded-md overflow-hidden hover:shadow transition">
       <div className='flex flex-row items-center'>
         {canvasItem?.photoURL ?
           <div className="h-8 w-8 rounded-full overflow-hidden" onClick={(e)=>{e.stopPropagation(); router.push(`/users/${canvasItem.userId}`)}}>
@@ -262,7 +265,7 @@ export const CanvasItem = ({canvasItem,removeCanvas=null, isOwner=false}) => {
         </div>}
       </div>
       <div className='ml-10 mt-2' >
-        <div onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/canvas/${canvasItem?.id}`})}} className='font-bold text-xl text-slate-800 no-underline hover:underline'>
+        <div onClick={(e)=>{e.preventDefault();e.stopPropagation();router.push({pathname:`/canvas/${canvasItem?.id}`},undefined,{shallow:true})}} className='font-bold text-xl text-slate-800 no-underline hover:underline'>
             {canvasItem?.name || "Untitled"}
         </div>
         <div className='flex flex-row items-center justify-start mt-2'>
@@ -309,7 +312,7 @@ export const CanvasItem = ({canvasItem,removeCanvas=null, isOwner=false}) => {
       marginThreshold={0}
     >
       <div className='flex flex-col items-center justify-center py-2 bg-white  border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
-        <div onClick={()=> {router.push({pathname:`/canvas/${canvasItem?.id}`}); setAnchorEl(null)}} 
+        <div onClick={()=> {router.push({pathname:`/canvas/${canvasItem?.id}`},undefined,{shallow:true}); setAnchorEl(null)}} 
           className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
         >
           <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
