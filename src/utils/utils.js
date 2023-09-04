@@ -1,7 +1,7 @@
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {differenceInDays,differenceInHours,differenceInMinutes,differenceInMonths,differenceInYears} from 'date-fns'
 import { customAlphabet } from 'nanoid';
-import Router from 'next/navigation';
+import {usePathname, useRouter} from 'next/navigation';
 import { useBeforeUnload } from 'react-use';
 
 const alphabet = '123456789abcdef';
@@ -57,29 +57,60 @@ export const formatDateDiff = (date1,date2) => {
   return "1分前"
 }
 
+export const useNavigationEvent = (onPathnameChange) => {
+  const pathname = usePathname(); // Get current route
+
+  // Save pathname on component mount into a REF
+  const savedPathNameRef = useRef(pathname);
+
+  useEffect(() => {
+    // If REF has been changed, do the stuff
+    if (savedPathNameRef.current !== pathname) {
+      onPathnameChange();
+      // Update REF
+      savedPathNameRef.current = pathname;
+    }
+  }, [pathname, onPathnameChange]);
+};
 
 export const useLeavePageConfirmation = (
   showAlert,
   message = '保存せずに終了しますか？',
 ) => {
+  const router = useRouter();
   useBeforeUnload(showAlert, message);
-
-  useEffect(() => {
-    const handler = () => {
-      console.log(showAlert)
+  return {
+    ...router,
+    push : (...args) => {
       if (showAlert) {
         if(!window.confirm(message)){
-          throw 'キャンセル';
+          return;
         }
       }
-    };
-    Router.events.on('routeChangeStart', handler);
-
-    return () => {
-      Router.events.off('routeChangeStart', handler);
-    };
-  }, [showAlert, message]);
+      router.push(...args)
+    }
+  }
 };
+
+export const useRouterConfirmation = (
+  showAlert,
+  message = '保存せずに終了しますか？',
+) => {
+  const router = useRouter();
+  useBeforeUnload(showAlert, message);
+  return {
+    ...router,
+    push : (...args) => {
+      if (showAlert()) {
+        if(!window.confirm(message)){
+          return;
+        }
+      }
+      router.push(...args)
+    }
+  }
+};
+
 
 export const getFileExtension = (fileName) => {
   return fileName.split('.').pop();

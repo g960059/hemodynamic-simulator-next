@@ -19,7 +19,7 @@ import {ref, deleteObject, getStorage } from 'firebase/storage';
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid'
 import isEqual from "lodash/isEqual"
-import {getRandomEmoji,useLeavePageConfirmation, deepEqual,deepEqual2} from "../../../src/utils/utils"
+import {getRandomEmoji,useRouterConfirmation, deepEqual,deepEqual2} from "../../../src/utils/utils"
 import { getRandomColor } from '../../../src/styles/chartConstants';
 import Background from '../../../src/elements/Background';
 import Layout from '../../../src/components/layout';
@@ -36,7 +36,6 @@ const App = () => {
   const db = getFirestore()
   const storage = getStorage();
   const t = useTranslation();
-  const router = useRouter()
   const queryParams = useParams()
   const searchParams = useSearchParams()
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
@@ -121,6 +120,8 @@ const App = () => {
 
   const isOwner = canvas.uid == user?.uid 
   const isLogin = !!user?.uid
+
+  const router = useRouterConfirmation(()=>Boolean(isChanged && isOwner));
 
   const [caseNameEditing, setCaseNameEditing] = useState(false);
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
@@ -368,7 +369,7 @@ const App = () => {
   }, [combinedData.status, combinedData.data]);
 
 
-  useLeavePageConfirmation(Boolean(isChanged && isOwner))
+
 
   const deleteUnusedImagesFromStorage = async () => {
     const allImageURLsInBlocks = blocks.flatMap(block => {
