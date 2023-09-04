@@ -48,11 +48,7 @@ export default function MyApp({Component, pageProps }: AppPropsWithLayout) {
       jssStyles.parentElement!.removeChild(jssStyles);
     }
   }, []);
-  React.useEffect(() => {
-    if (Object.keys(pageProps).length === 0) {
-      Router.reload()
-    }
-  }, [pageProps]);
+
 
   return (
       <CacheProvider value={cache}>
