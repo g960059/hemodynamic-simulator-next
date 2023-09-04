@@ -8,7 +8,7 @@ import {useWallet} from "../hooks"
 import { CircularProgress, Typography } from '@mui/material';
 import { Check} from '@mui/icons-material';
 import { Box } from '@mui/system';
-import {NeumoLoadingButton} from "./StyledComponents"
+// import {NeumoLoadingButton} from "./StyledComponents"
 
 
 const Billing: NextPage = () => {
@@ -93,7 +93,7 @@ const Billing: NextPage = () => {
           </div>
           <div className='text-slate-400 text-sm mt-4'>有効期限 : {wallet.card?.exp_year}年{wallet.card?.exp_month}月</div>
           <div className='flex justify-end mt-2 '>
-            <NeumoLoadingButton onClick={detachCard} loading={attaching}>削除する</NeumoLoadingButton>
+            {/* <NeumoLoadingButton onClick={detachCard} loading={attaching}>削除する</NeumoLoadingButton> */}
           </div>
         </div>
       </div>
