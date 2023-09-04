@@ -1,6 +1,5 @@
 import React,{useState, useEffect,useReducer} from 'react';
 import {Box,Grid, Typography, Stack,MenuItem,Divider,Select, Popover, IconButton, Slider,Tab, Button, ButtonGroup,ToggleButtonGroup,ToggleButton,Dialog,DialogContent,DialogTitle,DialogActions, DialogContentText,Tooltip,List,ListItem,ListItemText,ListItemIcon,Breadcrumbs,Link,useMediaQuery,Slide,Autocomplete,TextField,Menu} from '@mui/material'
-import {TabContext,TabList,TabPanel} from '@mui/lab';
 import { DragDropContext,Droppable,Draggable} from 'react-beautiful-dnd';
 import { makeStyles } from '@mui/styles';
 
@@ -85,131 +84,131 @@ const ControllerPanel = React.memo(({patient, setPatient,removePatient,setViews,
   const [openInfoDialog, setOpenInfoDialog] = useState(false);
 
 
-  return (
-    <div className='p-2'>
-      <Stack direction="row" justifyContent="flex-start" alignItems="center" px={1}>
-        {/* <Typography variant="h6" fontWeight="bold" color="primary" sx={{mr:2}} className="hidden md:inline-block">{String(patientIndex+1).padStart(2,'0')}</Typography> */}
-        {
-          patientNameEditing && !readOnly ? 
-            <ReactiveInput 
-            value={patient?.name} 
-            updateValue={newName=>{
-              setViews(draft=>{
-                for(let i=0; i<draft.length; i++){
-                  for(let j=0; j<draft[i].items.length; j++){
-                    if(patient.id === draft[i].items[j].patientId){
-                      draft[i].items[j].label = draft[i].items[j].label.replace(patient.name,newName);
-                    }
-                  }
-              }})
-              setPatient({...patient,name:newName});
-              setPatientNameEditing(false)
-            }} 
-            type="text" autoFocus  allowEmpty/> :
-            <div className='flex items-center'>
-              <Typography variant="h5" fontWeight="bold" onClick={()=>{setPatientNameEditing(true)}} sx={{"&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"},cursor:"pointer",pr:1, color:!patient.name&&"gray"}}>{patient?.name || "Patient Title"}</Typography>
-              <div className='p-1.5 ml-1 inline-flex items-center cursor-pointer rounded-full transition-all duration-100' onClick={()=>{setOpenInfoDialog(true)}}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 stroke-slate-400 hover:stroke-blue-500">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                </svg>
-              </div>
-            </div>
-        }
-        <Dialog open={openInfoDialog} onClose={()=>{setOpenInfoDialog(false)}} maxWidth='md' sx={{"& .MuiDialog-paper":{width: "100%"}}}>
-          <DialogTitle className='font-bold'>{patient?.name || "無題の患者"}のパラメータ</DialogTitle>
-          <DialogContent>
-            <div className='w-full md:grid md:grid-cols-2 md:gap-x-10'>
-              {
-                Object.entries([patient.getInitialHdps(), patient.getHdps()]
-                  .flatMap(Object.entries)
-                  .reduce((o,[k,v])=>( {...o, [k]: (o[k]?[...o[k],v]:[v])}),{})).filter(x=>Hdps.includes(x[0])).sort((a,b)=> Hdps.findIndex(hdp=>hdp===a[0]) - Hdps.findIndex(hdp=>hdp===b[0]))
-                  .map(([k,v])=> (<div className='flex flex-row items-center'>
-                    <div className=' mr-2'>{t[k] || k}</div>
-                    <div className='flex-grow'></div>
-                    {v[0] === v[1] ? 
-                      <div className='text-slate-600'>{v[0]}</div> :
-                      <><div className='text-slate-600'>{v[0]} → </div><div className='font-bold'>{v[1]}</div></>}
-                    <div className='text-xs ml-1 text-slate-600'>{InputRanges[k]?.unit}</div>
-                  </div>))
-              }
-            </div>
-          </DialogContent>
-        </Dialog>
-        <div style={{flexGrow:1}}></div>
-        {
-          !readOnly && <>
-            <ControllerEditor initialController={controller} updateController={newController =>{setPatient(produce(patient,draft=>{draft.controller=newController}))}}/>
-            <Tooltip title={patient?.name+"を複製する"}>
-              <IconButton onClick={clonePatient} size="small" className={classes.faintNeumoButton}><ContentCopy/></IconButton>
-            </Tooltip>
-            <IconButton onClick={e=>{setMenuAnchorEl(e.currentTarget)}} size="small" className={classes.faintNeumoButton} sx={{ml:1,backgroundColor:"transparent !important"}}><ExpandMore/></IconButton>
-            <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={()=>{setMenuAnchorEl(null)}} MenuListProps={{dense:true}}>
-              <DeleteMenuItemWithDialog onDelete={()=>{removePatient();setMenuAnchorEl(null)}} message={"患者「"+patient?.name +"」を削除しようとしています。この操作は戻すことができません。"} onClose={()=>{setMenuAnchorEl(null)}}/>
-            </Menu>
-          </>
-        }
-      </Stack>
-      {controller.controllers.length>0 && 
-        <TabContext value={parentControllerId}>
-          <TabList 
-            onChange={(e,v)=>{setParentControllerId(v);setChildControllerId(controller.controllers.find(c=>c.id==v)?.controllers[0]?.id)}}
-            variant="scrollable"
-            scrollButtons
-            allowScrollButtonsMobile
-            sx={{mx:-2,"& .MuiTabs-scrollButtons.Mui-disabled": {opacity: 0.3}}}
-            >
-            {controller.controllers.map(item=><Tab label={item.name} value={item.id} />)}
-          </TabList>
-          <Box width={1} sx={{borderTop: 1, borderColor: 'divider',my:'-1px',mx:1}}/>
-          {controller.controllers.map(subController=>
-            <TabPanel value={subController.id} sx={{px:1,pt:2}}>
-              <Box>
-                {
-                  subController.controllers.length>0 && 
-                    <ToggleButtonGroup
-                      color="primary"
-                      value={childControllerId}
-                      exclusive
-                      onChange={(e,v)=>{setChildControllerId(v)}}
-                      size="small"
-                      sx ={{width:1,'& .MuiToggleButton-root':{pb:'2px',pt:'3px',flexGrow:1}, mb:2}}
-                    >
-                      {subController.controllers.map(controllerItem =>(
-                        <ToggleButton value={controllerItem.id}>{controllerItem.name}</ToggleButton>
-                      ))}
-                    </ToggleButtonGroup>
-                }
-                {
-                  subController.controllers.find(({id})=>childControllerId ==id)?.items?.map(controllerItem => (
-                    <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
-                  ))
-                }
-                { subController.items?.length>0 && <>
-                    { subController.controllers?.length>0 && <Divider light  sx={{my:2, fontSize:"smaller",color:"gray"}}>{subController.name}共通</Divider>}
-                    <Box width={1} pt={1}>
-                      {subController.items?.map(controllerItem => (
-                        <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
-                      ))}
-                    </Box>
-                  </>
-                }
-              </Box>
-            </TabPanel>
-          )}
-        </TabContext>      
-      }
-      {controller.items?.length>0 && (controller.controllers?.length>0 ? <Divider light sx={{mt:-1.5,mb:1,fontSize:"smaller",color:"gray"}}>{patient.name}共通</Divider> : <Divider light sx={{my:1,}}/>)}
-      {controller.items?.length>0 &&
-        <Box width={1} px={1} pt={1}>
-          {
-            controller.items?.map(controllerItem=> (
-              <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
-            ))
-          }
-        </Box>
-      }
-    </div>
-  )
+  return <div></div>
+    // <div className='p-2'>
+    //   <Stack direction="row" justifyContent="flex-start" alignItems="center" px={1}>
+    //     {/* <Typography variant="h6" fontWeight="bold" color="primary" sx={{mr:2}} className="hidden md:inline-block">{String(patientIndex+1).padStart(2,'0')}</Typography> */}
+    //     {
+    //       patientNameEditing && !readOnly ? 
+    //         <ReactiveInput 
+    //         value={patient?.name} 
+    //         updateValue={newName=>{
+    //           setViews(draft=>{
+    //             for(let i=0; i<draft.length; i++){
+    //               for(let j=0; j<draft[i].items.length; j++){
+    //                 if(patient.id === draft[i].items[j].patientId){
+    //                   draft[i].items[j].label = draft[i].items[j].label.replace(patient.name,newName);
+    //                 }
+    //               }
+    //           }})
+    //           setPatient({...patient,name:newName});
+    //           setPatientNameEditing(false)
+    //         }} 
+    //         type="text" autoFocus  allowEmpty/> :
+    //         <div className='flex items-center'>
+    //           <Typography variant="h5" fontWeight="bold" onClick={()=>{setPatientNameEditing(true)}} sx={{"&:hover":{backgroundColor:"rgba(0, 0, 0, 0.04)"},cursor:"pointer",pr:1, color:!patient.name&&"gray"}}>{patient?.name || "Patient Title"}</Typography>
+    //           <div className='p-1.5 ml-1 inline-flex items-center cursor-pointer rounded-full transition-all duration-100' onClick={()=>{setOpenInfoDialog(true)}}>
+    //             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6 stroke-slate-400 hover:stroke-blue-500">
+    //               <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+    //             </svg>
+    //           </div>
+    //         </div>
+    //     }
+    //     <Dialog open={openInfoDialog} onClose={()=>{setOpenInfoDialog(false)}} maxWidth='md' sx={{"& .MuiDialog-paper":{width: "100%"}}}>
+    //       <DialogTitle className='font-bold'>{patient?.name || "無題の患者"}のパラメータ</DialogTitle>
+    //       <DialogContent>
+    //         <div className='w-full md:grid md:grid-cols-2 md:gap-x-10'>
+    //           {
+    //             Object.entries([patient.getInitialHdps(), patient.getHdps()]
+    //               .flatMap(Object.entries)
+    //               .reduce((o,[k,v])=>( {...o, [k]: (o[k]?[...o[k],v]:[v])}),{})).filter(x=>Hdps.includes(x[0])).sort((a,b)=> Hdps.findIndex(hdp=>hdp===a[0]) - Hdps.findIndex(hdp=>hdp===b[0]))
+    //               .map(([k,v])=> (<div className='flex flex-row items-center'>
+    //                 <div className=' mr-2'>{t[k] || k}</div>
+    //                 <div className='flex-grow'></div>
+    //                 {v[0] === v[1] ? 
+    //                   <div className='text-slate-600'>{v[0]}</div> :
+    //                   <><div className='text-slate-600'>{v[0]} → </div><div className='font-bold'>{v[1]}</div></>}
+    //                 <div className='text-xs ml-1 text-slate-600'>{InputRanges[k]?.unit}</div>
+    //               </div>))
+    //           }
+    //         </div>
+    //       </DialogContent>
+    //     </Dialog>
+    //     <div style={{flexGrow:1}}></div>
+    //     {
+    //       !readOnly && <>
+    //         <ControllerEditor initialController={controller} updateController={newController =>{setPatient(produce(patient,draft=>{draft.controller=newController}))}}/>
+    //         <Tooltip title={patient?.name+"を複製する"}>
+    //           <IconButton onClick={clonePatient} size="small" className={classes.faintNeumoButton}><ContentCopy/></IconButton>
+    //         </Tooltip>
+    //         <IconButton onClick={e=>{setMenuAnchorEl(e.currentTarget)}} size="small" className={classes.faintNeumoButton} sx={{ml:1,backgroundColor:"transparent !important"}}><ExpandMore/></IconButton>
+    //         <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={()=>{setMenuAnchorEl(null)}} MenuListProps={{dense:true}}>
+    //           <DeleteMenuItemWithDialog onDelete={()=>{removePatient();setMenuAnchorEl(null)}} message={"患者「"+patient?.name +"」を削除しようとしています。この操作は戻すことができません。"} onClose={()=>{setMenuAnchorEl(null)}}/>
+    //         </Menu>
+    //       </>
+    //     }
+    //   </Stack>
+    //   {controller.controllers.length>0 && 
+    //     <TabContext value={parentControllerId}>
+    //       <TabList 
+    //         onChange={(e,v)=>{setParentControllerId(v);setChildControllerId(controller.controllers.find(c=>c.id==v)?.controllers[0]?.id)}}
+    //         variant="scrollable"
+    //         scrollButtons
+    //         allowScrollButtonsMobile
+    //         sx={{mx:-2,"& .MuiTabs-scrollButtons.Mui-disabled": {opacity: 0.3}}}
+    //         >
+    //         {controller.controllers.map(item=><Tab label={item.name} value={item.id} />)}
+    //       </TabList>
+    //       <Box width={1} sx={{borderTop: 1, borderColor: 'divider',my:'-1px',mx:1}}/>
+    //       {controller.controllers.map(subController=>
+    //         <TabPanel value={subController.id} sx={{px:1,pt:2}}>
+    //           <Box>
+    //             {
+    //               subController.controllers.length>0 && 
+    //                 <ToggleButtonGroup
+    //                   color="primary"
+    //                   value={childControllerId}
+    //                   exclusive
+    //                   onChange={(e,v)=>{setChildControllerId(v)}}
+    //                   size="small"
+    //                   sx ={{width:1,'& .MuiToggleButton-root':{pb:'2px',pt:'3px',flexGrow:1}, mb:2}}
+    //                 >
+    //                   {subController.controllers.map(controllerItem =>(
+    //                     <ToggleButton value={controllerItem.id}>{controllerItem.name}</ToggleButton>
+    //                   ))}
+    //                 </ToggleButtonGroup>
+    //             }
+    //             {
+    //               subController.controllers.find(({id})=>childControllerId ==id)?.items?.map(controllerItem => (
+    //                 <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
+    //               ))
+    //             }
+    //             { subController.items?.length>0 && <>
+    //                 { subController.controllers?.length>0 && <Divider light  sx={{my:2, fontSize:"smaller",color:"gray"}}>{subController.name}共通</Divider>}
+    //                 <Box width={1} pt={1}>
+    //                   {subController.items?.map(controllerItem => (
+    //                     <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
+    //                   ))}
+    //                 </Box>
+    //               </>
+    //             }
+    //           </Box>
+    //         </TabPanel>
+    //       )}
+    //     </TabContext>      
+    //   }
+    //   {controller.items?.length>0 && (controller.controllers?.length>0 ? <Divider light sx={{mt:-1.5,mb:1,fontSize:"smaller",color:"gray"}}>{patient.name}共通</Divider> : <Divider light sx={{my:1,}}/>)}
+    //   {controller.items?.length>0 &&
+    //     <Box width={1} px={1} pt={1}>
+    //       {
+    //         controller.items?.map(controllerItem=> (
+    //           <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
+    //         ))
+    //       }
+    //     </Box>
+    //   }
+    // </div>
+  
 })
 
 export default ControllerPanel

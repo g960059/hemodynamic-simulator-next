@@ -7,7 +7,6 @@ import toast, { Toaster } from 'react-hot-toast';
 import {useWallet} from "../hooks"
 import { CircularProgress, Typography } from '@mui/material';
 import { Check} from '@mui/icons-material';
-import {LoadingButton} from '@mui/lab'
 import { Box } from '@mui/system';
 import {NeumoLoadingButton} from "./StyledComponents"
 
@@ -82,7 +81,7 @@ const Billing: NextPage = () => {
           </div>
         </div>
         <div className='w-full text-center mt-4'>
-          <LoadingButton className='font-bold text-white' variant='contained' disableElevation onClick={attachCard} loading={attaching}>登録する</LoadingButton>
+          {/* <LoadingButton className='font-bold text-white' variant='contained' disableElevation onClick={attachCard} loading={attaching}>登録する</LoadingButton> */}
         </div>
       </div> : 
       <div className="px-4 py-4">

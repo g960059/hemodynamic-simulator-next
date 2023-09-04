@@ -1,10 +1,7 @@
 import React,{useState} from 'react';
 import {Box,Grid, Typography, Stack,MenuItem, Checkbox, ListItemText, Menu,Divider,ListSubheader,Collapse, List, ListItemButton, IconButton, Slider,Tab, Button, ButtonGroup,ToggleButtonGroup,ToggleButton, Select} from '@mui/material'
-import {TabContext,TabList,TabPanel} from '@mui/lab';
 import {useTranslation} from '../../hooks/useTranslation'
-import {InputRanges} from '../../constants/InputSettings'
-import {Refresh} from '@mui/icons-material';
-import {DEFAULT_HEMODYANMIC_PROPS} from '../../utils/presets'
+
 
 const BasicHdps = ['Volume','Ras','LV_Ees','LV_alpha','LV_tau','HR']
 const AdvancedHdps = ["Volume","HR","LV_Ees","LV_alpha" ,"LV_Tmax" ,"LV_tau" ,"LV_AV_delay" ,"RV_Ees","RV_alpha" ,"RV_Tmax" ,"RV_tau" ,"RV_AV_delay" ,"LA_Ees","LA_alpha" ,"LA_Tmax" ,"LA_tau" ,"RA_Ees","RA_alpha" ,"RA_Tmax" ,"RA_tau" ,"Ras" ,"Rap" ,"Rvs" ,"Rvp","Cas","Cap" ,"Cvs" ,"Cvp","Ravs","Ravr","Rmvr","Rmvs","Rpvr", "Rpvs", "Rtvr", "Rtvs"]
