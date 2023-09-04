@@ -11,9 +11,10 @@ import { filter, map, mergeMap, of,   combineLatest } from 'rxjs';
 import Image from 'next/image'
 import { user$ } from '../../../../src/hooks/usePvLoop';
 import { query } from 'firebase/database';
-import {CanvasItem} from "../../page"
+import CanvasItem from "../../../../src/components/CanvasItem"
 import Link from 'next/link'
 import { getAuth } from 'firebase/auth'
+
 
 function UserSummary(){
   const router = useRouter()
