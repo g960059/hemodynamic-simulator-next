@@ -2,7 +2,7 @@ import React, {useRef, useState, useEffect,useCallback} from 'react'
 import {Box,Typography, Divider,AppBar, Toolbar,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,TextareaAutosize,useMediaQuery,Slide} from '@mui/material'
 import {ArrowBack,Add,Check,Tune,Close,FormatQuote, FormatStrikethrough,FormatBold,FormatItalic,FormatUnderlined,Link as LinkIcon, FormatListBulleted, FormatListNumbered, OndemandVideo,ImageOutlined} from '@mui/icons-material';
 import {user$,cases$} from '../../../hooks/usePvLoop'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import {a11yProps, TabPanel} from '../../../components/TabUtils'
 import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../../hooks/useTranslation'

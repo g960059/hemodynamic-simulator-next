@@ -1,12 +1,12 @@
 import React,{ useEffect, useRef, useState }  from 'react'
-import { useRouter } from 'next/router'
-import Footer from "../../src/components/Footer"
-import {auth,db} from '../../src/utils/firebase'
+import { useRouter } from 'next/navigation'
+import Footer from "../../components/Footer"
+import {auth,db} from '../../utils/firebase'
 
-import Layout from "../../src/components/layout"
+import Layout from "../../components/layout"
 import { collectionGroup, endBefore, getDocs, limit, orderBy, query, startAfter, startAt, where } from 'firebase/firestore';
 import Image from 'next/image'
-import { formatDateDiff } from '../../src/utils/utils';
+import { formatDateDiff } from '../../utils/utils';
 import Link from 'next/link';
 import { ChevronLeftOutlined, ChevronRightOutlined } from '@mui/icons-material'
 

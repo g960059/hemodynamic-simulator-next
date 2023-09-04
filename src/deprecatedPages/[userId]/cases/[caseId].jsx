@@ -2,7 +2,7 @@ import React, {useRef, useState, useEffect, useCallback} from 'react'
 import {Box,Typography,Divider,AppBar, Toolbar,Button,IconButton,Stack,Menu,Dialog,DialogContent,MenuItem,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery, DialogContentText, NoSsr} from '@mui/material'
 import {Favorite,FavoriteBorder,EventNoteOutlined,FeedOutlined,SettingsOutlined,Logout,Feed,EventNote, Edit,} from '@mui/icons-material';
 import {useEngine, user$} from '../../../../hooks/usePvLoop'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import {useTranslation} from '../../../../hooks/useTranslation'
 import CaseEditor from "../../../../components/CaseEditor"
 import Image from 'next/image'

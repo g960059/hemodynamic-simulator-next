@@ -5,7 +5,7 @@ import {user$} from '../../src/hooks/usePvLoop'
 // import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../src/hooks/useTranslation'
 import { FaintNeumoIconButton } from '../../src/components/StyledComponents';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import {formatDateDiff, nanoid} from "../../src/utils/utils"
 import {useObservable} from "../../src/hooks/useObservable"
 import Layout from '../../src/components/layout'

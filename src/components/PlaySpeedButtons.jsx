@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {Box, Button, IconButton, Stack, Typography, Menu, MenuItem,Dialog,DialogTitle,DialogContent,DialogActions,Tab, List, ListItem,ListItemText,ListItemIcon, DialogContentText} from '@mui/material'
 
 import {PlayArrow,Pause,SaveAlt,CloudUpload,SwitchAccount} from "@mui/icons-material";
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import en from '../locales/en'
 import ja from '../locales/ja'
 

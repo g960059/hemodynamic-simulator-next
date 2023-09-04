@@ -14,7 +14,7 @@ import {FiberManualRecord,MoreVert, ExpandLess,ExpandMore} from "@mui/icons-mate
 import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS} from '../../styles/chartConstants'
 import {useTranslation} from '../../hooks/useTranslation'
 import { Thickness } from 'scichart/Core/Thickness';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 
 const PV_COUNT = 500
 const EDPVR_STEP = 20

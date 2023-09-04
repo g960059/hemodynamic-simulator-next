@@ -2,7 +2,7 @@ import React, {useRef, useState, useEffect} from 'react'
 import {Box,Typography,Grid,Tab,Tabs, Divider,AppBar,Tooltip, Toolbar,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,List,ListItem,ListItemButton,ListItemText,Link,ToggleButtonGroup,ToggleButton,Avatar,useMediaQuery} from '@mui/material'
 import {ArrowBack,Add,Check,Tune,FavoriteBorder,DragIndicator} from '@mui/icons-material';
 import {useEngine, user$} from '../../../hooks/usePvLoop'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import PlaySpeedButtonsNext from '../../../components/PlaySpeedButtonsNext'
 import {a11yProps, TabPanel} from '../../../components/TabUtils'
 import { makeStyles } from '@mui/styles';

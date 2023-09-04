@@ -1,7 +1,7 @@
 import {useEffect} from 'react';
 import {differenceInDays,differenceInHours,differenceInMinutes,differenceInMonths,differenceInYears} from 'date-fns'
 import { customAlphabet } from 'nanoid';
-import Router from 'next/router';
+import Router from 'next/navigation';
 import { useBeforeUnload } from 'react-use';
 
 const alphabet = '123456789abcdef';

@@ -2,7 +2,7 @@ import React,{ useEffect, useRef,useState,useCallback}  from 'react'
 import {Box, Grid, Typography, Divider,Button,Stack,Link, CircularProgress, Tab,Avatar, useMediaQuery,Snackbar, IconButton,Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,Slider} from '@mui/material'
 import {Facebook, Twitter, Link as LinkIcon, FavoriteBorderOutlined, ExpandMore, FavoriteBorder, Favorite, ChevronLeftOutlined, ChevronRightOutlined} from "@mui/icons-material"
 import { makeStyles} from '@mui/styles';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import {auth,db} from '../../../../../../utils/firebase'
 import {doc, getDoc,writeBatch,increment, setDoc, updateDoc, arrayUnion, arrayRemove, getDocs, collection} from 'firebase/firestore';
 import Layout from "../../../../../../components/layout"

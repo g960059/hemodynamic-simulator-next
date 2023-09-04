@@ -2,7 +2,7 @@ import React,{ useEffect, useRef,useState,useCallback}  from 'react'
 import {Box, Grid, Typography, Divider,Button,Stack,Link, CircularProgress, Tab,Avatar, useMediaQuery,Snackbar, IconButton,Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,Slider} from '@mui/material'
 import {CalendarTodayOutlined, Facebook, Twitter, Link as LinkIcon, ExpandMore, FavoriteBorder, Favorite,FormatListBulletedOutlined} from "@mui/icons-material"
 import { makeStyles} from '@mui/styles';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import Footer from "../../components/Footer"
 import {auth, db} from '../../utils/firebase'
 import {doc, getDoc,getDocs,collection, writeBatch,increment, setDoc, updateDoc, arrayUnion, arrayRemove, serverTimestamp} from 'firebase/firestore';

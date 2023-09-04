@@ -4,7 +4,7 @@ import { PaymentIntent } from "@stripe/stripe-js";
 import { getFunctions, httpsCallable, HttpsCallableResult } from "firebase/functions";
 import { NextPage } from "next";
 import Image from "next/image";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useWallet } from "../hooks";

@@ -2,7 +2,7 @@ import React, {useRef, useState, useEffect} from 'react'
 import {Box,Typography,Button,IconButton,Stack,Switch,Dialog,DialogContent,DialogActions,DialogTitle,Popover,Autocomplete,TextField,useMediaQuery, NoSsr} from '@mui/material'
 import {ArrowBack,Add,Check,Tune} from '@mui/icons-material';
 import {useEngine, user$} from '../../src/hooks/usePvLoop'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import {useTranslation} from '../../src/hooks/useTranslation'
 import ReactiveInput from "../../src/components/ReactiveInput";
 import { paramPresets} from '../../src/utils/presets'

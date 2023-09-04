@@ -3,7 +3,7 @@ import {Box, Grid, Typography, Divider,Button,Stack, CircularProgress,Tab, Dialo
 
 import {useTranslation} from "../src/hooks/useTranslation"
 import { makeStyles} from '@mui/material/styles';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import Footer from "../src/components/Footer"
 import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
 

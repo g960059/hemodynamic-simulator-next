@@ -6,7 +6,7 @@ import { makeStyles } from '@mui/styles';
 import {useTranslation} from '../../hooks/useTranslation'
 import Lottie from 'react-lottie-player' 
 import DoctorPrescription from "../../lotties/DoctorPrescription.json"
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import {formatDateDiff, nanoid} from "../../utils/utils"
 import {useObservable} from "../hooks/useObservable"
 import Layout from '../../components/layout'
