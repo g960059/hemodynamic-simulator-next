@@ -6,7 +6,7 @@ import { CacheProvider } from '@emotion/react';
 import { ThemeProvider,createTheme ,responsiveFontSizes } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { useState } from 'react';
-import { initializeFirebaseApp } from '../src/utils/firebase';
+
 
 
 let theme = createTheme({
@@ -22,7 +22,6 @@ let theme = createTheme({
 theme = responsiveFontSizes(theme);
 
 
-initializeFirebaseApp();
 
 // This implementation is from emotion-js
 // https://github.com/emotion-js/emotion/issues/2928#issuecomment-1319747902

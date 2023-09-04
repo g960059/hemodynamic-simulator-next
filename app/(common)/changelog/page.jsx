@@ -1,8 +1,8 @@
+export const dynamic = "force-dynamic";
+
 import React  from 'react'
 import {Grid, Typography, Divider,} from '@mui/material'
 import {useTranslation} from "../../../src/hooks/useTranslation"
-
-
 
 const Changelog = () => {
   const t = useTranslation();

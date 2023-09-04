@@ -1,22 +1,20 @@
 'use client'
 
 import React,{ useEffect, useRef }  from 'react'
-import {Box, Grid, Typography, Divider,Button} from '@mui/material'
+import {Box, Grid, Typography, Divider} from '@mui/material'
 import Typed from "typed.js";
 import {useTranslation} from "../../../src/hooks/useTranslation"
-import { useRouter } from 'next/navigation'
 import Lottie from 'react-lottie-player' 
 import MedicalFrontliners from "../../../src/lotties/MedicalFrontliners.json"
 import LearningConcept from "../../../src/lotties/LearningConcept.json"
 import Discussion from "../../../src/lotties/Discussion.json"
 import Teaching from "../../../src/lotties/Teaching.json"
-
+import Link from 'next/link';
 
 
 const About = () => {
   const el = useRef(null);
   const t = useTranslation();
-  const router = useRouter()
 
   useEffect(() => {
     let typed= new Typed(el?.current!, {
@@ -43,7 +41,7 @@ const About = () => {
           <Typography variant="h3" sx={{fontWeight:"bold"}}>Your Insight</Typography>
           <Typography variant="subtitle1" sx={{lineHeight:1.8,color:"#4c4c4c",mt:2}}>{t["LpDescription"]}</Typography>
           <Box sx={{width:1,display:"flex", justifyContent:{xs:"center",md:"flex-start"}}}>
-            <Button variant="contained" size="large" className="mt-6 font-bold text-white" onClick={()=>{router.push("/")}}>今すぐはじめる</Button>
+            <Link href="/" className="font-bold bg-blue-500 text-white cursor-pointer py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition" >今すぐはじめる</Link>
           </Box>
         </Box>
       </Grid>

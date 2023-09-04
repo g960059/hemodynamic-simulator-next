@@ -5,8 +5,10 @@ import './globals.css'
 import ThemeRegistry from './ThemeRegistry';
 import GoogleAnalytics from '../src/components/GoogleAnalytics'
 import "../src/styles/globals.css"
+import { initializeFirebaseApp } from '../src/utils/firebase';
 
 
+initializeFirebaseApp();
 
 export default function MyApp({children} : {children: ReactNode}) {
   return (

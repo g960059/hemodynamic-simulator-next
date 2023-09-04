@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import React  from 'react'
 import {Grid, Typography, Divider,Link} from '@mui/material'
 import {useTranslation} from "../../../src/hooks/useTranslation"
