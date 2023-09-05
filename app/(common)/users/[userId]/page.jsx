@@ -5,7 +5,7 @@ import {Typography,Button,Stack, Avatar, useMediaQuery,NoSsr, Dialog} from '@mui
 import {Twitter,Facebook, Link as LinkIcon} from "@mui/icons-material"
 import { useRouter, useParams } from 'next/navigation'
 import {useObservable} from "../../../../src/hooks/useObservable"
-import {collection,doc, updateDoc,serverTimestamp,writeBatch, getDocs,  where, getFirestore,} from 'firebase/firestore';
+import {collection,doc, updateDoc,serverTimestamp,writeBatch, getDocs,  where, getFirestore, and,} from 'firebase/firestore';
 import { collectionData, docData } from 'rxfire/firestore';
 import { filter, map, mergeMap, of,   combineLatest } from 'rxjs';
 import Image from 'next/image'
@@ -68,7 +68,6 @@ function UserSummary(){
   const isFollowing = followerIds?.some(followee => followee?.uid === currentUser?.uid);
 
   const follow = async (currentUid, targetUid) => {
-    console.log(currentUid, targetUid)
     const batch = writeBatch(db);
   
     // currentUidのfollowingサブコレクションにtargetUidを追加
@@ -114,7 +113,7 @@ function UserSummary(){
     (async ()=>{
       if(uid){
         const loadedCanvas = []
-        const loadedCanvasSnap = await getDocs(query(collection(db,"canvas"),where("visibility","!=","private")));
+        const loadedCanvasSnap = await getDocs(query(collection(db,"canvas"),and(where("visibility","!=","private"),where("uid", "==", uid))));
         loadedCanvasSnap.forEach(async (caseSnap) => {
           loadedCanvas.push({...caseSnap.data(),id:caseSnap.id})
         })
@@ -177,7 +176,12 @@ function UserSummary(){
             {
               canvas?.map(c=><CanvasItem canvasItem={c}/>)
             }
-          </div>         
+          </div>       
+          {
+            canvas?.length == 0 && <div className='w-full h-80 flex justify-center items-center'>
+              <div className='text-slate-500 text-center'>まだ投稿はありません</div>
+            </div>
+          }  
         </div>
         <Dialog open={openFollowers} onClose={()=>setOpenFollowers(false)} fullWidth={!isUpMd}>
           <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
