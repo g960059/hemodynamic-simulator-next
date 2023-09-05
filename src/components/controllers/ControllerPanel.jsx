@@ -11,8 +11,7 @@ import ReactiveInput from "../ReactiveInput";
 import DeleteMenuItemWithDialog from "../DeleteMenuItemWithDialog";
 import { useImmer } from "use-immer";
 import { nanoid } from 'nanoid';
-import produce from "immer"
-import { merge } from 'lodash';
+
 
 const Severity = ["Trivial","Mild","Moderate","Severe"]
 

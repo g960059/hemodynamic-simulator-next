@@ -17,7 +17,6 @@ import {readFile,objectWithoutKeys,getRandomEmoji,formatDateDiff,getCroppedImg,n
 import Cropper from 'react-easy-crop'
 
 import { ref, getDownloadURL ,uploadString,uploadBytesResumable, getStorage} from "firebase/storage";
-import Image from 'next/image';
 import clsx from 'clsx';
 import { combineLatest, of } from 'rxjs';
 import { FaintNeumoIconButton } from '../../../src/components/StyledComponents';
