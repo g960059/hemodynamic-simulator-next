@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/server'
 import { db } from '../../../src/utils/firebaseAdmin'
 import {loadGoogleFont} from '../../../src/utils/font'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 export const revalidate = 10;
 export const size = {
   width: 1200,
