@@ -10,7 +10,7 @@ export const firebaseAdmin =
         type: "service_account",
         project_id: "hemodynamic-simulator",
         private_key_id: "725ee23e67a527c40885b59eb8633f5a7c200f39",
-        private_key: process.env.FIREBASE_ADMIN_PRIVATE_KEY,
+        private_key: process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\n/g, '\n'),
         client_email: "firebase-adminsdk-w4f3i@hemodynamic-simulator.iam.gserviceaccount.com",
         client_id: "115737869529677260955",
         auth_uri: "https://accounts.google.com/o/oauth2/auth",
