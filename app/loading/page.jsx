@@ -1,5 +1,5 @@
-import Layout from "../../../src/components/layout"
-import Footer from "../../../src/components/Footer"
+import Layout from "../../src/components/layout"
+import Footer from "../../src/components/Footer"
 
 const LoadingSkelton = () => {
   return <>
@@ -33,7 +33,7 @@ const LoadingSkelton = () => {
           <div className="h-60 w-full  md:w-1/2 px-1 py-2 md:p-4">
             <div className="bg-gray-200 rounded-md w-full h-full"/>
           </div>
-        </div>        
+        </div>    
       </Layout>
       <hr className="border-0 border-b border-slate-200"/>
       <Footer/>

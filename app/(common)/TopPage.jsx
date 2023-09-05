@@ -3,7 +3,7 @@ import React,{ useEffect, useState }  from 'react'
 import {Box, Typography,  Dialog, DialogContent,DialogContentText} from '@mui/material'
 
 import {useTranslation} from "../../src/hooks/useTranslation"
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useSearchParams} from 'next/navigation'
 
 import { doc,collection,collectionGroup, getDocs,getDoc, limit, orderBy, query, where, writeBatch, startAfter, getFirestore} from 'firebase/firestore';
 import Image from 'next/image'
@@ -12,7 +12,7 @@ import {user$} from '../../src/hooks/usePvLoop'
 import { getAuth } from 'firebase/auth';
 import { useSignInWithGoogle } from 'react-firebase-hooks/auth';
 import CanvasItem from '../../src/components/CanvasItem'
-
+import CanvasItemSkeleton from '../../src/components/CanvasItemSkeleton'
 
 const PAGE_SIZE = 20;
 
@@ -20,10 +20,10 @@ const TopPage = () => {
   const auth = getAuth()
   const db = getFirestore()
   const router = useRouter()
-  const queryParams = useParams()
+  const searchParams = useSearchParams()
 
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
-  const [tabValue, setTabValue] = useState(queryParams?.tab || "trending");
+  const [tabValue, setTabValue] = useState(searchParams.get("tab") || "trending");
 
   const [canvasList, setCanvasList] = useState([]);
   const [lastDoc, setLastDoc] = useState();
@@ -166,6 +166,9 @@ const TopPage = () => {
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {
                 canvasList.map(c => <CanvasItem canvasItem={c} />)
+              }
+              {
+                canvasList.length == 0 && [1,2,3,4,5,6,7,8].map(i=><CanvasItemSkeleton key={i}/>)
               }
             </div> 
             {canvasList.length >= PAGE_SIZE  && <div className="mt-4 text-center w-full flex justify-center items-center">

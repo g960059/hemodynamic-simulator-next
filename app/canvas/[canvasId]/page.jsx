@@ -467,7 +467,7 @@ const App = () => {
   }
 
   return <>
-    <Head>
+    {/* <Head>
       <title>{canvas?.name|| "Untitled"}</title>
       <meta property="og:title" content={canvas?.name || "Untitled"} key="og:title"/>
       <meta property="og:description" content={`${canvas?.displayName}さんの投稿`} key="og:description" />
@@ -480,7 +480,7 @@ const App = () => {
       <meta name="twitter:title" content={canvas?.name|| "Untitled"} key="twitter:title"/>
       <meta name="twitter:description" content={`${canvas?.displayName}さんの投稿`} key="twitter:description"/>
       <meta name="twitter:image" content={canvas.ogpUrl} key="twitter:image"/>
-    </Head>
+    </Head> */}
   {
     (loading || isOwner == undefined) ? <>
         <LoadingSkelton/> 
@@ -647,35 +647,35 @@ const LoadingSkelton = () => {
   return <>
       <Layout>
         <div className='w-full pb-3 animate-pulse'> 
-          <div className='flex flex-row mx-3 md:mx-8 md:mt-5 md:mb-2 items-center justify-center'>
-            <div className='bg-gray-200 w-32 h-10 rounded-md mx-5'></div>
-            <div className='flex flex-row items-center justify-center'>
+          <div className='w-full flex flex-col space-y-4  mt-5 md:mx-8 items-start justify-center'>
+            <div className='bg-gray-200 w-2/3 md:w-1/3 h-7 md:h-7 rounded-md mx-5'></div>
+            <div className='flex flex-row items-center justify-center mx-5'>
               <div className="h-10 w-10 bg-gray-200 rounded-full" />
               <div className='ml-2 '>
-                <div className="h-3 w-20 bg-gray-200 rounded-md mb-2" />
+                <div className="h-3 w-32 bg-gray-200 rounded-md mb-2" />
                 <div className="h-3 w-10 bg-gray-200 rounded-md" />
               </div>
             </div>
             <div className='flex-grow'/>
           </div>
         </div>
-        <div className='flex w-full h-[calc(100vh_-_250px)] flex-wrap items-center justify-center p-6 '>
-          <div className="h-2/3 w-1/6 p-4 animate-pulse" >
-            <div className='bg-gray-200 rounded-md w-full h-full'/>
+        <div className='animate-pulse px-7 flex flex-col  md:flex-row w-full md:h-[calc(100vh_-_250px)] md:flex-wrap items-center justify-center overflow-auto '>
+          <div className="h-60 md:h-2/3 w-full  md:w-1/6 px-1 py-2 md:p-4">
+            <div className="bg-gray-200 rounded-md w-full h-full"/>
           </div>
-          <div className="h-2/3 w-4/6 p-4 animate-pulse" >
-            <div className='bg-gray-200 rounded-md w-full h-full'/>
+          <div className="h-60 md:h-2/3 w-full  md:w-4/6 px-1 py-2 md:p-4">
+            <div className="bg-gray-200 rounded-md w-full h-full"/>
           </div>
-          <div className="h-2/3 w-1/6 p-4 animate-pulse" >
-            <div className='bg-gray-200 rounded-md w-full h-full'/>
+          <div className="h-60 md:h-2/3 w-full  md:w-1/6 px-1 py-2 md:p-4">
+            <div className="bg-gray-200 rounded-md w-full h-full"/>
           </div>
-          <div className="h-1/3 w-1/2 p-4 animate-pulse" >
-            <div className='bg-gray-200 rounded-md w-full h-full'/>
+          <div className="h-60 w-full  md:w-1/2 px-1 py-2 md:p-4">
+            <div className="bg-gray-200 rounded-md w-full h-full"/>
           </div>
-          <div className="h-1/3 w-1/2 p-4 animate-pulse" >
-            <div className='bg-gray-200 rounded-md w-full h-full'/>
+          <div className="h-60 w-full  md:w-1/2 px-1 py-2 md:p-4">
+            <div className="bg-gray-200 rounded-md w-full h-full"/>
           </div>
-        </div>      
+        </div>     
       </Layout>
       <hr className="border-0 border-b border-slate-200"/>
       <Footer/>
