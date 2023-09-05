@@ -23,11 +23,14 @@ export default function MyApp({children} : {children: ReactNode}) {
 
 export const metadata : Metadata = {
   title: 'CircleHeart',
-  description: 'CircleHeart is a blog about software development and other things.',
+  description: 'CircleHeart is a community space about hemodynamics.',
+  
   openGraph: {
     url: 'https://www.circleheart.dev/',
     title: 'CircleHeart',
-    description: 'CircleHeart is a blog about software development and other things.',
+    description: 'CircleHeart is a community space about hemodynamics.',
+    locale: 'ja_JP',
+    type: 'website',
     images: [
       {
         url: 'https://www.circleheart.dev/favicons/favicon_256x256.png',
@@ -37,20 +40,14 @@ export const metadata : Metadata = {
       },
     ],
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CircleHeart',
+    description: 'CircleHeart is a community space about hemodynamics.',
+    site: '@CircleHeart_dev',
+    creator: '@0xYusuke',
+  },  
 };
-
-{/* <Head>
-  <meta name="viewport" content="initial-scale=1, width=device-width" />
-  <title>CircleHeart</title>
-  <meta name="description" content={t["Description"]} key="description"/>
-  <meta property="og:title" content="CircleHeart" key="og:title"/>
-  <meta property="og:description" content={t["Description"]} key="og:description"/>
-  <meta property="og:url" content="https://www.circleheart.dev/" key="og:url"/>
-  <meta name="twitter:site" content="@CircleHeart_dev" />
-  <meta name="twitter:creator" content="@CircleHeart_dev" key="twitter:creator"/>
-  <meta name="twitter:title" content="CircleHeart" key="twitter:title"/>
-  <meta name="twitter:description" content={t["Description"]} key="twitter:description"/>
-</Head> */}
 
 
 // export  function MyDocument({ emotionStyleTags }: MyDocumentProps) {
