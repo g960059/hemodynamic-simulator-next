@@ -1,5 +1,5 @@
-import React, { useRef, useState, useEffect, useCallback} from 'react'
-import {Box,Grid, Typography, Popover,useMediaQuery, IconButton, CircularProgress,Button, alpha, Dialog,DialogActions,DialogContent,DialogTitle, Select, Menu} from '@mui/material'
+import React, { useRef, useState, useEffect} from 'react'
+import {Box,Typography, Popover, CircularProgress, alpha} from '@mui/material'
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
 import {FastLineRenderableSeries} from "scichart/Charting/Visuals/RenderableSeries/FastLineRenderableSeries";
@@ -10,18 +10,15 @@ import {EAxisAlignment} from "scichart/types/AxisAlignment";
 import {EAutoRange} from "scichart/types/AutoRange";
 import { NumberRange } from "scichart/Core/NumberRange";
 import { ELineDrawMode } from "scichart/Charting/Drawing/WebGlRenderContext2D";
-import {FiberManualRecord,Tune, Delete, Add, DragIndicator, ExpandMore} from "@mui/icons-material"
-import {LightTheme, COLORS, ALPHA_COLORS, DARKEN_COLORS,getRandomColor} from '../styles/chartConstants'
-import {useTranslation} from '../hooks/useTranslation'
+import {FiberManualRecord,} from "@mui/icons-material"
+import {LightTheme, } from '../styles/chartConstants'
 import { useImmer } from "use-immer";
 import ChartDialog from './ChartDialog';
 import  DeleteMenuItemWithDialog from "../components/DeleteMenuItemWithDialog"
-import { nanoid } from 'nanoid'
 
 
 const PV_COUNT = 1000
 const EDPVR_STEP = 50
-const PVTypes = ['LV','LA','RV','RA']
 const format = x => (Math.floor(x/20)+1.8)*20
 
 const getPVSeriesFn = () => {
@@ -41,8 +38,6 @@ const getHdProps = {
 const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner}) =>{
 
   const [originalView, setOriginalView] = useImmer(view);
-
-  const t = useTranslation();
 
   const [loading, setLoading] = useState(true);
 
@@ -72,13 +67,11 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
   const xMaxPrevRef = useRef({});
   const tcRef = useRef({});
   const changedVisibleRange = useRef(false);
-  const [autoScale, setAutoScale] = useState(true);
   const autoScaleRef = useRef(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState();
 
   const updateCounterRef = useRef(0);
-  const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
 
   const addDataSeries = (item)=>{
     const {id,color} = item

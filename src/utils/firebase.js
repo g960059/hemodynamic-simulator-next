@@ -30,6 +30,7 @@ const uiConfig = {
 };
 
 
+
 export const initializeFirebaseApp = () =>
   !getApps().length ? initializeApp(firebaseConfig) : getApp()
 // Initialize Firebase

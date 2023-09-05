@@ -77,7 +77,7 @@ export default async function og({params: {canvasId} }) {
             src="https://www.circleheart.dev/favicons/favicon_256x256.png"
             width="48"
             height="48"
-            style={{ borderRadius: 60, marginRight: 10 }}
+            style={{ borderRadius: 48, marginRight: 10 }}
           />          
           <div style={{ fontWeight: "bold", fontSize: 36}}>CircleHeart</div>
         </div>
