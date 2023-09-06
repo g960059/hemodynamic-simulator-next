@@ -352,7 +352,7 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
     <div className="w-full h-full">
       <div className="w-full h-full" style={{opacity: loading ? 0 : 1}}>
         <div className='flex p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200'>
-          <div className='draggable cursor-move font-bold text-lg pl-1'>{view?.name || ""}</div>
+          <div className='draggable cursor-move font-bold text-base md:text-lg pl-1 whitespace-nowrap overflow-x-auto'>{view?.name || ""}</div>
           <div className='draggable cursor-move flex-grow'></div>
           {isOwner && <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
             <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
@@ -398,7 +398,7 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
         <ChartDialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} initialView={view} updateView={(newView)=>{updateView({id:view.id, ...newView});}} patients={patients}/>
         
         <div className='flex w-full'>
-          <div className='flex flex-row px-4 pt-2'>
+          <div className='flex flex-row px-4 pt-2 flex-wrap'>
             {view.items.map((item,i)=>(
               <div className='flex flex-row' key={item} > 
                 <FiberManualRecord sx={{color:item.color}} />
@@ -408,7 +408,7 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
           </div>
         </div>
 
-        <div id={"scichart-pv-root"+view.id} style={{width: '100%',height:"calc(100% - 86px)", aspectRatio : "auto"}}/>
+        <div id={"scichart-pv-root"+view.id} style={{width: '100%',height:"calc(100% - 98px)", aspectRatio : "auto"}}/>
       </div>
       <Box sx={{display: loading  ? 'block': 'none', zIndex:100, position: 'absolute'}}>
         <CircularProgress/>

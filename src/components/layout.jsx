@@ -91,7 +91,7 @@ function Layout(props) {
 
   const createNewCase =  async () => {
     const canvasId = nanoid()
-    router.push({pathname:`/canvas/${canvasId}`,query:{newItem:true}})
+    router.push(`/canvas/${canvasId}?newItem=true`)
     setNewItemAnchorEl(null)
   }
 
@@ -281,8 +281,11 @@ function Layout(props) {
         </div>
       </Popover>      
       <Background/>
-      {props.children}
-
+      <div className='flex items-center justify-center'>
+        <div className=' max-w-screen-xl w-full'>
+          {props.children}
+        </div>
+      </div>
     </>
   );
 }

@@ -33,7 +33,7 @@ const ControllerPanel = React.memo(({view,updateView,removeView, patient, setPat
   return (
     <div className='w-full h-full overflow-hidden'>
       <div className='flex items-center p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200 relative h-10'>
-        <div className='draggable cursor-move font-bold text-lg pl-1'>{view?.name || "Controller Panel"}</div>
+        <div className='draggable cursor-move font-bold text-base md:text-lg pl-1 whitespace-nowrap overflow-x-auto'>{view?.name || "Controller Panel"}</div>
         <div className='draggable cursor-move flex-grow h-full'></div>
         {isOwner && <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget);}}>
           <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
@@ -85,7 +85,7 @@ const ControllerPanel = React.memo(({view,updateView,removeView, patient, setPat
         </div>
       </Popover>   
       {view.items?.length>0 &&
-        <div className='w-full px-4 py-2 h-[calc(100%_-_48px)] relative overflow-auto'>
+        <div className='w-full px-4 py-2 h-[calc(100%_-_50px)] relative overflow-auto'>
           {
             view.items?.map(controllerItem=> (
               <InputItem patient={patient} controllerItem={controllerItem} forceUpdate={()=>{setPatient({...patient})}}/>
@@ -480,13 +480,13 @@ export const InputItem =  React.memo(({patient, controllerItem, forceUpdate}) =>
   if(hdp == "IABP") return <Box sx={{mb:1,width:1}} key={hdp}><IabpButton hdps={hdps} setHdps={setHdps} /></Box>;
   if(["Ravs","Rmvs","Rtvs","Rpvs","Ravr","Rmvr","Rtvr","Rpvr"].includes(hdp)) return <Box sx={{mt:1,width:1}} key={hdp}><BasicToggleButtons hdp={hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps}/></Box>
   return <>
-    {mode=="basic" && <BasicInputs hdp={hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} key={hdp}/>}
+    {mode=="basic" && <BasicInputs hdp={hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} key={hdp} options={options}/>}
     {mode=="advanced" && <AdvancedInputs hdp={hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} key={hdp}/>}
     {mode=="customized" && <CustomizedInputs hdp={hdp} initialHdps={initialHdps} hdps={hdps} setHdps={setHdps} key={hdp} options={options}/>}
   </>  
 })
 
-export const BasicInputs = React.memo(({hdp,initialHdps, hdps,setHdps}) => {
+export const BasicInputs = React.memo(({hdp,initialHdps, hdps,setHdps, options}) => {
   const t = useTranslation();
   const [value, setValue] = useState(hdps[hdp]);
   const display = () => {
@@ -520,7 +520,7 @@ export const BasicInputs = React.memo(({hdp,initialHdps, hdps,setHdps}) => {
   return <>
     <Grid container justifyContent="space-between" alignItems="center" display='flex' sx={{mb:1}}>
       <Grid item>
-      <Typography variant='subtitle1' whiteSpace="nowrap">{display()}</Typography>
+        <Typography variant='subtitle1' whiteSpace="nowrap">{options?.label || display()}</Typography>
       </Grid>
       <Grid item>
       <Stack direction="row" justifyContent="flex-end" alignItems="center" display='flex'>

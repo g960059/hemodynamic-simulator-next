@@ -1,7 +1,7 @@
 'use client';
 
 import React,{useState, useEffect, useRef} from 'react';
-import {Popover} from '@mui/material'
+import {Popover, useMediaQuery} from '@mui/material'
 
 import { BlockNoteView, useBlockNote, ReactSlashMenuItem, getDefaultReactSlashMenuItems,createReactBlockSpec,InlineContent,lightDefaultTheme } from "@blocknote/react";
 import { defaultBlockSchema, defaultProps} from "@blocknote/core";
@@ -18,18 +18,10 @@ import { InlineMath, BlockMath } from 'react-katex';
 import TextareaAutosize from 'react-textarea-autosize';
 import 'katex/dist/katex.min.css';
 
-const theme = {
-  ...lightDefaultTheme,
-  componentStyles: (theme) => ({
-    Editor: {
-      overflow: 'scroll',
-      height: '100%',
-    },
-  }),
-}
 
 
-const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner,caseData, setCaseData}) => {
+
+const NoteViewer = React.memo(({ view = null,updateView,removeView, isOwner,caseData, setCaseData}) => {
   const db = getFirestore()
   const storage = getStorage()
   const [anchorEl, setAnchorEl] = useState(null);
@@ -40,6 +32,20 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner,caseD
   const [selectedBlock, setSelectedBlock] = useState(null);
   const [newMathBlockInserted, setNewMathBlockInserted] = useState(false);
   const debouncedContent = useDebounce(content, 250);
+  const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
+  
+  const theme = {
+    ...lightDefaultTheme,
+    componentStyles: (theme) => ({
+      Editor: {
+        overflow: 'scroll',
+        height: '100%',
+        ".ProseMirror":{
+          padding: isUpMd ? "0px 16px": "0px 12px",
+        }
+      },
+    }),
+  }
 
   const uploadImageToStorage = async (file) => {
     const imageRef = ref(storage, `images/${caseData.id}/${file.name}`);
@@ -126,38 +132,6 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner,caseD
     ),
   });
   
-  const insertImageMenuItem = {
-    name: 'Insert Image',
-    execute: async (editor) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = 'image/*';
-      input.onchange = async () => {
-        if (!input.files?.length) return;
-        const file = input.files[0];
-        const src = await uploadImageToStorage(file);
-        const id = nanoid();
-        editor.insertBlocks(
-          [{id, type: 'image', props: {src, alt: file.name, width:60 } }],
-          editor.getTextCursorPosition().block,
-          'after'
-        );
-        setContent(draft =>{
-          draft.push({ id, type: 'image', props: { src, alt: file.name, width:60 } })
-        })
-        
-        await updateDoc(doc(db,'canvas',caseData.id),{allImagesInStorage: arrayUnion(src)})
-        setCaseData(draft=>{
-          draft.allImagesInStorage.push(src)
-        })
-      };
-      input.click();
-    },
-    aliases: ['image', 'img', 'picture', 'media'],
-    group: 'Media',
-    icon: <RiImage2Fill/>,
-    hint: 'Insert an image',
-  };
 
   const MathBlock = createReactBlockSpec({
     type: "math",
@@ -175,7 +149,7 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner,caseD
           setCurrentEquation(block.props.equation);
           setMathPopoverAnchor(e.currentTarget);
         }}
-        className='cursor-pointer w-full h-full flex items-center justify-center p-2  hover:bg-slate-100 [&>div]:w-full'
+        className='w-full h-full flex items-center justify-center p-2  [&>div]:w-full'
       >
         <BlockMath math={block.props.equation} />
         {block.props.equation === "" && <div className=' text-sm text-slate-400 px-3 py-2 flex flex-row items-center justify-center'>
@@ -186,39 +160,7 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner,caseD
     ),
   });
 
-  const insertMath = {
-    name: "Insert Math",
-    execute: (editor) => {;
-      const id = nanoid();
-      editor.insertBlocks(
-        [
-          {
-            id,
-            type: "math",
-            props: {
-              equation: "",
-            },
-          },
-        ],
-        editor.getTextCursorPosition().block,
-        "after"
-      );
-      setContent(draft =>{
-        draft.push({ id, type: "math", props: { equation: "" } })
-      })
-      setNewMathBlockInserted(id);
-    },
-    aliases: ["math", "equation", "formula"],
-    group: "Math",
-    icon: <svg xmlns="http://www.w3.org/2000/svg"  width="16" height="16" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-      <path d="M3 19a2 2 0 0 0 2 2c2 0 2 -4 3 -9s1 -9 3 -9a2 2 0 0 1 2 2"/>
-      <path d="M5 12h6"/>
-      <path d="M15 12l6 6"/>
-      <path d="M15 18l6 -6"/>
-    </svg>,
-    hint: "Insert a math equation",
-  };  
+
   
   const customSchema = {
     ...defaultBlockSchema,
@@ -228,138 +170,30 @@ const NotePanel = React.memo(({ view = null,updateView,removeView, isOwner,caseD
 
   const editor = useBlockNote({
     initialContent: content,
-    editable: isOwner,
-    onEditorContentChange : (editor) => {
-      setContent(editor?.topLevelBlocks)
-    },
+    editable: false,
     blockSchema: customSchema,
-    slashMenuItems: [
-      ...getDefaultReactSlashMenuItems(customSchema),
-      insertImageMenuItem,
-      insertMath,
-    ],
   });
 
-  useEffect(() => {
-    if (newMathBlockInserted) {
-      const newMathBlockElement = document.getElementById(newMathBlockInserted);
-      if (newMathBlockElement) {
-        setMathPopoverAnchor(newMathBlockElement);
-      }
-      setSelectedBlock(newMathBlockInserted)
-      setNewMathBlockInserted(null);
-    }
-  }, [newMathBlockInserted]);
 
 
-  useEffect(() => {
-    updateView({...view, content: content})
-  }, [debouncedContent]);
 
 
-  
+
   return <>
     <div className='w-full h-full '>
-      <div className='flex items-center p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200 relative min-h-10'>
-        <div className='draggable cursor-move font-bold text-base md:text-lg pl-1 whitespace-nowrap overflow-x-auto'>{view?.name || "Note"}</div>
-        <div className='draggable cursor-move flex-grow h-full'></div>
-        {isOwner && <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
-          <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-          </svg>
-        </div>}
+      <div className='flex items-center pt-2 pb-1 px-3  mb-2 border-solid border-0 border-b border-b-slate-200 relative min-h-10'>
+        <div className='font-bold text-base md:text-lg pl-1 whitespace-wrap'>{view?.name || "Note"}</div>
+        <div className='flex-grow h-full'></div>
       </div>
-      <div className='w-full h-[calc(100%_-_50px)] relative '>
+      <div className='w-full relative h-[calc(100%_-_50px)] overflow-y-auto'>
         <BlockNoteView editor={editor}  theme={theme} />
       </div>
     </div>
-    <Popover 
-      open={Boolean(anchorEl)}
-      anchorEl={anchorEl}
-      onClose={(e)=>{setAnchorEl(null)}}
-      anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'right',
-      }}
-      transformOrigin={{
-        vertical: 'top',
-        horizontal: 'right',
-      }}
-      elevation={0}
-      marginThreshold={0}
-    >
-      <div className='flex flex-col items-center justify-center py-2 bg-white  border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
-        <div onClick={()=> {setDialogOpen(true); setAnchorEl(null)}} 
-          className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
-        >
-          <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-          </svg>
-          Edit
-        </div>
-        <DeleteMenuItemWithDialog raw onDelete={()=>{removeView()}} onClose={()=>setAnchorEl(null)} message ={"「"+(view?.name || "Note") + "」を削除しようとしています。この操作は戻すことができません。"}>
-          <div className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1  text-red-500 hover:bg-red-500 hover:text-white">
-            <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-            </svg>                                
-            Delete
-          </div>
-        </DeleteMenuItemWithDialog>
-      </div>
-    </Popover>
-    <Popover 
-      open={Boolean(mathPopoverAnchor)}
-      anchorEl={mathPopoverAnchor}
-      onClose={() => setMathPopoverAnchor(null)}          
-      anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'center',
-      }}
-      transformOrigin={{
-        vertical: 'top',
-        horizontal: 'center',
-      }}     
-      slotProps={{paper:{className:'p-2 border border-solid border-slate-200 rounded-md shadow-lg'}}}
-    >
-      <div className= 'h-full flex flex-row items-start justify-center'>
-        <TextareaAutosize
-          value={currentEquation} 
-          onChange={(e) => setCurrentEquation(e.target.value)} 
-          className= "w-96 text-base border-none rounded  tracking-wide resize-none appearance-none focus:outline-none focus:ring-0 focus:border-transparent "
-          autoFocus
-          placeholder="\int_0^\infty x^2 dx"
-          minRows={3}
-        />        
-        <button 
-          onClick={() => {
-            editor.updateBlock(selectedBlock,
-              {
-                props: {
-                  equation: currentEquation,
-                },
-              }
-            );
-            setContent(draft => {
-              const index = draft.findIndex(item => item.props?.id === selectedBlock.props?.id);
-              if (index !== -1) {
-                draft[index].props.equation = currentEquation;
-              }
-            });
-            setMathPopoverAnchor(null)
-            setSelectedBlock(null)
-            setCurrentEquation("")
-          }}
-          className='font-bold bg-blue-500 text-white cursor-pointer m-1 py-1 px-2 text-sm rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition'
-        >
-          Done
-        </button>
-      </div>
-    </Popover>   
-    <NoteDialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} initialView={view} updateView={(newView)=>{updateView({id:view.id, ...newView});}} />
+ 
   </>
 })
 
-export default NotePanel;
+export default NoteViewer;
 
 
 

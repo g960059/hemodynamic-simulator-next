@@ -3,7 +3,7 @@ import React,{ useEffect, useState }  from 'react'
 import {Box, Typography,  Dialog, DialogContent,DialogContentText} from '@mui/material'
 
 import {useTranslation} from "../../src/hooks/useTranslation"
-import { useRouter, useSearchParams} from 'next/navigation'
+import { useSearchParams} from 'next/navigation'
 
 import { doc,collection,collectionGroup, getDocs,getDoc, limit, orderBy, query, where, writeBatch, startAfter, getFirestore} from 'firebase/firestore';
 import Image from 'next/image'
@@ -19,7 +19,6 @@ const PAGE_SIZE = 20;
 const TopPage = () => {
   const auth = getAuth()
   const db = getFirestore()
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   const {data:user} = useObservable(`user_${auth?.currentUser?.uid}`,user$)
@@ -185,7 +184,7 @@ const TopPage = () => {
           <div className='max-w-4xl w-full mx-auto py-4 md:py-10 px-4 min-h-[440px] '>
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {
-                myCases?.map(c=><CanvasItem canvasItem={c} removeCanvas={removeCanvas} isOwner={true}/>)
+                myCases?.map(c=><CanvasItem canvasItem={c} removeCanvas={removeCanvas} isOwner={true} isEdit={true}/>)
               }
             </div>
             { myCases.length >= PAGE_SIZE && 
