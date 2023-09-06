@@ -73,7 +73,7 @@ const CanvasViewer = React.memo(({engine,caseData,setCaseData,patients,setPatien
         </div>    
         <div className="flex-grow"/>
         <div className='flex flex-row justify-center items-center -mr-3'>
-          {isUpMd && <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(caseData?.name)}&url=${encodeURIComponent(`https://www.circleheart.dev/canvas/${caseData.id}`)}`}role="button" className={`mr-2 md:mr-3 no-underline bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500  ${isLogin && "cursor-pointer hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 md:py-2.5 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
+          {isUpMd && <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(caseData?.name)}&url=${encodeURIComponent(`https://www.circleheart.dev/${caseData.userId}/canvas/${caseData.id}`)}`}role="button" className={`mr-2 md:mr-3 no-underline bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500  ${isLogin && "cursor-pointer hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 md:py-2.5 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className='w-4 h-4 md:w-5 md:h-5'
