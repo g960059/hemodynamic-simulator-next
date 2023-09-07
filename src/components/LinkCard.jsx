@@ -42,7 +42,7 @@ const LinkCard = ({ href }) => {
           <h1 className="m-0 text-base font-bold leading-tight truncate-2-lines group-hover:no-underline">{state.ogData.title}</h1>
           <div className="mt-2 text-xs text-slate-600 leading-tight truncate-2-lines overflow-hidden">{state.ogData.description}</div>
           <div className="mt-2 flex items-center text-xs text-slate-600 truncate">
-            <img src={state.ogData.favicon} alt={`${state.ogData.siteName} favicon`} className="mr-1.5 flex-shrink-0" width="14" height="14" />
+            {state.ogData.favicon && <img src={state.ogData.favicon} alt={`${state.ogData.siteName} favicon`} className="mr-1.5 flex-shrink-0" width="14" height="14" />}
             {state.ogData.siteName}
           </div>
         </div>
