@@ -15,6 +15,7 @@ export async function GET(request) {
       title: result.ogTitle,
       description: result.ogDescription,
       image: result.ogImage && result.ogImage[0] && result.ogImage[0].url ? result.ogImage[0].url : null,
+      favicon: result.favicon ? result.favicon : null,
       type: result.ogType,
     };
     return new Response(JSON.stringify(ogData), {

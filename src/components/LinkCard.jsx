@@ -34,19 +34,23 @@ const LinkCard = ({ href }) => {
   }
 
   return !state.isCompleted ? (
-    <div className="bg-gray-100 p-4 rounded-md">Loading...</div>
+    <div className="bg-slate-100 p-4 rounded-md">Loading...</div>
   ) : (
-    <div className="border border-gray-300 p-4 rounded-lg overflow-hidden">
-      <a href={state.ogData.url} target="_blank" rel="noopener noreferrer" className="flex items-center">
+    <div className="border border-blue-300 p-0 rounded-lg overflow-hidden">
+      <a href={state.ogData.url} target="_blank" rel="noopener noreferrer" className="flex items-center text-slate-800 transition-colors duration-200 ease-in-out hover:bg-blue-100 p-0 group">
+        <div className="flex-1 p-4 min-w-0">
+          <h1 className="m-0 text-base font-bold leading-tight truncate-2-lines group-hover:no-underline">{state.ogData.title}</h1>
+          <div className="mt-2 text-xs text-slate-600 leading-tight truncate-2-lines overflow-hidden">{state.ogData.description}</div>
+          <div className="mt-2 flex items-center text-xs text-slate-600 truncate">
+            <img src={state.ogData.favicon} alt={`${state.ogData.siteName} favicon`} className="mr-1.5 flex-shrink-0" width="14" height="14" />
+            {state.ogData.siteName}
+          </div>
+        </div>
         {state.ogData.image && (
-          <div className="w-1/3 h-24 mr-4">
-            <img src={state.ogData.image} alt={state.ogData.title || state.ogData.siteName} className="w-full h-full object-cover" />
+          <div className="w-[230px] h-[120px] flex-shrink-0 overflow-hidden bg-slate-100">
+            <img src={state.ogData.image} alt={`${state.ogData.title} thumbnail`} className="w-full h-full object-cover" />
           </div>
         )}
-        <div className="flex-1">
-          <div className="font-bold mb-2 text-gray-900">{state.ogData.title}</div>
-          <div className="text-sm text-gray-700">{state.ogData.description}</div>
-        </div>
       </a>
     </div>
   );
