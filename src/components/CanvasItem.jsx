@@ -9,7 +9,7 @@ const CanvasItem = ({canvasItem,removeCanvas=null, isOwner=false, isEdit=false})
   const router = useRouter()
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const url = (isOwner && isEdit) ? `/canvas/${canvasItem?.id}` : `${canvasItem.userId}/canvas/${canvasItem?.id}`
+  const url = (isOwner && isEdit) ? `/canvas/${canvasItem?.id}` : `/${canvasItem.userId}/canvas/${canvasItem?.id}`
 
   useEffect(() => {
     router.prefetch(url)

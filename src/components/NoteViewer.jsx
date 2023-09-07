@@ -1,37 +1,23 @@
 'use client';
 
 import React,{useState, useEffect, useRef} from 'react';
-import {Popover, useMediaQuery} from '@mui/material'
+import { useMediaQuery} from '@mui/material'
 
 import { BlockNoteView, useBlockNote, ReactSlashMenuItem, getDefaultReactSlashMenuItems,createReactBlockSpec,InlineContent,lightDefaultTheme } from "@blocknote/react";
 import { defaultBlockSchema, defaultProps} from "@blocknote/core";
 import "@blocknote/core/style.css";
-import { useDebounce } from '../hooks/index';
-import DeleteMenuItemWithDialog from './DeleteMenuItemWithDialog'
-import NoteDialog from './NoteDialog';
 import { nanoid } from 'nanoid';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { arrayUnion, doc, getFirestore, updateDoc } from "firebase/firestore";
-import {RiImage2Fill} from 'react-icons/ri'
 import { useImmer } from 'use-immer';
 import { InlineMath, BlockMath } from 'react-katex';
-import TextareaAutosize from 'react-textarea-autosize';
 import 'katex/dist/katex.min.css';
 
 
 
 
 const NoteViewer = React.memo(({ view = null,updateView,removeView, isOwner,caseData, setCaseData}) => {
-  const db = getFirestore()
   const storage = getStorage()
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
   const [content, setContent] = useImmer(view?.content ? view?.content : [{id:nanoid(),type:"paragraph",props:{textColor:"default",backgroundColor:"default",textAlignment:"left"},content:[],children:[]}])
-  const [mathPopoverAnchor, setMathPopoverAnchor] = useState(null);
-  const [currentEquation, setCurrentEquation] = useState("");
-  const [selectedBlock, setSelectedBlock] = useState(null);
-  const [newMathBlockInserted, setNewMathBlockInserted] = useState(false);
-  const debouncedContent = useDebounce(content, 250);
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   
   const theme = {
@@ -47,11 +33,6 @@ const NoteViewer = React.memo(({ view = null,updateView,removeView, isOwner,case
     }),
   }
 
-  const uploadImageToStorage = async (file) => {
-    const imageRef = ref(storage, `images/${caseData.id}/${file.name}`);
-    await uploadBytes(imageRef, file);
-    return await getDownloadURL(imageRef);
-  }
   
   function ImageResizer({ src, alt, widthPercentage: initialWidthPercentage, onSizeChange }) {
     const [widthPercentage, setWidthPercentage] = useState(initialWidthPercentage);
@@ -144,11 +125,6 @@ const NoteViewer = React.memo(({ view = null,updateView,removeView, isOwner,case
     render: ({ block }) => (
       <div
         id = {block.id}
-        onClick={(e) => {
-          setSelectedBlock(block);
-          setCurrentEquation(block.props.equation);
-          setMathPopoverAnchor(e.currentTarget);
-        }}
         className='w-full h-full flex items-center justify-center p-2  [&>div]:w-full'
       >
         <BlockMath math={block.props.equation} />
@@ -174,9 +150,7 @@ const NoteViewer = React.memo(({ view = null,updateView,removeView, isOwner,case
     blockSchema: customSchema,
   });
 
-
-
-
+  console.log(content)
 
 
   return <>
@@ -186,7 +160,7 @@ const NoteViewer = React.memo(({ view = null,updateView,removeView, isOwner,case
         <div className='flex-grow h-full'></div>
       </div>
       <div className='w-full relative h-[calc(100%_-_50px)] overflow-y-auto'>
-        <BlockNoteView editor={editor}  theme={theme} />
+        <BlockNoteView editor={editor}  theme={theme}><></></BlockNoteView>
       </div>
     </div>
  
