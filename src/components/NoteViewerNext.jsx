@@ -174,11 +174,9 @@ function ViewerComponent({ view }) {
             }
           })}
         </div>
-        <BlockMath math="y=2x"  />;
       </div>
     </div>
-    
-  );
+  )
 }
 
 

@@ -408,7 +408,7 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
           </div>
         </div>
 
-        <div id={"scichart-pv-root"+view.id} style={{width: '100%',height:"calc(100% - 98px)", aspectRatio : "auto"}}/>
+        <div id={"scichart-pv-root"+view.id} style={{width: '100%',height:"calc(100% - 100px)", aspectRatio : "auto"}}/>
       </div>
       <Box sx={{display: loading  ? 'block': 'none', zIndex:100, position: 'absolute'}}>
         <CircularProgress/>
