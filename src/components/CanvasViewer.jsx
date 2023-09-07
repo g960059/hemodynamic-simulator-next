@@ -17,7 +17,7 @@ import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
-import NoteViewer from './NoteViewer'
+import NoteViewer from './NoteViewerNext'
 
 const RealTimeChartNext = dynamic(()=>import('./RealTimeChartNext'), {ssr: false});
 const PressureVolumeCurveNext = dynamic(()=>import('./PressureVolumeCurveNext'), {ssr: false,});
@@ -240,19 +240,6 @@ const CanvasViewer = React.memo(({engine,caseData,setCaseData,patients,setPatien
             view.type == "Note" && 
             <NoteViewer
               view={view}
-              updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
-              removeView = {()=>{
-                setCaseData(draft=>{
-                  draft.layouts.md = draft.layouts.md.filter(layoutItem => layoutItem.i != view.id )
-                  draft.layouts.xs = draft.layouts.xs.filter(layoutItem => layoutItem.i != view.id )
-                })
-                setViews(draft=>{
-                  draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                })
-              }}
-              isOwner={isOwner}
-              caseData={caseData}
-              setCaseData={setCaseData}
             />
           }
         </div>

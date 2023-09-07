@@ -1,23 +1,20 @@
 'use client';
 
-import React,{useState, useEffect, useRef} from 'react';
+import React,{useState,  useRef} from 'react';
 import { useMediaQuery} from '@mui/material'
 
-import { BlockNoteView, useBlockNote, ReactSlashMenuItem, getDefaultReactSlashMenuItems,createReactBlockSpec,InlineContent,lightDefaultTheme } from "@blocknote/react";
+import { BlockNoteView, useBlockNote,createReactBlockSpec,InlineContent,lightDefaultTheme } from "@blocknote/react";
 import { defaultBlockSchema, defaultProps} from "@blocknote/core";
 import "@blocknote/core/style.css";
 import { nanoid } from 'nanoid';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { useImmer } from 'use-immer';
-import { InlineMath, BlockMath } from 'react-katex';
+import {  BlockMath } from 'react-katex';
 import 'katex/dist/katex.min.css';
 
 
 
 
-const NoteViewer = React.memo(({ view = null,updateView,removeView, isOwner,caseData, setCaseData}) => {
-  const storage = getStorage()
-  const [content, setContent] = useImmer(view?.content ? view?.content : [{id:nanoid(),type:"paragraph",props:{textColor:"default",backgroundColor:"default",textAlignment:"left"},content:[],children:[]}])
+const NoteViewer = React.memo(({ view = null}) => {
+  const content = view?.content || [{id:nanoid(),type:"paragraph",props:{textColor:"default",backgroundColor:"default",textAlignment:"left"},content:[],children:[]}]
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   
   const theme = {
