@@ -10,7 +10,7 @@ const NoteDialog = React.memo(({open, onClose, initialView=null, updateView}) =>
 
   return <>
     <Dialog fullScreen={!isUpMd} sx={{ ".MuiDialog-paper": {m:0}}} open ={open} onClose ={onClose}>
-      <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
+      <div className='sticky top-0 md:min-w-[460px] bg-white border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
         <div className='text-base font-bold text-center inline-flex items-center'>
           <svg className='w-6 h-5 mr-1.5 stroke-blue-500' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
@@ -24,7 +24,7 @@ const NoteDialog = React.memo(({open, onClose, initialView=null, updateView}) =>
           </svg>
         </button>
       </div>
-      <div className='w-full px-6 py-5'>
+      <div className='w-full px-6 py-5 mb-10'>
         <div className='text-base text-slate-500 font-bold '>設定</div>
         <hr class="mb-3 h-px border-0 bg-gray-300" />
         <div className='flex flex-row items-center w-full mt-1'>
@@ -33,9 +33,8 @@ const NoteDialog = React.memo(({open, onClose, initialView=null, updateView}) =>
           <EditableText value={view?.name} updateValue={newTitle=>{setView(draft=>{draft.name=newTitle})}}  />
         </div>             
       </div>  
-      <div className=' w-full p-3 pl-4 flex flex-row items-center justify-center'>
-        <div className='flex-grow'></div>
-        <button  type='button' onClick={onClose} className="py-2 px-4 ml-4 bg-white cursor-pointer text-base rounded-md flex justify-center items-center border border-solid border-slate-300 hover:bg-slate-100 hover:border-slate-100 transition">
+      <div className='sticky bottom-0 bg-white w-full p-3 border-solid border-0 border-t border-slate-200 flex flex-row items-center justify-center md:justify-end space-x-4'>
+        <button  type='button' onClick={onClose} className="py-2 px-4 w-full md:w-auto font-bold text-slate-600 bg-slate-100 cursor-pointer text-sm rounded-md flex justify-center items-center  hover:bg-slate-200 transition">
           キャンセル
         </button>
         { view?.name != initialView?.name ? 
@@ -48,12 +47,13 @@ const NoteDialog = React.memo(({open, onClose, initialView=null, updateView}) =>
               }
               onClose()
             }} 
-            className=' bg-blue-500 text-white cursor-pointer py-2 px-5 ml-4 text-base rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition'
+            className='bg-blue-500 text-white font-bold cursor-pointer w-full md:w-auto py-2 px-4 text-sm rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition'
           >
             {initialView ? "更新する" : "追加する"}
           </button>: <button 
             type='button' 
-            className=' bg-slate-200 text-slate-500  py-2 px-5 ml-4 text-base rounded-md flex justify-center items-center  border-none transition'
+            disabled
+            className='bg-slate-200 text-slate-500 font-bold w-full md:w-auto  py-2 px-4 text-sm rounded-md flex justify-center items-center  border-none transition'
           >
             {initialView ? "更新する" : "追加する"}
           </button>

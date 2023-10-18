@@ -34,7 +34,7 @@ export const useAnimationFrame = (callback,deps=[]) =>{
     }else{
       requestRef.current = requestAnimationFrame(animate)
     }
-  },[callback])
+  },[isPlaying,callback])
   useDocumentVisibilityChange(isHidden => {
     if(isHidden){
       previousTimeRef.current = undefined
@@ -46,7 +46,7 @@ export const useAnimationFrame = (callback,deps=[]) =>{
   useEffect(()=>{
     requestRef.current = requestAnimationFrame(animate)
     return () => {if(requestRef.current) return cancelAnimationFrame(requestRef.current)}
-  },[...deps, callback])
+  },[isPlaying,...deps, callback])
   return [isPlaying, setIsPlaying]
 }
 
@@ -120,40 +120,48 @@ export const usePvLoop = (id,initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,i
 
   const [isPlaying, setIsPlaying] = useAnimationFrame(deltaTime  => {
     let delta = speedRef.current[idRef.current] * deltaTime
-    if(delta >0 && dataRef.current[idRef.current].length>0){
-      const new_logger = {}
-      let flag = 0
-      while (delta > 0 ){
-        let dt = delta >= 1 ? 1 : delta
-        dataRef.current[idRef.current] = flag % 3==0 ? rk4(pvFunc,hemodynamicPropsRef.current[idRef.current],new_logger)(dataRef.current[idRef.current],tRef.current[idRef.current],dt): rk4(pvFunc,hemodynamicPropsRef.current[idRef.current],null)(dataRef.current[idRef.current],tRef.current[idRef.current],dt)
-        tRef.current[idRef.current] += dt
-        delta -= dt
-        flag ++;
-      }
-      if(!subscriptionsRef.current[idRef.current]) return ;
-      for(let update of Object.values(subscriptionsRef.current[idRef.current])){
-        update(new_logger, tRef.current[idRef.current], hemodynamicPropsRef.current[idRef.current])
-      }
-      if(Object.keys(hdpMutationsRef.current[idRef.current]).length > 0){
-        Object.entries(hdpMutationsRef.current[id]).forEach(([hdpKey,hdpValue])=> {
-          if(hdpKey === 'Volume'){
-            dataRef.current[id][0] += hdpValue - dataRef.current[id].reduce((a,b)=>a+=b,0);
+    if (delta <= 0 || dataRef.current[idRef.current].length === 0) return;
+
+    const new_logger = {}
+    let flag = 0
+    const currentIdRef = idRef.current;
+    let currentDataRef = dataRef.current[currentIdRef];
+    const currentHemodynamicPropsRef = hemodynamicPropsRef.current[currentIdRef];
+    let currentTRef = tRef.current[currentIdRef];
+    const currentHdpMutationsRef = hdpMutationsRef.current[currentIdRef];
+
+    while (delta > 0) {
+      let dt = delta >= 1 ? 1 : delta;
+      currentDataRef = flag % 3 === 0 ? rk4(pvFunc, currentHemodynamicPropsRef, new_logger)(currentDataRef, currentTRef, dt) : rk4(pvFunc, currentHemodynamicPropsRef, null)(currentDataRef, currentTRef, dt);
+      currentTRef += dt;
+      delta -= dt;
+      flag++;
+    }
+    if (!subscriptionsRef.current[currentIdRef]) return;
+    for (let update of Object.values(subscriptionsRef.current[currentIdRef])) {
+      update(new_logger, currentTRef, currentHemodynamicPropsRef);
+    }
+
+    if (Object.keys(currentHdpMutationsRef).length > 0) {
+      Object.entries(hdpMutationsRef.current[id]).forEach(([hdpKey,hdpValue])=> {
+        if(hdpKey === 'Volume'){
+          dataRef.current[id][0] += hdpValue - dataRef.current[id].reduce((a,b)=>a+=b,0);
+          hemodynamicPropsRef.current[id][hdpKey] = hdpValue
+          delete hdpMutationsRef.current[id][hdpKey]
+        }else if(hdpKey === 'HR'){
+          if( ((60000/hdpValue) - (tRef.current[id]-160) % (60000/hdpValue)) < 100 && ((60000/hemodynamicPropsRef.current[id]['HR']) - (tRef.current[id]-160) % (60000/hemodynamicPropsRef.current[id]['HR'])) < 100 ){
             hemodynamicPropsRef.current[id][hdpKey] = hdpValue
             delete hdpMutationsRef.current[id][hdpKey]
-          }else if(hdpKey === 'HR'){
-            if( ((60000/hdpValue) - (tRef.current[id]-160) % (60000/hdpValue)) < 100 && ((60000/hemodynamicPropsRef.current[id]['HR']) - (tRef.current[id]-160) % (60000/hemodynamicPropsRef.current[id]['HR'])) < 100 ){
-              hemodynamicPropsRef.current[id][hdpKey] = hdpValue
-              delete hdpMutationsRef.current[id][hdpKey]
-            }
-          }else{
-            if(isTiming(hdpKey)(tRef.current[id])){
-              hemodynamicPropsRef.current[id][hdpKey] = hdpValue
-              delete hdpMutationsRef.current[id][hdpKey]
-            }
           }
-        })
-      }
+        }else{
+          if(isTiming(hdpKey)(tRef.current[id])){
+            hemodynamicPropsRef.current[id][hdpKey] = hdpValue
+            delete hdpMutationsRef.current[id][hdpKey]
+          }
+        }
+      })
     }
+    
   })
   const setHdps = useCallback((hdpKey, hdpValue) => {hdpMutationsRef.current[idRef.current][hdpKey] = hdpValue})
   const getHdps = () => hemodynamicPropsRef.current[idRef.current]
@@ -176,8 +184,10 @@ export const useEngine = () => {
   const speedRef = useRef(1.0);
   const subscriptionsRef = useRef({})
   const hdpMutationsRef = useRef({});
+  const hdpMutationSubscriptionsRef = useRef({});
+  const hdpAllMutationSubscriptionsRef = useRef({});
   
-  const register = ({id,initialHdps,initialData,initialTime,name}) => {
+  const register = useCallback(({id,initialHdps,initialData,initialTime,name}) => {
     initialHdpsRef.current[id] = initialHdps;
     initialDatasRef.current[id] = initialData;
     initialTimesRef.current[id] = initialTime;
@@ -187,10 +197,11 @@ export const useEngine = () => {
     tRef.current[id] = initialTime;
     hdpMutationsRef.current[id] = {};
     subscriptionsRef.current[id] = {};
+    hdpMutationSubscriptionsRef.current[id] = {};
     if(!idsRef.current.includes(id)) {
       idsRef.current.push(id);
     }
-  }
+  },[])
   const unregister = (id) => {
     idsRef.current = idsRef.current.filter(x=>x!=id);
     delete initialHdpsRef.current[id];
@@ -202,6 +213,7 @@ export const useEngine = () => {
     delete tRef.current[id];
     delete hdpMutationsRef.current[id];
     delete subscriptionsRef.current[id];
+    delete hdpMutationSubscriptionsRef.current[id];
   }
 
   const clear = () => {
@@ -211,6 +223,7 @@ export const useEngine = () => {
     namesRef.current={}
     hdpMutationsRef.current={}
     subscriptionsRef.current={}
+    hdpMutationSubscriptionsRef.current={}
     idsRef.current = []
   }
 
@@ -225,6 +238,30 @@ export const useEngine = () => {
       delete subscriptionsRef.current[id][subs_id]
     }
   } 
+  const subscribeHdpMutation = (id) => hdpKeys => callback =>{
+    const subsId = nanoid();
+    hdpKeys.forEach(hdpKey => {
+      hdpMutationSubscriptionsRef.current[id][subsId] ??= {}
+      hdpMutationSubscriptionsRef.current[id][subsId][hdpKey] = callback
+    })
+    return subsId
+  }
+  const unsubscribeHdpMutation = (id) => subs_id => {
+    if(hdpMutationSubscriptionsRef.current[id]){
+      delete hdpMutationSubscriptionsRef.current[id][subs_id]
+    }
+  }
+  const subscribeAllHdpMutation =  callback =>{
+    const subsId = nanoid();
+    hdpAllMutationSubscriptionsRef.current[subsId] = callback
+    return subsId
+  }
+  const unsubscribeAllHdpMutation = subs_id => {
+    if(hdpAllMutationSubscriptionsRef.current){
+      delete hdpAllMutationSubscriptionsRef.current[subs_id]
+    }
+  }
+
 
   const isTiming = (id,hdp) => {
     const Timing = MutationTimings[hdp];
@@ -245,7 +282,6 @@ export const useEngine = () => {
   }
 
   const [isPlaying, setIsPlaying] = useAnimationFrame(deltaTime  => {
-    let delta = speedRef.current * deltaTime
     for(let id of idsRef.current){
       let delta = speedRef.current * deltaTime
       if(delta >0 && dataRef.current[id].length>0){
@@ -286,7 +322,21 @@ export const useEngine = () => {
   })
 
   const setSpeed = useCallback(newSpeed => speedRef.current = newSpeed)
-  const setHdps = (id) =>(hdpKey, hdpValue) => {hdpMutationsRef.current[id][hdpKey] = hdpValue}
+  const setHdps = (id) =>(hdpKey, hdpValue) => {
+    hdpMutationsRef.current[id][hdpKey] = hdpValue
+    if(hdpMutationSubscriptionsRef.current[id]){
+      Object.entries(hdpMutationSubscriptionsRef.current[id]).forEach(([subsId,hdpCallbacks])=>{
+        if(hdpCallbacks[hdpKey]){
+          hdpCallbacks[hdpKey](hdpKey, hdpValue);
+        }
+      })
+    }
+    if(hdpAllMutationSubscriptionsRef.current){
+      Object.entries(hdpAllMutationSubscriptionsRef.current).forEach(([subsId,callback])=>{
+        callback(id,hdpKey, hdpValue);
+      })
+    }
+  }
   const getHdps = (id) => () => hemodynamicPropsRef.current[id]
   const getDataSnapshot = (id) => ()=> dataRef.current[id];
   const getTimeSnapshot = (id) => ()=> tRef.current[id];
@@ -294,12 +344,12 @@ export const useEngine = () => {
   const getInitialDatas = (id) => () => initialDatasRef.current[id]
   const getInitialTimes   = (id) => () => initialTimesRef.current[id]
   const getPatient = id => {
-    return {id,getInitialHdps:getInitialHdps(id),getInitialDatas:getInitialDatas(id),getInitialTimes:getInitialTimes(id), subscribe:subscribe(id),unsubscribe:unsubscribe(id),getHdps:getHdps(id),setHdps:setHdps(id),getDataSnapshot:getDataSnapshot(id),getTimeSnapshot:getTimeSnapshot(id)}
+    return {id,getInitialHdps:getInitialHdps(id),getInitialDatas:getInitialDatas(id),getInitialTimes:getInitialTimes(id), subscribe:subscribe(id),unsubscribe:unsubscribe(id),subscribeHdpMutation:subscribeHdpMutation(id),unsubscribeHdpMutation:unsubscribeHdpMutation(id), getHdps:getHdps(id),setHdps:setHdps(id),getDataSnapshot:getDataSnapshot(id),getTimeSnapshot:getTimeSnapshot(id)}
   }
   const getAllPatinets = () => idsRef.current.map(id=>getPatient(id))
   const getPatientData = id =>({id, initialHdps:initialHdpsRef.current[id], initialData:initialDatasRef.current[id],initialTime: initialTimesRef.current[id],name: namesRef.current[id] })
   const getAllPatientsData = ()=>idsRef.current.map(id=>getPatientData(id));
-  return {register,unregister,clear,subscribe,unsubscribe, isPlaying,setIsPlaying,setSpeed,getPatient,getAllPatinets,getPatientData, getAllPatientsData, ids:idsRef.current}
+  return {register,unregister,clear,subscribe,unsubscribe,subscribeHdpMutation,unsubscribeHdpMutation,subscribeAllHdpMutation,unsubscribeAllHdpMutation, isPlaying,setIsPlaying,setSpeed,getPatient,getAllPatinets,getPatientData, getAllPatientsData, ids:idsRef.current, setHdps, getHdps}
 }
 
 class Patient {
@@ -328,36 +378,6 @@ class Patient {
   }
 }
 
-// export const user$ = authState(auth).pipe(
-//   mergeMap(user => {
-//     if(user){
-//       return combineLatest([docData(doc(db,'users',user?.uid),{idField: 'uid'}),of(user)])
-//     }else{
-//       return combineLatest([of(null),of(null)])
-//     }
-//   }),
-//   tap(([userDocData,user])=>{
-//       if(user && !userDocData){
-//         const initializeUser = async ()=>{
-//           const batch = writeBatch(db);
-//           batch.set(doc(db,"users",user.uid),{
-//             displayName: user.displayName,
-//             photoURL: user.photoURL,
-//             userId: user.uid,
-//             email: user.email,
-//             caseHeartCount:0,
-//             createdAt:serverTimestamp(),
-//           });
-//           batch.set(doc(db,"userIds",user.uid),{uid:user.uid, createdAt:serverTimestamp()});
-//           batch.set(doc(db,"followers",user.uid),{users:[]});
-//           await batch.commit();
-//         }
-//         initializeUser();
-//       }
-//     }
-//   ),
-//   map(([userDocData,user])=> userDocData),
-// );
 
 export const user$ = authState(getAuth()).pipe(
   switchMap(user => {

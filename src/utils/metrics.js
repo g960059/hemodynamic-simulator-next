@@ -31,7 +31,10 @@ export class SV {
     return (this.lvedv - this.lvesv)?.toPrecision(3)
   }
   getMetric(){
-    return (this.lvedv - this.lvesv)
+    if (this.lvedv === -Infinity || this.lvesv === Infinity) return null
+    else{
+      return (this.lvedv - this.lvesv)
+    }
   }
 }
 export class EF extends SV{

@@ -23,7 +23,6 @@ import { getRandomColor } from '../../../src/styles/chartConstants';
 import Background from '../../../src/elements/Background';
 import Layout from '../../../src/components/layout';
 import Footer from '../../../src/components/Footer';
-import TextareaAutosize from 'react-textarea-autosize';
 import { getAuth } from 'firebase/auth';
 import CaseEditor from '../../../src/components/CaseEditor';
 
@@ -119,7 +118,6 @@ const App = () => {
 
   const router = useRouterConfirmation(()=>Boolean(isChanged && isOwner));
 
-  const [caseNameEditing, setCaseNameEditing] = useState(false);
   const [openPublishDialog, setOpenPublishDialog] = useState(false);
 
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'), {noSsr: true});
@@ -187,17 +185,7 @@ const App = () => {
     await batch.commit();
   }
 
-  const handleKeyDown = (event) => {
-    const { key } = event;
-    switch (key) {
-        case "Enter":
-            setCaseNameEditing(false);
-            break;
-    }
-  }
-  const handleBlur = () => {
-      setCaseNameEditing(false);
-  }
+
 
 
   useEffect(() => {
@@ -230,8 +218,9 @@ const App = () => {
         const newBlocks = [
           {
             id: newControllerId,
-            name: "Basic Parameters",
+            name: "Normal Controller",
             type: "Controller",
+            hideTitle:false,
             patientId: newParamSetId,
             items: [
               {mode:"basic",label: t["Volume"],hdp:'Volume',options:[], id:nanoid()},
@@ -247,6 +236,7 @@ const App = () => {
             id: newChartId,
             name: "Pressure Chart",
             type: "PressureCurve",
+            hideTitle:false,
             items: [
               {
                 patientId:newParamSetId,
@@ -332,8 +322,9 @@ const App = () => {
             id: newNoteId,
             name: "Note",
             type: "Note",
+            hideTitle:false,
             content: [{id:nanoid(),type:"paragraph",props:{textColor:"default",backgroundColor:"default",textAlignment:"left"},content:[],children:[]}],
-          }
+          },
         ]
         setBlocks(newBlocks);
         setDefaultBlocks(newBlocks);
@@ -348,8 +339,9 @@ const App = () => {
           uid: user?.uid,
           displayName: user?.displayName,
           photoURL: user?.photoURL,
+          samplingInterval: 1000,
           layouts:{
-            xs: [{i:newControllerId,x:0,y:0,w:12,h:12, minW:3},{i:newChartId,x:0,y:1,w:12,h:10,minW:3},{i: newOutputId, x:0,y:2,w:12,h:7}, {i:newPlaySpeedId,x:0,y:2,w:12,h:2},{i: newNoteId, x:0,y:3,w:12,h:3}], 
+            xs: [{i:newControllerId,x:0,y:0,w:12,h:12, minW:3},{i:newChartId,x:0,y:1,w:12,h:10,minW:3},{i: newOutputId, x:0,y:2,w:12,h:7}, {i:newPlaySpeedId,x:0,y:3,w:12,h:2},{i: newNoteId, x:0,y:4,w:12,h:3}], 
             md:[{i:newControllerId,x:0,y:0,w:4,h:10, minW:3},{i:newChartId,x:4,y:0,w:7,h:10,minW:3}, {i:newPlaySpeedId,x:11,y:0,w:1,h:6},{i: newOutputId, x:6,y:10,w:6,h:3}, {i: newNoteId, x:0,y:10,w:6,h:6}],
           },
           updatedAt: serverTimestamp(),
@@ -357,7 +349,6 @@ const App = () => {
         }
         setCanvas(newCanvas);
         setDefaultCanvas(newCanvas);
-        setCaseNameEditing(true)
         engine.setIsPlaying(true);
       }
     }
@@ -405,11 +396,6 @@ const App = () => {
     }else{
       batch.update(doc(db,"canvas",canvasId),{...canvas,layouts: JSON.stringify(canvas.layouts),updatedAt:timestamp})
     }
-    // combinedData.data?.paramSets.forEach(p=>{
-    //   if(!paramSets.some(({id})=>id===p.id)){
-    //     batch.delete(doc(db,"paramSets",p.id))
-    //   }
-    // })
     paramSets.forEach(p=>{
       const paramSet = combinedData.data?.paramSets.find(({id})=>id===p.id);
       if(!paramSet){

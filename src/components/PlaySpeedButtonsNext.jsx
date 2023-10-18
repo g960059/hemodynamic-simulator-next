@@ -64,9 +64,9 @@ const PlaySpeedButtons = ({engine, removeView, isOwner}) =>{
             }}
             elevation={0}
             marginThreshold={0}
-            PaperProps={{style: {backgroundColor: 'transparent'}}}
+            slotProps={{paper:{className:'border border-solid border-slate-200 rounded shadow-md'}}}
           >
-            <div className='flex flex-col items-center justify-center py-2 bg-white  border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
+            <div className='flex flex-col items-center justify-center py-2 bg-white '>
               <DeleteMenuItemWithDialog raw onDelete={()=>{removeView()}} onClose={()=>setAnchorEl(null)} message ={"再生・速度調整ボタンを削除しようとしています。この操作は戻すことができません。"}>
                 <div className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1  text-red-500 hover:bg-red-500 hover:text-white">
                   <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

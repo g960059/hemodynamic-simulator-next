@@ -1,11 +1,15 @@
-import React, {useRef, useState, useEffect, useCallback} from 'react'
+import React, {useState, useEffect} from 'react'
 import {Button,Dialog,Popover,MenuItem,Select,useMediaQuery, Grow} from '@mui/material'
 import PlaySpeedButtonsNext from './PlaySpeedButtonsNext'
 import MetricsPanel from './MetricsPanel'
 import ControllerPanelNext from './controllers/ControllerPanelNext'
+import NotePanel from './NotePanel'
+import RealTimeChartNext from './RealTimeChartNext'
+import PressureVolumeCurveNext from './PressureVolumeCurveNext'
+import ActionRecorderPanel from './ActionRecorderPanel'
+import PlotPanel from './PlotPanel'
 
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
-import dynamic from 'next/dynamic'
 import { useImmer } from "use-immer";
 import {nanoid,calculatePosition} from "../utils/utils"
 import {getTimeSeriesPressureFn,  getTimeSeriesFlowFn, paramPresets, controllableHdpTypes, AllHdpOptions}  from "../utils/presets"
@@ -15,6 +19,7 @@ import ChartDialog from './ChartDialog';
 import MetricsDialog from './MetricsDialog';
 import ControllerDialog from './ControllerDialog';
 import NoteDialog from './NoteDialog'
+import PlotDialog from './PlotDialog'
 import { styled } from '@mui/material/styles';
 import { useRouter } from 'next/navigation' 
 import Link from 'next/link';
@@ -25,11 +30,8 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
-const RealTimeChartNext = dynamic(()=>import('./RealTimeChartNext'), {ssr: false});
-const PressureVolumeCurveNext = dynamic(()=>import('./PressureVolumeCurveNext'), {ssr: false,});
-const Tracker = dynamic (()=>import('./Tracker'), {ssr: false,});
-const NotePanel = dynamic(()=>import('./NotePanel'), {ssr: false,});
-// const CombinedChart = dynamic(()=>import('./combined/CombinedChart'), {ssr: false,});
+
+
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
 
@@ -42,7 +44,6 @@ const StyledReactGridLayout = styled(ResponsiveReactGridLayout)`
 
 
 const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients ,views, setViews, isLogin, isOwner, addLike, removeLike, addBookmark, removeBookmark, liked, bookmarked, isEdit}) => {
-
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const [mounted, setMounted] = useState(false);
   const router = useRouter()
@@ -114,7 +115,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
             </svg>
             {isUpMd &&<span className='pl-1 md:pl-1.5 font-bold text-sm md:text-base'>{caseData.totalBookmarks || 0}</span>}
           </button>} */}
-          {!isUpMd && <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(caseData?.name)}&url=${encodeURIComponent(`https://www.circleheart.dev/canvas/${caseData.id}`)}`} role="button" className={`mr-2 md:mr-3 no-underline bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500  ${isLogin && "cursor-pointer hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 md:py-2.5 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
+          {/* <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(caseData?.name)}&url=${encodeURIComponent(`https://www.circleheart.dev/canvas/${caseData.id}`)}`} role="button" className={`mr-2 md:mr-3 no-underline bg-slate-100   fill-slate-500 stroke-slate-500 text-slate-500  ${isLogin && "cursor-pointer hover:bg-slate-200 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600"} py-2 md:py-2.5 px-2 md:px-4 text-base rounded-md flex justify-center items-center   border-none transition`}>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className='w-4 h-4 md:w-5 md:h-5'
@@ -124,7 +125,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               <path
                 d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
             </svg>
-          </a>}
+          </a> */}
           {isOwner && <>              
             <ParamSetsDialog 
               patients={patients} 
@@ -173,6 +174,11 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                     case "Note":
                       wMd = 6
                       hMd = 6
+                      break;
+                    case "Plot":
+                      wMd = 6
+                      hMd = 12
+                      break;
                   }
                   let wXs = 12
                   let hXs = 8
@@ -213,7 +219,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
       isResizable = {isOwner}
     >
       { views?.filter(view => view.type !="PlaySpeed").map(view =>
-        <div key={view.id}  className={`bg-white border border-solid border-slate-200 rounded ${view.type !="Note" && "overflow-hidden"}`}>
+        <div key={view.id}  className={`bg-white border border-solid border-slate-200 rounded ${!["Note","Plot"].includes(view.type) && "overflow-hidden"}`}>
           {view.type === "Controller" && 
             <ControllerPanelNext
               key = {view.id}
@@ -228,14 +234,16 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                   draft.layouts.xs = draft.layouts.xs.filter(layoutItem => layoutItem.i != view.id )
                 })
               }}
-              patients = {patients}
               patient={patients.find(p=>p.id===view.patientId)}
+              patients={patients}
               setPatient={newPatient=>{setPatients(draft=>{draft.findIndex(p=>p.id===view.patientId)===-1? draft.push(newPatient) : draft.splice(draft.findIndex(p=>p.id===view.patientId),1,newPatient);})}}
               isOwner={isOwner}
+              isEdit={isEdit}
             />
           }
           {view.type === "PressureCurve" && 
             <RealTimeChartNext 
+              key={view.id}
               engine={engine} patients={patients}
               view={view}
               updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
@@ -250,10 +258,12 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               }}
               getTimeSeriesFn = {getTimeSeriesPressureFn}
               isOwner={isOwner}
+              isEdit={isEdit}
             />
           }
           {view.type === "FlowCurve" && 
             <RealTimeChartNext
+              key={view.id}
               engine={engine} patients={patients}
               view={view}
               updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
@@ -268,10 +278,12 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               }}
               getTimeSeriesFn = {getTimeSeriesFlowFn}
               isOwner={isOwner}
+              isEdit={isEdit}
             />
           }                  
           {view.type === "PressureVolumeCurve" && 
-            <PressureVolumeCurveNext 
+            <PressureVolumeCurveNext
+              key={view.id}
               engine={engine} 
               view={view} 
               updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
@@ -286,6 +298,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               }}
               patients={patients}
               isOwner={isOwner}
+              isEdit={isEdit}
             /> 
           }
           {/* {
@@ -301,45 +314,96 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                   draft.splice(draft.findIndex(v=>v.id===view.id),1)
                 })
               }}
-              isOwner={isOwner}            
+              isOwner={isOwner}
+              isEdit={isEdit}            
             />
           } */}
           {
             view.type === "Metrics" &&
-            <MetricsPanel 
-              view={view} 
-              updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
-              patients={patients}
-              removeView = {()=>{
-                setCaseData(draft=>{
-                  draft.layouts.md = draft.layouts.md.filter(layoutItem => layoutItem.i != view.id )
-                  draft.layouts.xs = draft.layouts.xs.filter(layoutItem => layoutItem.i != view.id )                  
-                })
-                setViews(draft=>{
-                  draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                })
-              }}
-              isOwner={isOwner}
-            />
+              <MetricsPanel 
+                key={view.id}
+                view={view} 
+                updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
+                patients={patients}
+                removeView = {()=>{
+                  setCaseData(draft=>{
+                    draft.layouts.md = draft.layouts.md.filter(layoutItem => layoutItem.i != view.id )
+                    draft.layouts.xs = draft.layouts.xs.filter(layoutItem => layoutItem.i != view.id )                  
+                  })
+                  setViews(draft=>{
+                    draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                  })
+                }}
+                isOwner={isOwner}
+                isEdit={isEdit}              
+              />
           }
           {
             view.type == "Note" && 
-            <NotePanel
-              view={view}
-              updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
-              removeView = {()=>{
-                setCaseData(draft=>{
-                  draft.layouts.md = draft.layouts.md.filter(layoutItem => layoutItem.i != view.id )
-                  draft.layouts.xs = draft.layouts.xs.filter(layoutItem => layoutItem.i != view.id )
-                })
-                setViews(draft=>{
-                  draft.splice(draft.findIndex(v=>v.id===view.id),1)
-                })
-              }}
-              isOwner={isOwner}
-              caseData={caseData}
-              setCaseData={setCaseData}
-            />
+              <NotePanel
+                key={view.id}
+                view={view}
+                updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
+                removeView = {()=>{
+                  setCaseData(draft=>{
+                    draft.layouts.md = draft.layouts.md.filter(layoutItem => layoutItem.i != view.id )
+                    draft.layouts.xs = draft.layouts.xs.filter(layoutItem => layoutItem.i != view.id )
+                  })
+                  setViews(draft=>{
+                    draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                  })
+                }}
+                isOwner={isOwner}
+                isEdit={isEdit}
+                caseData={caseData}
+                setCaseData={setCaseData}
+              />
+          }
+          {
+            view.type == "ActionRecorder" &&
+              <ActionRecorderPanel
+                key={view.id}
+                view = {view}
+                updateView = {newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
+                setViews = {setViews}
+                removeView = {()=>{
+                  setCaseData(draft=>{
+                    draft.layouts.md = draft.layouts.md.filter(layoutItem => layoutItem.i != view.id )
+                    draft.layouts.xs = draft.layouts.xs.filter(layoutItem => layoutItem.i != view.id )
+                  })
+                  setViews(draft=>{
+                    draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                  })
+                }}
+                isOwner={isOwner}
+                isEdit={isEdit}
+                patients = {patients}
+                engine = {engine}
+                updateHdp = {(patientId) => (key, value) => {
+                  engine.setHdps(patientId)(key, value)
+                }}
+              />
+          }
+          {
+            view.type == "Plot" && 
+              <PlotPanel
+                key={view.id}
+                view={view}
+                updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
+                removeView = {()=>{
+                  setCaseData(draft=>{
+                    draft.layouts.md = draft.layouts.md.filter(layoutItem => layoutItem.i != view.id )
+                    draft.layouts.xs = draft.layouts.xs.filter(layoutItem => layoutItem.i != view.id )
+                  })
+                  setViews(draft=>{
+                    draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                  })
+                }}
+                isOwner={isOwner}
+                isEdit={isEdit}
+                patients={patients}
+                engine={engine}
+              />
           }
         </div>
       )}      
@@ -347,6 +411,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
         views?.filter(view => view.type === "PlaySpeed").map(view => 
           <div key={view.id}  className='overflow-hidden'>
             <PlaySpeedButtonsNext 
+              key={view.id}
               engine={engine} 
               removeView = {()=>{
                 setCaseData(draft=>{
@@ -399,7 +464,7 @@ const ParamSetsDialog = ({patients, engine, setPatients,setViews,caseData}) => {
   }
   return <>
     <button onClick={()=>{setOpenDialog(true)}} className='mr-2 md:mr-3 bg-slate-100 fill-slate-500 stroke-slate-500 text-slate-500 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600 cursor-pointer py-1 md:py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center hover:bg-slate-200  border-none transition'>
-      <svg xmlns="http://www.w3.org/2000/svg"  strokeWidth={1} height="20px" width="20px" version="1.1" id="Layer_1" viewBox="0 0 490.012 490.012" >
+      {/* <svg xmlns="http://www.w3.org/2000/svg"  strokeWidth={1} height="20px" width="20px" version="1.1" id="Layer_1" viewBox="0 0 490.012 490.012" >
         <g>
           <g>
             <path d="M429.039,38.5h-84.3V20.8c0-11.4-9.4-20.8-20.8-20.8h-157c-11.4,0-20.8,9.4-20.8,20.8v17.7h-85.3    c-5.5-0.4-19.9,4.5-20.8,20.8v409.9c0,11.4,9.4,20.8,20.8,20.8h369.3c13.3,0.5,20.3-14.1,19.8-20.8V59.3    C450.439,54.5,445.539,39.1,429.039,38.5z M187.739,41.6h116.5V77h-116.5L187.739,41.6L187.739,41.6z M409.339,449.4h-328.8V80.1    h65.5v16.6c1.3,17.2,15.6,20.8,20.8,20.8h158.1c10.4,0,19.8-9.4,19.8-20.8V80.1h64.5v369.3H409.339z"/>
@@ -408,8 +473,8 @@ const ParamSetsDialog = ({patients, engine, setPatients,setViews,caseData}) => {
             <path d="M213.739,219.5h11.4V231c0,11.4,9.4,20.8,20.8,20.8s20.8-9.4,20.8-20.8v-11.4h11.4c11.4,0,20.8-9.4,20.8-20.8    c0-11.4-9.4-20.8-20.8-20.8h-11.4v-11.4c0-11.4-9.4-20.8-20.8-20.8c-11.4,0-20.8,9.4-20.8,20.8V178h-11.4    c-11.4,0-20.8,9.4-20.8,20.8C192.939,210.1,202.239,219.5,213.739,219.5z"/>
           </g>
         </g>
-      </svg>
-      <span className='pl-1.5 font-bold text-base'>{patients.length || 0}</span>
+      </svg> */}
+      <span className='font-bold text-base'>{patients.length || 0} {patients.length <=1 ? "model" : "models"}</span>
     </button>  
     <Dialog open={openDialog} onClose={()=>setOpenDialog(false)} sx={{ ".MuiDialog-paper": {m:0}}}>
       <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
@@ -598,8 +663,8 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
     setOpenDialog("Controller");
     setAnchorEl(null);
   }
-  const selectModelDialog = ()=>{
-    setOpenDialog("Model");
+  const selectPlotDialog = ()=>{
+    setOpenDialog("Plot");
     setAnchorEl(null);
   }
 
@@ -633,14 +698,14 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
       slotProps={{paper:{className:'grid md:grid-cols-2 gap-2 mt-2 p-2 border border-solid border-slate-200 rounded-md shadow-lg'}}}
     >
       <>
-        <button onClick={selectModelDialog} className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition  font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center'>
+        {/* <button onClick={selectModelDialog} className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition  font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center'>
           <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
             <svg className='w-6 h-5 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
             </svg>
           </div>
           Model
-        </button>
+        </button> */}
         <button onClick={selectControllerDialog} className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition  font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center'>
           <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
             <svg className='w-6 h-5 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
@@ -657,6 +722,12 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
           </div>
           Chart
         </button>
+        <button onClick={selectPlotDialog} className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
+          <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-5 text-sky-700 stroke-sky-700 fill-sky-700 " viewBox="0 0 512 512"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M344 280l88-88M232 216l64 64M80 320l104-104"/><circle cx="456" cy="168" r="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/><circle cx="320" cy="304" r="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/><circle cx="208" cy="192" r="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/><circle cx="56" cy="344" r="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/></svg>
+          </div>
+          Plot
+        </button>        
         <button onClick={selectMetricsDialog} className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
           <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
             <svg className='w-6 h-5 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -761,7 +832,9 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
 
     {/* NoteDialog */}
     <NoteDialog open={openDialog == "Note"} onClose={()=>setOpenDialog(null)} updateView={addViewItem} patients={patients}/>
-
+    
+    {/* PlotDialog */}
+    <PlotDialog open={openDialog == "Plot"} onClose={()=>setOpenDialog(null)} updateView={addViewItem} patients={patients}/>
     
   </>
 }

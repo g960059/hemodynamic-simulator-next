@@ -1,9 +1,5 @@
 import React, {useRef, useState, useEffect, useCallback} from 'react'
 import {useMediaQuery} from '@mui/material'
-import PlaySpeedButtonsNext from './PlaySpeedButtonsNext'
-import MetricsPanel from './MetricsPanel'
-import ControllerPanelNext from './controllers/ControllerPanelNext'
-
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import dynamic from 'next/dynamic'
 import {getTimeSeriesPressureFn,  getTimeSeriesFlowFn}  from "../utils/presets"
@@ -17,11 +13,15 @@ import { Responsive, WidthProvider } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
-import NoteViewer from './NoteViewerNext'
 
-const RealTimeChartNext = dynamic(()=>import('./RealTimeChartNext'), {ssr: false});
-const PressureVolumeCurveNext = dynamic(()=>import('./PressureVolumeCurveNext'), {ssr: false,});
-const Tracker = dynamic (()=>import('./Tracker'), {ssr: false,});
+import PlaySpeedButtonsNext from './PlaySpeedButtonsNext'
+import MetricsPanel from './MetricsPanel'
+import ControllerPanelNext from './controllers/ControllerPanelNext'
+import NoteViewer from './NoteViewerNext'
+import PlotPanel from './PlotPanel'
+import RealTimeChartNext from './RealTimeChartNext'
+import PressureVolumeCurveNext from './PressureVolumeCurveNext'
+
 // const CombinedChart = dynamic(()=>import('./combined/CombinedChart'), {ssr: false,});
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
@@ -127,7 +127,7 @@ const CanvasViewer = React.memo(({engine,caseData,setCaseData,patients,setPatien
       isResizable = {isOwner}
     >
       { views?.filter(view => view.type !="PlaySpeed").map(view =>
-        <div key={view.id}  className={`bg-white border border-solid border-slate-200 rounded ${view.type != "Note" ? "overflow-y-auto" : "overflow-hidden"}`}>
+        <div key={view.id}  className={`bg-white border border-solid border-slate-200 rounded ${!["Note","Plot"].includes(view.type) && "overflow-hidden"}`}>
           {view.type === "Controller" && 
             <ControllerPanelNext
               key = {view.id}
@@ -146,10 +146,12 @@ const CanvasViewer = React.memo(({engine,caseData,setCaseData,patients,setPatien
               patient={patients.find(p=>p.id===view.patientId)}
               setPatient={newPatient=>{setPatients(draft=>{draft.findIndex(p=>p.id===view.patientId)===-1? draft.push(newPatient) : draft.splice(draft.findIndex(p=>p.id===view.patientId),1,newPatient);})}}
               isOwner={isOwner}
+              isEdit = {isEdit}
             />
           }
           {view.type === "PressureCurve" && 
-            <RealTimeChartNext 
+            <RealTimeChartNext
+              key={view.id} 
               engine={engine} patients={patients}
               view={view}
               updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
@@ -164,10 +166,12 @@ const CanvasViewer = React.memo(({engine,caseData,setCaseData,patients,setPatien
               }}
               getTimeSeriesFn = {getTimeSeriesPressureFn}
               isOwner={isOwner}
+              isEdit = {isEdit}
             />
           }
           {view.type === "FlowCurve" && 
             <RealTimeChartNext
+              key={view.id}
               engine={engine} patients={patients}
               view={view}
               updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
@@ -182,10 +186,12 @@ const CanvasViewer = React.memo(({engine,caseData,setCaseData,patients,setPatien
               }}
               getTimeSeriesFn = {getTimeSeriesFlowFn}
               isOwner={isOwner}
+              isEdit = {isEdit}
             />
           }                  
           {view.type === "PressureVolumeCurve" && 
-            <PressureVolumeCurveNext 
+            <PressureVolumeCurveNext
+              key={view.id} 
               engine={engine} 
               view={view} 
               updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}} 
@@ -200,11 +206,12 @@ const CanvasViewer = React.memo(({engine,caseData,setCaseData,patients,setPatien
               }}
               patients={patients}
               isOwner={isOwner}
+              isEdit = {isEdit}
             /> 
           }
           {/* {
-            view.type === "Tracker" &&
-            <Tracker engine={engine} initialView={view} patients = {patients}
+
+
               setInitialView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
               removeView={()=>{
                 setCaseData(draft=>{
@@ -215,12 +222,14 @@ const CanvasViewer = React.memo(({engine,caseData,setCaseData,patients,setPatien
                   draft.splice(draft.findIndex(v=>v.id===view.id),1)
                 })
               }}
-              isOwner={isOwner}            
+              isOwner={isOwner}
+              isEdit = {isEdit}            
             />
           } */}
           {
             view.type === "Metrics" &&
             <MetricsPanel 
+              key={view.id}
               view={view} 
               updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
               patients={patients}
@@ -234,14 +243,37 @@ const CanvasViewer = React.memo(({engine,caseData,setCaseData,patients,setPatien
                 })
               }}
               isOwner={isOwner}
+              isEdit = {isEdit}
             />
           }
           {
             view.type == "Note" && 
             <NoteViewer
+              key={view.id}
               view={view}
             />
           }
+          {
+            view.type == "Plot" && 
+              <PlotPanel
+                key={view.id}
+                view={view}
+                updateView={newView=>{setViews(draft=>{draft.splice(draft.findIndex(v=>v.id===view.id),1,newView)})}}
+                removeView = {()=>{
+                  setCaseData(draft=>{
+                    draft.layouts.md = draft.layouts.md.filter(layoutItem => layoutItem.i != view.id )
+                    draft.layouts.xs = draft.layouts.xs.filter(layoutItem => layoutItem.i != view.id )
+                  })
+                  setViews(draft=>{
+                    draft.splice(draft.findIndex(v=>v.id===view.id),1)
+                  })
+                }}
+                isOwner={isOwner}
+                isEdit={isEdit}
+                patients={patients}
+                engine={engine}
+              />
+          }          
         </div>
       )}      
       {
@@ -259,6 +291,7 @@ const CanvasViewer = React.memo(({engine,caseData,setCaseData,patients,setPatien
                 })
               }}
               isOwner={isOwner}
+              isEdit = {isEdit}
             />
           </div>
         )

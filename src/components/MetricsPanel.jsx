@@ -2,13 +2,11 @@ import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Popover} from '@mui/material'
 import {useTranslation} from '../hooks/useTranslation'
 import {metrics} from '../utils/metrics'
-import { useImmer } from 'use-immer'
-import { nanoid } from '../utils/utils'
 import DeleteMenuItemWithDialog from './DeleteMenuItemWithDialog'
 import MetricsDialog from './MetricsDialog'
 
 
-const MetricsPanel = React.memo(({patients, view, updateView,removeView, isOwner}) => {
+const MetricsPanel = React.memo(({patients, view, updateView,removeView, isOwner,}) => {
   const t = useTranslation()
   const [anchorEl, setAnchorEl] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -23,11 +21,10 @@ const MetricsPanel = React.memo(({patients, view, updateView,removeView, isOwner
           </svg>
         </div>}
       </div>
-      <div className='flex flex-row flex-wrap bg-white w-full h-[calc(100%_-_48px)] relative overflow-auto' >
-        {view.items?.map((o,index) => <div key={o.id} className='flex flex-row -ml-px h-16'>
-          <div className='bg-slate-300 w-[1px] my-3'></div>
-          <Output patient = {patients.find(p=>p.id==o.patientId)} output = {o}/>
-        </div>)}
+      <div className='px-2 flex flex-row flex-wrap items-start justify-start bg-white w-full h-[calc(100%_-_48px)] relative overflow-auto ' >
+        {view.items?.map((o,index) => (
+          <Output  key={o.id} patient = {patients.find(p=>p.id==o.patientId)} output = {o}/>
+        ))}
       </div>
     </div>
     <Popover 
@@ -92,7 +89,7 @@ const Output = React.memo(({patient, output}) =>{
     }
   }, [output.hdp, output.patientId]);
   return (
-    <div className='py-2 px-3'>
+    <div className='py-1 px-2'>
       <div className="text-slate-500 text-xs whitespace-nowrap">{output?.label ? output?.label :  patient?.name + t["output_label"][metrics[output.hdp].getLabel()]}</div>
       <div className='flex flex-row items-center'>
         <div className='text-sm text-slate-800 font-bold mr-1'>{instancesRef.current?.get()}</div>

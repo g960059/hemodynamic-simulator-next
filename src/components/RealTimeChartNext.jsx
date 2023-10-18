@@ -70,7 +70,9 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
     fastLineSeriesRef.current[id]?.forEach(x=>{sciChartSurfaceRef.current.renderableSeries.remove(x)})
     delete fastLineSeriesRef.current[id];
     try{
-      const {patientId,subscriptionId} = subscriptionsRef.current.find(sub => sub.id==id);
+      const res =  subscriptionsRef.current.find(sub => sub.id==id);
+      if (!res) return;
+      const {patientId,subscriptionId} = res
       engine.unsubscribe(patientId)(subscriptionId);
     }catch(e){
       console.log(e)
@@ -83,40 +85,39 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
       dataUrl: "/scichart2d.data",
       wasmUrl: "/scichart2d.wasm",
     })
-    const { sciChartSurface, wasmContext } = await chartBuilder.buildChart("scichart-root"+view.id, {
-      xAxes: {
-        type: EAxisType.NumericAxis,
-        options: {
-          autoRange: EAutoRange.Never,
-          visibleRange:new NumberRange(0, timeWindow), 
-          drawLabels:false,
-          drawMinorTickLines:false,
-          drawMajorGridLines: false,
-          drawMinorGridLines: false,
-        }
-      },      
-      yAxes: {
-        type: EAxisType.NumericAxis,
-        options: {
-          axisAlignment: EAxisAlignment.Left,
-          autoRange: EAutoRange.Always,
-          drawMinorTickLines:false, 
-          drawMinorGridLines: false,
-          axisBorder: {
-            borderRight: 1,
-            color: "#e5e5e5"
-          },
-          growBy: new NumberRange(0.1,0.05),
-          labelProvider: new NumericLabelProvider({
-            labelPrecision: 1,
-          }) 
-        }
-      },
-    });        
+    const { sciChartSurface, wasmContext } = await SciChartSurface.create("scichart-root-realtime"+view.id) 
     sciChartSurfaceRef.current = sciChartSurface
     wasmContextRef.current = wasmContext
     sciChartSurface.applyTheme(LightTheme)
-    sciChartSurface.zoomExtents();
+    const xAxis = new NumericAxis(wasmContext,
+      {
+        autoRange: EAutoRange.Never,
+        visibleRange:new NumberRange(0, timeWindow), 
+        drawLabels:false,
+        drawMinorTickLines:false,
+        drawMajorGridLines: false,
+        drawMinorGridLines: false,
+      }
+    )     
+    const yAxis = new NumericAxis(wasmContext,
+      {
+        axisAlignment: EAxisAlignment.Left,
+        autoRange: EAutoRange.Always,
+        drawMinorTickLines:false, 
+        drawMinorGridLines: false,
+        axisBorder: {
+          borderRight: 1,
+          color: "#e5e5e5"
+        },
+        growBy: new NumberRange(0.1,0.05),
+        labelProvider: new NumericLabelProvider({
+          labelPrecision: 1,
+        }) 
+      }
+    );
+    sciChartSurface.xAxes.add(xAxis);
+    sciChartSurface.yAxes.add(yAxis);
+
   }  
 
   const update = item=>{
@@ -131,18 +132,17 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
       const _data = getTimeSeriesFn(hdprops)[hdp](data)
       const j =  data['t'][_time.length-1] % (timeWindow * 2) < timeWindow ? 0 : 1;
       const k = j ? 0 : 1;
-
       if(!(startTime <= timeWindow && timeWindow <= endTime) && startTime <= endTime){
         dataSeries[j].appendRange(_time, _data)
       }
       if(dataSeries[j]?.hasValues ){
-        const indiceRange1 = dataSeries[j]?.getIndicesRange(new NumberRange(newTime, timeWindow))
+        const indiceRange1 = dataSeries[j].getIndicesRange(new NumberRange(newTime, timeWindow))
         if(indiceRange1.max - indiceRange1.min > 0 ){
           dataSeries[j]?.removeRange(indiceRange1.min, indiceRange1.max - indiceRange1.min)
         }
       }
       if(dataSeries[k]?.hasValues ){
-        const indiceRange2 = dataSeries[k]?.getIndicesRange(new NumberRange(startTime,endTime+TIME_WINDOW_GAP)) 
+        const indiceRange2 = dataSeries[k].getIndicesRange(new NumberRange(startTime,endTime+TIME_WINDOW_GAP)) 
         if(indiceRange2.max - indiceRange2.min > 0 ){
           dataSeries[k]?.removeRange(indiceRange2.min, indiceRange2.max-indiceRange2.min+1)
         }
@@ -264,7 +264,7 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
             ))}
           </div>
         </div>
-        <div id={"scichart-root"+view.id} style={{width: '100%',height:"calc(100% - 100px)", aspectRatio : "auto"}}/>
+        <div id={"scichart-root-realtime"+view.id} style={{width: '100%',height:"calc(100% - 100px)", aspectRatio : "auto"}}/>
       </div>
       <Box sx={{display: loading? 'block': 'none', zIndex:100, position: 'absolute'}}>
         <CircularProgress/>

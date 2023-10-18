@@ -17,7 +17,6 @@ import {NumericLabelProvider} from "scichart/Charting/Visuals/Axis/LabelProvider
 import {FiberManualRecord,MoreVert,Check} from "@mui/icons-material"
 import {LightTheme, COLORS, ALPHA_COLORS,getRandomColor} from '../styles/chartConstants'
 import { useTranslation } from '../hooks/useTranslation';
-import {doc,updateDoc} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import ReactiveInput from "../components/ReactiveInput";
 import  DeleteMenuItemWithDialog from "../components/DeleteMenuItemWithDialog"
@@ -27,7 +26,6 @@ import NeumoSelect from '../elements/NeumoSelect';
 import FaintNeumoButton from '../elements/FaintNeumoButton';
 
 
-const TIME_WINDOW_GAP = 300
 const isClient = () => typeof window !== 'undefined'
 
 
@@ -50,11 +48,8 @@ const Tracker =  React.memo(({engine,initialView,setInitialView, removeView,pati
 
   const changingRef = useRef(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [tabValue, setTabValue] = useState("0");
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
   const [viewNameEditing, setViewNameEditing] = useState(false);
-  const [isNewItemEditing, setIsNewItemEditing] = useState(false);
-  const [newItem, setNewItem] = useImmer({});
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
 
 

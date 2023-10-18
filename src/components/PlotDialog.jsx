@@ -3,14 +3,56 @@ import {Dialog,Grow,Popover,MenuItem,Select,useMediaQuery} from '@mui/material'
 import EditableText from './EditableText';
 import { DragDropContext,Droppable,Draggable} from 'react-beautiful-dnd';
 import {nanoid} from "../utils/utils"
-import { AllHdpOptions}  from "../utils/presets"
 import { useImmer } from "use-immer";
 import { useTranslation } from '../hooks/useTranslation';
+import { metricOptions } from '../utils/metrics';
+import ColorPicker from './ColorPicker';
+import { getRandomColor } from '../styles/chartConstants';
+import {Switch} from './ui/switch'
 import { Transition } from 'react-transition-group';
 import { clsx } from 'clsx';
 
-const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,patients}) =>{
-  const [view, setView] = useImmer(initialView || {name: "Metrics", type: "Metrics", items:[]});
+const PlotDialog = React.memo(({open, onClose, initialView=null, updateView,patients}) =>{
+  const getDefaultView = ()=>{
+    return ({
+      id: nanoid(),
+      name: "Plot",
+      type: "Plot",
+      hideTitle:false,
+      curve: "point",
+      items:[{
+        id: nanoid(),
+        label: "Normal",
+        patientId: patients.length > 0 ? patients[0].id : null,
+        xSource: "Lvedp",
+        ySource: "Sv",
+        color: getRandomColor(),
+      }],
+      axis:{
+        bottom : {
+          title: "LVEDP(mmHg)",
+          postfix: "",
+          precision: null,
+          autoScale: true,
+          min: null,
+          max: null,
+        },
+        left: {
+          title: "SV(ml)",
+          postfix: "",
+          precision: null,
+          autoScale: true,
+          min: null,
+          max: null,
+        }
+      },
+      interval: 1000,
+      fifoCapacity: 600,
+      autoStart: true,
+    })
+  }
+  const [view, setView] = useImmer(initialView || getDefaultView()  );
+  
   const [viewItemAnchorEl, setViewItemAnchorEl] = useState(null);
   const [edittingIndex, setEdittingIndex] = useState(null);
   const [activeItemId, setActiveItemId] = useState(null);
@@ -24,7 +66,7 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
           <svg className='w-6 h-5 mr-1.5 stroke-blue-500' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0112 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
           </svg>   
-          {initialView ? "Edit Metrics" : "Add New Metrics"}  
+          {initialView ? "Edit Plot" : "Add New Plot"}  
         </div>
         <div className='md:w-60 flex-grow'/>
         <button onClick={onClose} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
@@ -40,10 +82,100 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
           <div className='text-base'>タイトル</div>
           <div className='flex-grow'/>
           <EditableText value={view?.name} updateValue={newTitle=>{setView(draft=>{draft.name=newTitle})}}  />
-        </div>             
-        <div className='mt-7 text-base text-slate-500 font-bold'>表示データ</div>
+        </div>
+        <div className='flex flex-row items-center w-full mt-1'>
+          <div className='text-base'>プロット間隔(ms)</div>
+          <div className='flex-grow'/>
+          <EditableText value={view?.interval} updateValue={newValue=>{setView(draft=>{draft.interval=Number(newValue)})}}  />
+        </div>
+        <div className='flex flex-row items-center w-full mt-1'>
+          <div className='text-base'>最大プロット数</div>
+          <div className='flex-grow'/>
+          <EditableText value={view?.fifoCapacity} updateValue={newValue=>{setView(draft=>{draft.fifoCapacity=Number(newValue)})}}  />
+        </div>
+        <div className='flex flex-row items-center w-full my-2'>
+          <div className='text-base'>最初から記録開始</div>
+          <div className='flex-grow'/>
+          <Switch
+            checked={view?.autoStart}
+            onCheckedChange={newValue=>{setView(draft=>{draft.autoStart=newValue})}}
+          />
+        </div>                         
+        <div className='text-base text-slate-500 font-bold mt-3'>xy軸の設定</div>
         <hr class="mb-3 h-px border-0 bg-gray-300" /> 
-        <div className='w-full min-h-[320px]'>
+        <div className='flex flex-row items-center w-full mt-1'>
+          <div className='text-base'>タイトル(x軸)</div>
+          <div className='flex-grow'/>
+          <EditableText value={view?.axis?.bottom?.title} updateValue={newValue=>{setView(draft=>{draft.axis.bottom.title=newValue})}}  />
+        </div> 
+        <div className='flex flex-row items-center w-full mt-1'>
+          <div className='text-base'>タイトル(y軸)</div>
+          <div className='flex-grow'/>
+          <EditableText value={view?.axis?.left?.title} updateValue={newValue=>{setView(draft=>{draft.axis.left.title=newValue})}}  />
+        </div>                                     
+        <div className='flex flex-row items-center w-full mt-1'>
+          <div className='text-base'>単位(x軸)</div>
+          <div className='flex-grow'/>
+          <EditableText value={view?.axis?.bottom?.postfix} updateValue={newValue=>{setView(draft=>{draft.axis.bottom.postfix=newValue})}}  />
+        </div>
+        <div className='flex flex-row items-center w-full mt-1'>
+          <div className='text-base'>単位(y軸)</div>
+          <div className='flex-grow'/>
+          <EditableText value={view?.axis?.left?.postfix} updateValue={newValue=>{setView(draft=>{draft.axis.left.postfix=newValue})}}  />
+        </div>
+        <div className='flex flex-row items-center w-full mt-1'>
+          <div className='text-base'>有効桁数(x軸)</div>
+          <div className='flex-grow'/>
+          <EditableText value={view?.axis?.bottom?.precision} updateValue={newValue=>{setView(draft=>{draft.axis.bottom.precision=newValue})}} placeholder="2,3,etc.."  />
+        </div>
+        <div className='flex flex-row items-center w-full mt-1'>
+          <div className='text-base'>有効桁数(y軸)</div>
+          <div className='flex-grow'/>
+          <EditableText value={view?.axis?.left?.precision} updateValue={newValue=>{setView(draft=>{draft.axis.left.precision=newValue})}} placeholder="2,3,etc.." />
+        </div>
+        <div className='flex flex-row items-center w-full my-2'>
+          <div className='text-base'>オートスケール(x軸)</div>
+          <div className='flex-grow'/>
+          <Switch
+            checked={view?.axis?.bottom?.autoScale}
+            onCheckedChange={newValue=>{setView(draft=>{draft.axis.bottom.autoScale=newValue})}}
+          />
+        </div>        
+        {!view?.axis?.bottom?.autoScale && <>
+          <div className='flex flex-row items-center w-full mt-1'>
+            <div className='text-base'>最小値(x軸)</div>
+            <div className='flex-grow'/>
+            <EditableText value={view?.axis?.bottom?.min} updateValue={newValue=>{setView(draft=>{draft.axis.bottom.min=newValue})}}  />
+          </div>           
+          <div className='flex flex-row items-center w-full mt-1'>
+            <div className='text-base'>最大値(x軸)</div>
+            <div className='flex-grow'/>
+            <EditableText value={view?.axis?.bottom?.max} updateValue={newValue=>{setView(draft=>{draft.axis.bottom.max=newValue})}}  />
+          </div>
+        </>}
+        <div className='flex flex-row items-center w-full my-2'>
+          <div className='text-base'>オートスケール(y軸)</div>
+          <div className='flex-grow'/>
+          <Switch
+            checked={view?.axis?.left?.autoScale}
+            onCheckedChange={newValue=>{setView(draft=>{draft.axis.left.autoScale=newValue})}}
+          />
+        </div>
+        {!view?.axis?.left?.autoScale && <>        
+          <div className='flex flex-row items-center w-full mt-1'>
+            <div className='text-base'>最小値(y軸)</div>
+            <div className='flex-grow'/>
+            <EditableText value={view?.axis?.left?.min} updateValue={newValue=>{setView(draft=>{draft.axis.left.min=newValue})}}/>
+          </div>  
+          <div className='flex flex-row items-center w-full mt-1'>
+            <div className='text-base'>最大値(y軸)</div>
+            <div className='flex-grow'/>
+            <EditableText value={view?.axis?.left?.max} updateValue={newValue=>{setView(draft=>{draft.axis.left.max=newValue})}} />
+          </div> 
+        </>}                                                       
+        <div className='mt-7 text-base text-slate-500 font-bold'>記録データ</div>
+        <hr class="mb-3 h-px border-0 bg-gray-300" /> 
+        <div className='w-full min-h-[240px]'>
           <DragDropContext onDragEnd={({source:src, destination:dest})=>{
             if(!dest ) return;
             setView(draft=>{
@@ -69,6 +201,7 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
                               <div className={clsx("cursor-grab flex flex-row items-center justify-center  bg-slate-200 ", state== "entered" && "animate-in fade-in", state=="exiting" && "animate-out fade-out", (state=="exited" || state=="entering") && "hidden")}>
                                 <svg className="w-6 h-6 " focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="DragIndicatorIcon"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
                                 <div onClick={()=>{setEdittingIndex(index);setOpenNewMetric(false)}} className='cursor-pointer bg-white rounded-lg pl-2 w-full flex items-center justify-center hover:bg-slate-100'>
+                                  <div className='w-1 rounded-sm mr-3 py-3' style={{backgroundColor: item?.color}}/>
                                   <div className='text-base'>{item?.label}</div>
                                   <div className='flex-grow'></div>
                                   <div className='p-1 py-2 flex items-center' onClick={e => {e.stopPropagation(); setViewItemAnchorEl(e.currentTarget);setActiveItemId(item.id)}}>
@@ -115,11 +248,9 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
                                 </div>
                               </div>
                               <div className={clsx(state=="exited" && "animate-in fade-in", state=="entering" && "animate-out fade-out", (state=="entered" || state=="exiting") && "hidden")}>
-                                <EditableDataForm  
-                                  key={item.id} initialItem={item} viewType = {view.type} patients={patients} handleClose={()=>{setEdittingIndex(null)}} 
+                                <PlotEditor  
+                                  key={item.id} initialItem={item} patients={patients} handleClose={()=>{setEdittingIndex(null)}} 
                                   handleUpdate={(newItem)=>{setView(draft=>{draft = draft.items.splice(index,1,newItem);setEdittingIndex(null);})}} 
-                                  updateText='Update'
-                                  hasColor={false}
                                 />
                               </div>
                             </div>
@@ -142,11 +273,11 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
-                  Add new metric
+                  Add new plot
                 </div> 
                 <div className={clsx(state=="exited" && "animate-in fade-in", state=="entering" && "animate-out fade-out", (state=="entered" || state=="exiting") && "hidden")}>
-                  <EditableDataForm 
-                    viewType={view.type} patients={patients} 
+                  <PlotEditor 
+                    patients={patients} 
                     handleClose={()=>{setOpenNewMetric(false)}} 
                     handleUpdate={(newItem)=>{
                       setView(draft=>{
@@ -154,18 +285,17 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
                       })
                       setOpenNewMetric(false)
                     }}
-                    hasColor={false}
                   />
                 </div> 
               </div>
             )}
-          </Transition>           
-        
+          </Transition> 
         </div>  
       </div>  
       <div className='sticky bottom-0 bg-white w-full p-3 border-solid border-0 border-t border-slate-200 flex flex-row items-center justify-center md:justify-end space-x-4'>
-        <div className='flex-grow'></div>
-        <button  type='button' onClick={()=>{onClose();setOpenNewMetric(false)}} className="py-2 px-4 w-full md:w-auto font-bold text-slate-600 bg-slate-100 cursor-pointer text-sm rounded-md flex justify-center items-center  hover:bg-slate-200 transition">
+        <button  
+          type='button' onClick={()=>{onClose();setOpenNewMetric(false)}} 
+          className="py-2 px-4 w-full md:w-auto font-bold text-slate-600 bg-slate-100 cursor-pointer text-sm rounded-md flex justify-center items-center  hover:bg-slate-200 transition">
           キャンセル
         </button>
         { view.items.length >0 ? 
@@ -174,7 +304,7 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
             onClick={()=>{
               updateView(view)
               if(!initialView){
-                setView({name: "Metrics", type: "Metrics", items:[]})
+                setView(getDefaultView())
               }
               onClose()
             }} 
@@ -193,40 +323,45 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
   </>
 })
 
-export default MetricsDialog;
+export default PlotDialog;
 
 
-const EditableDataForm = ({initialItem=null,viewType,patients, handleClose, handleUpdate, hasColor=true}) =>{
+const PlotEditor = ({initialItem=null,patients, handleClose, handleUpdate}) =>{
+  const [newItem, setNewItem] = useImmer(initialItem || {label:patients[0]?.name || t["Lvedp"] + "vs"+ t["Sv"],xSource: "Lvedp",ySource: "Sv",patientId: patients[0].id, color:getRandomColor()});
   const t = useTranslation()
-  const [newItem, setNewItem] = useImmer(initialItem || {label:t[AllHdpOptions[viewType][0]],hdp: AllHdpOptions[viewType][0],patientId: patients[0].id, ...(hasColor && {color:getRandomColor()})});
   return <>
-    <div className='flex flex-col items-center w-full rounded-lg p-2 '>
-      <div className='flex flex-row items-center w-full'>
-        <div className='text-base'>Data</div>
-        <div className='flex-grow'/>
-        <Select  variant="standard" disableUnderline id="chart-new-items" value={newItem.hdp} onChange={e=>{setNewItem(draft=>{draft.hdp=e.target.value; draft.label = t[e.target.value]})}}>
-          {AllHdpOptions[viewType].map(hdpOption=><MenuItem value={hdpOption}>{t[hdpOption]}</MenuItem>)}
-        </Select>
-      </div>
+    <div className='flex flex-col items-center w-full border-solid border border-slate-200  p-2'>
       <div className='flex flex-row items-center w-full mt-1'>
         <div className='text-base'>Model</div>
         <div className='flex-grow'/>
-        <Select  variant="standard" disableUnderline id="chart-new-items" value={newItem.patientId} onChange={e=>{setNewItem(draft=>{draft.patientId=e.target.value})}}>
+        <Select  variant="standard" disableUnderline id="chart-new-items" value={newItem.patientId}  onChange={e=>{setNewItem(draft=>{draft.patientId=e.target.value})}}>
           {patients.map(patient=><MenuItem value={patient.id}>{patient?.name || "無題のモデル"}</MenuItem>)}
         </Select>
-      </div>  
+      </div> 
+      <div className='flex flex-row items-center w-full mt-1'>
+        <div className='text-base'>Source(x軸)</div>
+        <div className='flex-grow'/>
+        <Select  variant="standard" disableUnderline id="chart-new-items" value={newItem.xSource}  onChange={e=>{setNewItem(draft=>{draft.xSource = e.target.value})}}>
+          {metricOptions?.map(hdpOption=><MenuItem value={hdpOption}>{t[hdpOption] || hdpOption}</MenuItem>)}
+        </Select>
+      </div>
+      <div className='flex flex-row items-center w-full mt-1'>
+        <div className='text-base'>Source(y軸)</div>
+        <div className='flex-grow'/>
+        <Select  variant="standard" disableUnderline id="chart-new-items" value={newItem.ySource}  onChange={e=>{setNewItem(draft=>{draft.ySource = e.target.value})}}>
+          {metricOptions?.map(hdpOption=><MenuItem value={hdpOption}>{t[hdpOption] || hdpOption}</MenuItem>)}
+        </Select>
+      </div>   
       <div className='flex flex-row items-center w-full mt-1'>
         <div className='text-base'>Label</div>
         <div className='flex-grow'/>
         <EditableText value={newItem.label} updateValue={newLabel=>{setNewItem(draft=>{draft.label=newLabel});}}  />
       </div>     
-      {hasColor && 
-        <div className='flex flex-row items-center w-full mt-1'>
-          <div className='text-base'>Color</div>
-          <div className='flex-grow min-w-[32px]'/>
-          <ColorPicker color={newItem.color} onChange={newColor => {setNewItem(draft=>{draft.color=newColor})}} />
-        </div>
-      }                                          
+      <div className='flex flex-row items-center w-full mt-1'>
+        <div className='text-base'>Color</div>
+        <div className='flex-grow min-w-[32px]'/>
+        <ColorPicker color={newItem.color} onChange={newColor => {setNewItem(draft=>{draft.color=newColor})}} />
+      </div>                   
       <div className=' w-full pl-3 mt-3 flex flex-row items-center justify-center'>
         <div className='flex-grow'></div>
         <button type='button' 
@@ -237,7 +372,7 @@ const EditableDataForm = ({initialItem=null,viewType,patients, handleClose, hand
         </button>
         <button 
           type='button' 
-          disabled={!newItem?.hdp || !newItem?.patientId}
+          disabled={!newItem?.xSource || !newItem?.ySource || !newItem?.patientId}
           onClick={()=>handleUpdate(newItem)}
           className='bg-blue-500 text-white disabled:bg-slate-100 disabled:text-slate-400 cursor-pointer py-2 px-3 ml-3 text-sm rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition'
         >

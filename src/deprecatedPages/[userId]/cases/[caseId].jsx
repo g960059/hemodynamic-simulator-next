@@ -9,7 +9,6 @@ import Image from 'next/image'
 import {getAuth, signOut} from "firebase/auth";
 
 
-import { NextSeo } from 'next-seo';
 import {useObservable} from '../../../hooks/useObservable'
 import {StyledAuth} from "../../../../utils/firebase"
 
@@ -323,7 +322,6 @@ const CaseReader = () => {
         </Toolbar>
       </AppBar>
       <Divider sx={{borderColor:"#5c93bb2b"}}/>
-      <NextSeo title={"症例"+caseData?.name}/>
       <Background/>
       {/* {!isUpMd && <div className="bg-slate-200 h-screen w-screen fixed -z-10"/>} */}
       {loading && <Box>

@@ -1,17 +1,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer components {
-  .btn-floating {
-    @apply shadow-btn1 bg-white rounded-lg w-11 h-11 text-slate-400 duration-300 transition-all hover:shadow-btn2 hover:text-blue-500 hover:-translate-y-2 hover:bg-white
-  }
-  .btn-neumorphic {
-    @apply whitespace-nowrap font-bold py-1 px-4 rounded-lg text-slate-500 bg-white duration-200 transition-all shadow border-solid border border-slate-200 hover:border-slate-300 hover:bg-slate-50
-  }
-  .book-cover {
-    @apply shadow-[-6px_6px_10px_-2px_#001b4440,_0_0_3px_#8f9aaf1a] relative max-w-full aspect-[300/215] after:content-['""'] after:left-0 after:bottom-0 after:h-full after:absolute after:w-full after:rounded after:bg-[linear-gradient(-90deg,#fff0,#ffffff1a_80%,#ffffff4d_95%,#fff6_96.5%,#cbcbcb14_98%,#6a6a6a1a)]
-  }
-}
 .truncate-2-lines {
   display: -webkit-box;
   -webkit-line-clamp: 2;

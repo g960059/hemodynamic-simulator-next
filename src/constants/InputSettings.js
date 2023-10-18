@@ -160,7 +160,13 @@ export const InputRanges = {
   },
   VO2:{
     min: 0, max: 1000, step: 10, unit: "ml/min",
-  }
+  },
+  IabpFreq:{min:0,max:5,unit:""},
+  DelayInflation:{min:-100,max:600,unit:"ms"},
+  DelayDeflation:{min:-200,max:600,unit:"ms"},
+  Qdrive:{min:0,max:300,unit:"ml"},
+  RadiusDscAorta : {min:0,max:5,unit:"mm"},
+  LengthIabp: {min:0,max:30,unit:"mm"},
 }
 
 export const MutationTimings = {
@@ -188,12 +194,12 @@ export const MutationTimings = {
 }
 
 export const VDOptions = {
-  "avs": [0,70,120,270],//,610
-  "avr": [100000,28000,6200,2700],
-  "mvs": [0,50,150,520],
-  "mvr": [100000,13000,1300,300],
-  "tvs": [0,15,60,250],
-  "tvr": [100000,30000,5000,400],
-  "pvs": [0,250,800,2400],
-  "pvr": [100000,10000,2000,800]
+  "Ravs": [0,70,120,270],//,610
+  "Ravr": [100000,28000,6200,2700],
+  "Rmvs": [0,50,150,520],
+  "Rmvr": [100000,13000,1300,300],
+  "Rtvs": [0,15,60,250],
+  "Rtvr": [100000,30000,5000,400],
+  "Rpvs": [0,250,800,2400],
+  "Rpvr": [100000,10000,2000,800]
 }

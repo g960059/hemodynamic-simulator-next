@@ -382,8 +382,9 @@ export const controllableHdpTypes = [
   'LV_Ees', 'LV_alpha','LV_beta', 'LV_V0', 'LV_Tmax', 'LV_tau', 'LV_AV_delay', 'LA_Ees', 'LA_alpha','LA_beta', 'LA_V0', 'LA_Tmax', 'LA_tau', 'LA_AV_delay', 'RV_Ees', 'RV_alpha','RV_beta', 'RV_V0', 'RV_Tmax', 'RV_tau', 'RV_AV_delay', 'RA_Ees', 'RA_alpha','RA_beta', 'RA_V0', 'RA_Tmax', 'RA_tau', 'RA_AV_delay',
   "Ras","Rap","Rvs","Rvp","Ras_prox","Rap_prox","Rcs","Rcp","Cas","Cap","Cvs","Cvp",
   'Ravs', 'Ravr', 'Rmvs', 'Rmvr', 'Rtvs', 'Rtvr', 'Rpvs', 'Rpvr',
-  "ECMO","Impella","IABP","Hb","VO2"
+  "ECMO","Impella","IabpFreq","DelayInflation","DelayDeflation","Qdrive","RadiusDscAorta","LengthIabp","Hb","VO2"
 ]
+
 
 export const paramPresets = {
   Normal: {
