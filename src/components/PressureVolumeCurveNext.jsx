@@ -122,6 +122,7 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
   }
 
   const deleteDataSeries = (id) => {
+    if(dataRef.current[id] === undefined) return
     dataRef.current[id]?.delete();
     leadingPointRef.current[id]?.delete();
     espvrDataRef.current[id]?.delete();
@@ -130,10 +131,10 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
     delete leadingPointRef.current[id];
     delete espvrDataRef.current[id];
     delete edpvrDataRef.current[id];
-    sciChartSurfaceRef.current.renderableSeries.remove(fastLineSeriesRef.current[id]);
-    sciChartSurfaceRef.current.renderableSeries.remove(scatterSeriesRef.current[id]);
-    sciChartSurfaceRef.current.renderableSeries.remove(espvrLineSeriesRef.current[id]);
-    sciChartSurfaceRef.current.renderableSeries.remove(edpvrLineSeriesRef.current[id]);
+    sciChartSurfaceRef.current?.renderableSeries.remove(fastLineSeriesRef.current[id]);
+    sciChartSurfaceRef.current?.renderableSeries.remove(scatterSeriesRef.current[id]);
+    sciChartSurfaceRef.current?.renderableSeries.remove(espvrLineSeriesRef.current[id]);
+    sciChartSurfaceRef.current?.renderableSeries.remove(edpvrLineSeriesRef.current[id]);
     delete fastLineSeriesRef.current[id];
     delete scatterSeriesRef.current[id];
     delete espvrLineSeriesRef.current[id];

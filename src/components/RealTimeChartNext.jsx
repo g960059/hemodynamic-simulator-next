@@ -120,6 +120,15 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
 
   }  
 
+  function countOutOfOrder(arr) {
+    let count = 0;
+    for (let i = 1; i < arr.length; i++) {
+      if (arr[i] < arr[i - 1]) {
+        count++;
+      }
+    }
+    return count;
+  }
   const update = item=>{
     const {hdp,patientId, id} = item
     const dataSeries = dataRef.current[id]
@@ -132,13 +141,16 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
       const _data = getTimeSeriesFn(hdprops)[hdp](data)
       const j =  data['t'][_time.length-1] % (timeWindow * 2) < timeWindow ? 0 : 1;
       const k = j ? 0 : 1;
-      if(!(startTime <= timeWindow && timeWindow <= endTime) && startTime <= endTime){
+
+      if(!(startTime <= timeWindow && timeWindow <= endTime) && startTime <= endTime && dataSeries[j].getXRange().max <= _time[0] ){
         dataSeries[j].appendRange(_time, _data)
       }
       if(dataSeries[j]?.hasValues ){
         const indiceRange1 = dataSeries[j].getIndicesRange(new NumberRange(newTime, timeWindow))
-        if(indiceRange1.max - indiceRange1.min > 0 ){
-          dataSeries[j]?.removeRange(indiceRange1.min, indiceRange1.max - indiceRange1.min)
+        const indexMin1 = indiceRange1.min
+        const indexMax1 = indiceRange1.max
+        if(indexMax1 - indexMin1 > 0 ){
+          dataSeries[j]?.removeRange(indexMin1, indexMax1 - indexMin1)
         }
       }
       if(dataSeries[k]?.hasValues ){
