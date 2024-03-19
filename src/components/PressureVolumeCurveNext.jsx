@@ -15,7 +15,7 @@ import {LightTheme, } from '../styles/chartConstants'
 import { useImmer } from "use-immer";
 import ChartDialog from './ChartDialog';
 import  DeleteMenuItemWithDialog from "../components/DeleteMenuItemWithDialog"
-
+import {getHdProps} from "../utils/utils"
 
 const PV_COUNT = 1000
 const EDPVR_STEP = 50
@@ -28,12 +28,7 @@ const getPVSeriesFn = () => {
   const RA = x => [x['Qra'],x['Pra']]
   return {LV,LA, RV, RA}
 }
-const getHdProps = {
-  LV: x=>({Ees: x["LV_Ees"],V0:x["LV_V0"],alpha:x["LV_alpha"],beta:x["LV_beta"]}),
-  LA: x=>({Ees: x["LA_Ees"],V0:x["LA_V0"],alpha:x["LA_alpha"],beta:x["LA_beta"]}),
-  RV: x=>({Ees: x["RV_Ees"],V0:x["RV_V0"],alpha:x["RV_alpha"],beta:x["RV_beta"]}),
-  RA: x=>({Ees: x["RA_Ees"],V0:x["RA_V0"],alpha:x["RA_alpha"],beta:x["RA_beta"]}),
-}
+
 
 const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner}) =>{
 
@@ -66,6 +61,7 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
   const yMaxPrevRef = useRef({});
   const xMaxPrevRef = useRef({});
   const tcRef = useRef({});
+  const lastTimeRef = useRef(0);
   const changedVisibleRange = useRef(false);
   const autoScaleRef = useRef(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -176,6 +172,11 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
     return (data, time, hdprops) => {
       const HR = hdprops["HR"];
       const tp = Math.floor(time/(60000/HR));
+      if(lastTimeRef.current > data['t'][0]){
+        return
+      }else{
+        lastTimeRef.current = data['t'][data['t'].length-1];
+      }
       const [_x, _y] = getPVSeriesFn(hdprops)[item.hdp](data)
       const len = _x.length
       const y = _y[len-1]
@@ -184,6 +185,7 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
         dataRef.current[id].removeRange(0,len)
       }
       dataRef.current[id].appendRange(_x, _y)
+
       if(leadingPointRef.current[id].count()> 0){
         leadingPointRef.current[id].clear();
       }

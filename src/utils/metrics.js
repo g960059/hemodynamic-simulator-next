@@ -1,3 +1,5 @@
+import {getHdProps} from "./utils"
+
 
 export class SV {
   constructor(){
@@ -360,7 +362,7 @@ export class Ilmt {
   }
 }
 
-export class PVA {
+export class SW {
   constructor(){
     this.area=0;
     this.pressures=[];
@@ -369,7 +371,7 @@ export class PVA {
     this.areas=[];
   }
   static getLabel(){
-    return "PVA"
+    return "SW"
   }
   static getUnit(){
     return "mmHg·ml"
@@ -398,7 +400,8 @@ export class PVA {
       let total=0;
       const len_ = this.pressures.length
       for(let i=0;i<len_-5;i+=3){
-        total += (this.pressures[i+1]+this.pressures[i+2]+this.pressures[i+3])*(this.volumes[i]+this.volumes[i+1]+this.volumes[i+2]-this.volumes[i+3]-this.volumes[i+4]-this.volumes[i+5])/9;
+        total += (this.pressures[i+1]+this.pressures[i+2]+this.pressures[i+3])*
+        (this.volumes[i]+this.volumes[i+1]+this.volumes[i+2]-this.volumes[i+3]-this.volumes[i+4]-this.volumes[i+5])/9;
       }
       this.areas.push(total);
       if(this.areas.length>10){
@@ -419,6 +422,8 @@ export class PVA {
     return this.area
   }
 }
+
+
 
 export class CPO {
   constructor(){
@@ -480,21 +485,125 @@ export class CPO {
   }
 }
 
-
-
-export class CSSVO2 {
+export class PVA {
   constructor(){
     this.area=0;
     this.pressures=[];
     this.volumes=[];
-    this.tc=0;
     this.areas=[];
+    this.lvedv = -Infinity;
+    this.lvesv = Infinity;
+    this.measuring = false;
+  }
+  static getLabel(){
+    return "PVA"
+  }
+  static getUnit(){
+    return "mmHg·ml"
+  }
+  update(data, time, hdps){
+    const HR = data['HR'][0];
+    const len = data['t'].length;
+    const {alpha, beta, Ees, V0} = getHdProps["LV"](hdps)
+
+    let pressures = [...data["Plv"]];
+    let volumes = [...data["Qlv"]];
+
+    const ts = data['t'].map(_t=> (_t - hdps['LV_AV_delay']) % (60000 / data['HR'][0]))
+    const _ts = ts.map(_t=> _t< hdps["LV_Tmax"] ? 10000 : _t - hdps["LV_Tmax"])
+    const tes = Math.min(..._ts)
+    if(tes < 5 ){
+      const tesIndex = _ts.findIndex(_t => _t === tes)
+      this.lvesv = data['Qlv'][tesIndex];
+      if(this.lvedv !== -Infinity ){
+        let total=0;
+        const len_ = this.pressures.length
+        for(let i=0;i<len_-5;i+=3){
+          total += (this.pressures[i+1]+this.pressures[i+2]+this.pressures[i+3])*
+          (this.volumes[i]+this.volumes[i+1]+this.volumes[i+2]-this.volumes[i+3]-this.volumes[i+4]-this.volumes[i+5])/9;
+        }
+        total += (this.lvesv - V0) ** 2 * Ees / 2 + beta * ((Math.exp(alpha * (this.lvedv - V0))-1)/alpha - this.lvedv + V0)
+        this.areas.push(total);
+        if(this.areas.length>10){
+          this.areas.shift();
+        }
+        let areas = [...this.areas].sort((a,b)=>a-b);
+        this.area = areas[Math.floor(areas.length/2)];
+      }
+
+      this.measuring = false
+      this.pressures = []
+      this.volumes = []
+    }else{
+      const ted = Math.max(...ts)
+      if(60000/data['HR'][0] - ted  < 5){
+        const tedIndex = ts.findIndex(_t => _t === ted)
+        this.lvedv = data['Qlv'][tedIndex];
+        this.measuring = true
+      }
+    } 
+    if(this.measuring){
+      for(let i =0; i<len;i++){
+        this.pressures.push(pressures[i]);
+        this.volumes.push(volumes[i]);
+      }
+    }
+  }
+  reset(){}
+  get() {
+    return Math.round(this.area)
+  }
+  getMetric(){
+    return this.area
+  }
+}
+
+export class PVA_SW_Ratio {
+  constructor() {
+    this.pva = new PVA();
+    this.sw = new SW();
+    this.ratio = 0;
+  }
+
+  static getLabel() {
+    return "SW/PVA";
+  }
+
+  static getUnit() {
+    return "";
+  }
+
+  update(data, time, hdps) {
+    this.pva.update(data, time, hdps);
+    this.sw.update(data, time, hdps);
+    if (this.pva.getMetric() !== 0) {
+      this.ratio = this.sw.getMetric() / this.pva.getMetric();
+    } else {
+      this.ratio = 0;
+    }
+  }
+
+  reset() {
+    this.pva.reset();
+    this.sw.reset();
+  }
+
+  get() {
+    return this.ratio.toFixed(2);
+  }
+
+  getMetric() {
+    return this.ratio;
+  }
+}
+
+export class CSSVO2 {
+  constructor(){
+
+    this.pva = new PVA();
+    this.ilmt = new Ilmt();
     this.HR =null
     this.Hb = null;
-
-    this.last_t = 0;
-    this.total = 0;
-    this.flows = [];
   }
   static getLabel(){
     return "Cssvo2"
@@ -503,71 +612,20 @@ export class CSSVO2 {
     return "%"
   }
   update(data, time, hdps){
-    const HR = data['HR'][0];
-    this.HR = HR;
+    this.HR = data['HR'][0];
     this.Hb = hdps['Hb'];
-    const len = data['t'].length;
-    let pressures = [...data["Plv"]];
-    let volumes = [...data["Qlv"]];
-    let next_pressures=[];
-    let next_volumes=[];
-    const ts_ = data['t'].map(_t=> _t % (60000 / HR))
-    let ts = data["t"].map(x=>Math.floor(x/(60000/HR)))
-
-    if(this.tc==0){
-      this.tc= Math.floor(data['t'][0]/(60000/HR));
-    }
-    for(let i =0; i<len;i++){
-      if(ts[i]===this.tc){
-        this.pressures.push(pressures[i]);
-        this.volumes.push(volumes[i]);
-      }else{
-        next_pressures.push(pressures[i]);
-        next_volumes.push(volumes[i]);
-      }
-    }
-    if(ts[len-1]!=this.tc){
-      let total=0;
-      const len_ = this.pressures.length
-      for(let i=0;i<len_-5;i+=3){
-        total += (this.pressures[i+1]+this.pressures[i+2]+this.pressures[i+3])*(this.volumes[i]+this.volumes[i+1]+this.volumes[i+2]-this.volumes[i+3]-this.volumes[i+4]-this.volumes[i+5])/9;
-      }
-      this.areas.push(total);
-      if(this.areas.length>10){
-        this.areas.shift();
-      }
-      let areas = [...this.areas].sort((a,b)=>a-b);
-      this.area = areas[Math.floor(areas.length/2)];
-      this.pressures = next_pressures;
-      this.volumes = next_volumes;
-      this.tc = ts[len-1];
-    }
-
-    const ts_diff = ts_.map((t, i) => i === 0 ? (ts_[0]-this.last_t < 0 ? ts_[0]-this.last_t+60000 / HR :  ts_[0]-this.last_t) : 
-      ((t-ts_[i-1])<0 ? t-ts_[i-1]+60000 / HR : t-ts_[i-1])
-    )
-
-    if(this.last_t > ts_[0] || ts_.some((t, i) => i > 0 && t < ts_[i-1])){
-      if(this.flows.length > 10){
-        this.flows.shift()
-      }
-      if(this.total>0 ){
-        this.flows.push(this.total * HR/1000)
-      }
-      this.total =0;
-    }
-    this.total += data["Ilmca"].reduce((acc, v, i) => acc + v * ts_diff[i], 0)
-    this.last_t = ts_[ts_.length-1]
+    this.pva.update(data, time, hdps);
+    this.ilmt.update(data, time, hdps);
   }
   reset(){}
   get() {
-    const mvo2 = (2.4*this.area+1.0)*1.33*this.HR/10000/20 
-    const res = (1 - mvo2 / (1.34*this.Hb * this.flows.reduce((acc, v) => acc + v, 0) /100 / this.flows.length))*100
+    const mvo2 = (2.4*this.pva.get()+1.0)*1.33*this.HR/10000/20 
+    const res = (1 - mvo2 / (1.34*this.Hb * this.ilmt.getMetric()/100))*100
     return res.toPrecision(3)
   }
   getMetric(){
-    const mvo2 = (2.4*this.area+1.0)*1.33*this.HR/10000/20 
-    const res = ((1 - mvo2 / (1.34*this.Hb * this.flows.reduce((acc, v) => acc + v, 0) /100 / this.flows.length))*100)
+    const mvo2 = (2.4*this.pva.get()+1.0)*1.33*this.HR/10000/20 
+    const res = ((1 - mvo2 / (1.34*this.Hb * this.ilmt.getMetric()/100))*100)
     return res
   }
 } 
@@ -580,6 +638,7 @@ export const metrics = {
   Sv: SV,
   Ef: EF,
   Pv: PVA,
+  Sw: SW,
   Cpo: CPO,
   Lvedp: LVEDP,
   Hr: HR,
@@ -587,9 +646,10 @@ export const metrics = {
   Lkr: LaKickRatio,
   Ilmt: Ilmt,
   Svo2 : SVO2,
-  Cssvo2: CSSVO2
+  Cssvo2: CSSVO2,
+  PvaSwRatio: PVA_SW_Ratio
 }
-export const metricOptions = ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "Pv", "Cpo", "Lvedp", "Hr", "Co", "Lkr", "Ilmt", "Svo2", "Cssvo2"]
+export const metricOptions = ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "Pv","Sw", "Cpo", "Lvedp", "Hr", "Co", "Ilmt", "Svo2", "Cssvo2","PvaSwRatio"]
 
 
 
