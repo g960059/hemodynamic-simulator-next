@@ -44,7 +44,7 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
   const espvrLineSeriesRef = useRef({});
   const edpvrDataRef = useRef({});
   const edpvrLineSeriesRef = useRef({}); 
-
+  const lastUpdatedTimeRef = useRef({});
   const alphaRef = useRef({}); 
   const betaRef = useRef({});
   const V0Ref = useRef({});
@@ -61,7 +61,6 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
   const yMaxPrevRef = useRef({});
   const xMaxPrevRef = useRef({});
   const tcRef = useRef({});
-  const lastTimeRef = useRef(0);
   const changedVisibleRange = useRef(false);
   const autoScaleRef = useRef(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -138,6 +137,7 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
 
     const {patientId,subscriptionId} = subscriptionsRef.current.find(sub => sub.id==id);
     engine.unsubscribe(patientId)(subscriptionId);
+    subscriptionsRef.current = subscriptionsRef.current.filter(sub => sub.id !== id);
   }
   const initSciChart = async () => {
     SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY)
@@ -170,13 +170,13 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
   const update = (item) => {
     const {hdp,patientId, id} = item
     return (data, time, hdprops) => {
-      const HR = hdprops["HR"];
-      const tp = Math.floor(time/(60000/HR));
-      if(lastTimeRef.current > data['t'][0]){
+      if(lastUpdatedTimeRef.current[id] && lastUpdatedTimeRef.current[id] >= time){
         return
       }else{
-        lastTimeRef.current = data['t'][data['t'].length-1];
+        lastUpdatedTimeRef.current[id] = time;
       }
+      const HR = hdprops["HR"];
+      const tp = Math.floor(time/(60000/HR));
       const [_x, _y] = getPVSeriesFn(hdprops)[item.hdp](data)
       const len = _x.length
       const y = _y[len-1]

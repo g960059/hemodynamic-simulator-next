@@ -12,7 +12,6 @@ export const e = (_t, Tmax, tau, HR)=>{
   }
 }
 
-// use memo
 export const P = (V, t,Ees,V0, alpha, beta,Tmax, tau, AV_delay,HR)=>{
   const Ped = beta * (Math.exp(alpha*(V-V0))-1) 
   const Pes = Ees * (V-V0)
