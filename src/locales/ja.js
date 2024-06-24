@@ -192,6 +192,15 @@ export default {
   Svo2:"中心静脈血酸素飽和度",
   Cssvo2:"冠静脈洞血酸素飽和度",
 
+  stroke_volume: "一回拍出量",
+  central_venous_pressure: "中心静脈圧",
+  pulmonary_capillary_wedge_pressure: "肺動脈楔入圧",
+  systolic_arterial_pressure: "収縮期動脈圧",
+  diastolic_arterial_pressure: "拡張期動脈圧",
+  systolic_pulmonary_arterial_pressure: "収縮期肺動脈圧",
+  diastolic_pulmonary_arterial_pressure: "拡張期肺動脈圧",
+  left_ventricular_ejection_fraction: "左室駆出率",
+
   output_label: {
     AoP: "AoP",
     CO: "CO",
