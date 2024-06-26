@@ -40,6 +40,7 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
   const sciChartSurfaceRef = useRef();
   const wasmContextRef = useRef();
   const subscriptionsRef = useRef([]);
+  const lastUpdatedTimeRef = useRef({});
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -133,20 +134,33 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
     const {hdp,patientId, id} = item
     const dataSeries = dataRef.current[id]
     return (data, time, hdprops) => {
-      if(dataSeries?.length != 2) return;
+      if(lastUpdatedTimeRef.current[id] && lastUpdatedTimeRef.current[id] >= time){
+        return
+      }else{
+        lastUpdatedTimeRef.current[id] = time;
+      }
       const _time = data['t']?.map(x=>x%timeWindow)
-      const newTime = data['t'][_time.length-1] % timeWindow
       const startTime = _time[0]
       const endTime = _time[_time.length-1]
-      const _data = getTimeSeriesFn(hdprops)[hdp](data)
+      if(data["t"][0] % (timeWindow * 2) >  data['t'][_time.length-1] % (timeWindow * 2)) {
+        dataSeries[0]?.clear()
+        return;
+      }else if (startTime > endTime){
+        dataSeries[1]?.clear()
+        return;
+      }
       const j =  data['t'][_time.length-1] % (timeWindow * 2) < timeWindow ? 0 : 1;
       const k = j ? 0 : 1;
-
-      if(!(startTime <= timeWindow && timeWindow <= endTime) && startTime <= endTime && dataSeries[j].getXRange().max <= _time[0] ){
-        dataSeries[j].appendRange(_time, _data)
+      if(timeWindow - endTime <= TIME_WINDOW_GAP){
+        dataSeries[k]?.clear()
       }
+      const _data = getTimeSeriesFn(hdprops)[hdp](data)
+
+      // if(!(startTime <= timeWindow && timeWindow <= endTime) && startTime <= endTime && dataSeries[j].getXRange().max <= _time[0] ){ 
+        dataSeries[j].appendRange(_time, _data)
+      // }
       if(dataSeries[j]?.hasValues ){
-        const indiceRange1 = dataSeries[j].getIndicesRange(new NumberRange(newTime, timeWindow))
+        const indiceRange1 = dataSeries[j]?.getIndicesRange(new NumberRange(endTime, timeWindow))
         const indexMin1 = indiceRange1.min
         const indexMax1 = indiceRange1.max
         if(indexMax1 - indexMin1 > 0 ){
@@ -154,14 +168,12 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
         }
       }
       if(dataSeries[k]?.hasValues ){
-        const indiceRange2 = dataSeries[k].getIndicesRange(new NumberRange(startTime,endTime+TIME_WINDOW_GAP)) 
+        const indiceRange2 = dataSeries[k]?.getIndicesRange(new NumberRange(startTime,endTime+TIME_WINDOW_GAP)) 
         if(indiceRange2.max - indiceRange2.min > 0 ){
           dataSeries[k]?.removeRange(indiceRange2.min, indiceRange2.max-indiceRange2.min+1)
         }
       }
-      if(timeWindow - newTime < 200){
-        dataSeries[k]?.clear()
-      }
+
     }
   }
 
