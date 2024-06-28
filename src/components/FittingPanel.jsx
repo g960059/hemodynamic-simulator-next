@@ -7,7 +7,7 @@ import { Popover, Dialog, Switch } from '@mui/material';
 
 const FittingPanel = React.memo(({ patients, updatePatientParameters, view, updateView, removeView, isOwner }) => {
   const t = useTranslation();
-  const [metrics, setMetrics] = useState([
+  const [metrics, setMetrics] = useState(view?.metrics || [
     { value: 52.5, name: "stroke_volume", unit: "ml" },
     { value: 10.3, name: "central_venous_pressure", unit: "mmHg" },
     { value: 20.7, name: "pulmonary_capillary_wedge_pressure", unit: "mmHg" },
@@ -19,7 +19,7 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
     { value: 80.0, name: "HR", unit: "bpm" }
   ]);
 
-  const [paramUpdates, setParamUpdates] = useState(
+  const [paramUpdates, setParamUpdates] = useState(view.paramUpdates || 
     AllDefaultParams.reduce((acc, param) => {
       if (!['Qvs_initial', 'HR', 'Ravs', 'Ravr', 'Rmvr', 'Rmvs', 'Rpvr', 'Rpvs', 'Rtvr', 'Rtvs', 'Rda', 'Cda'].includes(param.name)) {
         acc[param.name] = { value: param.default, range: param.range, fitting: param.fitting };
@@ -34,43 +34,65 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
   const [result, setResult] = useState(null);
   const [selectedPatientId, setSelectedPatientId] = useState('');
   const [openResultDialog, setOpenResultDialog] = useState(false);
-  const [fittingHistory, setFittingHistory] = useState([]);
+  const [fittingHistory, setFittingHistory] = useState(view.fittingHistory || []);
   const [anchorEl, setAnchorEl] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [expandedAccordion, setExpandedAccordion] = useState(null);
+  const [tempView, setTempView] = useState(null);
+
 
 
   const handleCloseSettings = () => {
     setAnchorEl(null);
   };
 
-  const toggleAccordion = (section) => {
-    setExpandedAccordion(expandedAccordion === section ? null : section);
+  // useEffect(() => {
+  //   // viewが変更されたときに、tempViewを更新
+  //   if (view) {
+  //     setTempView({
+  //       ...view,
+  //       paramUpdates: view.paramUpdates || {} // paramUpdatesが存在しない場合、空のオブジェクトを設定
+  //     });
+  //   }
+  // }, [view, view.paramUpdates]);
+
+
+  // useEffect(() => {
+  //   setMetrics(view.metrics || []);
+  //   setParamUpdates(view.paramUpdates || {});
+  //   setFittingHistory(view.fittingHistory || []);
+  // }, [view]);
+
+  const handleMetricChange = (index, value) => {
+    const newMetrics = metrics.map((metric, i) => 
+      i === index ? { ...metric, value: parseFloat(value) } : metric
+    );
+    setMetrics(newMetrics);
+    updateView({ ...view, metrics: newMetrics });
   };
 
-  useEffect(() => {
-    if (view.fittingHistory) {
-      setFittingHistory(view.fittingHistory);
-    }
-  }, [view.fittingHistory]);
-
-  const handleMetricChange = useCallback((index, value) => {
-    setMetrics(prevMetrics => {
-      const newMetrics = [...prevMetrics];
-      newMetrics[index].value = parseFloat(value);
-      return newMetrics;
-    });
-  }, []);
-
-  const handleParamChange = useCallback((param, field, value) => {
-    setParamUpdates(prevParams => ({
-      ...prevParams,
+  const handleParamChange = (param, field, value) => {
+    const newParamUpdates = {
+      ...paramUpdates,
       [param]: {
-        ...prevParams[param],
+        ...paramUpdates[param],
         [field]: field === 'fitting' ? value : parseFloat(value)
       }
-    }));
-  }, []);
+    };
+    setParamUpdates(newParamUpdates);
+    updateView({ ...view, paramUpdates: newParamUpdates });
+  };
+
+  const handleFittingToggle = (param) => {
+    const newParamUpdates = {
+      ...paramUpdates,
+      [param]: {
+        ...paramUpdates[param],
+        fitting: !paramUpdates[param].fitting
+      }
+    };
+    setParamUpdates(newParamUpdates);
+    updateView({ ...view, paramUpdates: newParamUpdates });
+  };
 
   const applyFittingResult = useCallback(() => {
     if (!selectedPatientId || !result) return;
@@ -104,12 +126,40 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
       targetMetrics: metrics,
       parameters: result.best_parameters.parameters
     };
-    setFittingHistory(prevHistory => [newHistoryItem, ...prevHistory]);
-    updateView({
-      ...view,
-      fittingHistory: [newHistoryItem, ...fittingHistory]
-    });
+    const newHistory = [newHistoryItem, ...fittingHistory];
+    setFittingHistory(newHistory);
+    updateView({ ...view, fittingHistory: newHistory });
   };
+
+  const handleEditDialogOpen = () => {
+    // ダイアログを開くときに、viewの深いコピーを作成
+    setTempView({
+      ...JSON.parse(JSON.stringify(view)),
+      metrics: metrics || [],
+      paramUpdates: paramUpdates || {}
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleEditDialogClose = () => {
+    setTempView(null);
+    setEditDialogOpen(false);
+  };
+
+  const handleEditDialogSave = () => {
+    if (tempView) {
+      setParamUpdates(tempView.paramUpdates);
+      updateView(tempView);
+    }
+    setEditDialogOpen(false);
+  };
+
+  const handleTempViewChange = (field, value) => {
+    setTempView(prevView => ({
+      ...prevView,
+      [field]: value
+    }));
+  };  
 
   const startFitting = async () => {
     setLoading(true);
@@ -153,6 +203,9 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
     }
   };
 
+  console.log(paramUpdates, view.paramUpdates)
+  console.log(tempView);
+
   return (
     <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md overflow-hidden">
       <div className="flex items-center justify-between p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200">
@@ -167,7 +220,7 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
       <div className="flex-grow overflow-y-auto p-4">
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-2 text-gray-700">Target Metrics</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {metrics.map((metric, index) => (
               <div key={metric.name} className="flex items-center">
                 <label className="w-2/3 text-sm text-gray-600">{t[metric.name]}:</label>
@@ -202,23 +255,27 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
 
         <div>
           <h3 className="text-lg font-semibold mb-2 text-gray-700">Fitting History</h3>
-          <div className="space-y-2">
-            {fittingHistory.map((item, index) => (
-              <div key={index} className="border p-2 rounded">
-                <p className="text-sm text-gray-600">Date: {new Date(item.date).toLocaleString()}</p>
-                <p className="text-sm text-gray-600">Fitness: {item.fitness.toFixed(4)}</p>
-                <button
-                  onClick={() => {
-                    setResult({ best_parameters: { parameters: item.parameters }, best_fitness: item.fitness , targetMetrics: item.targetMetrics});
-                    setOpenResultDialog(true);
-                  }}
-                  className="mt-1 text-sm text-blue-500 hover:text-blue-700"
-                >
-                  View Details
-                </button>
-              </div>
-            ))}
-          </div>
+          {fittingHistory.length > 0 ? (          
+            <div className="space-y-2">
+              {fittingHistory.map((item, index) => (
+                <div key={index} className="border p-2 rounded">
+                  <p className="text-sm text-gray-600">Date: {new Date(item.date).toLocaleString()}</p>
+                  <p className="text-sm text-gray-600">Fitness: {item.fitness.toFixed(4)}</p>
+                  <button
+                    onClick={() => {
+                      setResult({ best_parameters: { parameters: item.parameters }, best_fitness: item.fitness , targetMetrics: item.targetMetrics});
+                      setOpenResultDialog(true);
+                    }}
+                    className="mt-1 text-sm text-blue-500 hover:text-blue-700"
+                  >
+                    View Details
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No fitting history available.</p>
+          )}            
         </div>
       </div>
 
@@ -240,7 +297,7 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
         <div className="flex flex-col items-center justify-center py-2 bg-white  border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0">
           <div 
             onClick={() => {
-              setEditDialogOpen(true);
+              handleEditDialogOpen()
               handleCloseSettings();
             }}
             className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
@@ -261,134 +318,339 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
         </div>
       </Popover>
 
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog open={editDialogOpen} onClose={handleEditDialogClose} maxWidth="md" fullWidth>
         <div className="p-6">
           <h2 className="text-2xl font-bold mb-4">Edit Parameters</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(paramUpdates).map(([param, { value, range, fitting }]) => (
-              <div key={param} className="bg-white shadow-md rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-700">{param}</span>
-                  <button
-                    onClick={() => handleParamChange(param, 'fitting', !fitting)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      fitting
-                        ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                        : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                    }`}
-                  >
-                    {fitting ? 'Fitting' : 'Fixed'}
-                  </button>
-                </div>
-                {fitting ? (
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      value={range[0]}
-                      onChange={(e) => handleParamChange(param, 'range', [parseFloat(e.target.value), range[1]])}
-                      className="w-1/2 p-2 border rounded text-right"
-                    />
-                    <span>-</span>
-                    <input
-                      type="number"
-                      value={range[1]}
-                      onChange={(e) => handleParamChange(param, 'range', [range[0], parseFloat(e.target.value)])}
-                      className="w-1/2 p-2 border rounded text-right"
-                    />
+          {tempView && (
+            <div className="space-y-6">
+              {/* Heart Section */}
+              <div className="bg-white shadow rounded-lg p-4">
+                {['LV', 'RV', 'LA', 'RA'].map(chamber => (
+                  <div key={chamber} className="mb-4">
+                    <h4 className="text-md font-semibold mb-2 text-gray-600">{t[chamber] || chamber}</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {['Ees', 'V0', 'alpha', 'beta', 'Tmax', 'tau', 'AV_delay'].map(suffix => {
+                        const param = `${chamber}_${suffix}`;
+                        return (
+                          <ParameterEditItem
+                            key={param}
+                            param={suffix}
+                            data={tempView.paramUpdates[param]||{}}
+                            onChange={(field, value) => handleTempViewChange('paramUpdates', {
+                              ...tempView.paramUpdates,
+                              [param]: { ...(tempView.paramUpdates[param] || {}), [field]: value }
+                            })}
+                            onFittingToggle={() => handleTempViewChange('paramUpdates', {
+                              ...tempView.paramUpdates,
+                              [param]: { ...(tempView.paramUpdates[param] || {}), fitting: !(tempView.paramUpdates[param] || {}).fitting }
+                            })}
+                            unit={getUnitForParam(param)}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
-                ) : (
-                  <input
-                    type="number"
-                    value={value}
-                    onChange={(e) => handleParamChange(param, 'value', e.target.value)}
-                    className="w-full p-2 border rounded text-right"
+                ))}
+              </div>
+
+              {/* Systemic Circulation Section */}
+              <div className="bg-white shadow rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-2 text-gray-700">体循環</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { key: 'Ras', label: '動脈抵抗' },
+                    { key: 'Rcs', label: '末梢血管抵抗' },
+                    { key: 'Rvs', label: '静脈抵抗' },
+                    { key: 'Ras_prox', label: '近位部抵抗' },
+                    { key: 'Cas', label: '動脈コンプライアンス' },
+                    { key: 'Cvs', label: '静脈コンプライアンス' },
+                    { key: 'Cas_prox', label: '近位部コンプライアンス' }
+                  ].map(({ key, label }) => (
+                    <ParameterEditItem
+                      key={key}
+                      param={label}
+                      data={tempView.paramUpdates[key]}
+                      onChange={(field, value) => handleTempViewChange('paramUpdates', {
+                        ...tempView.paramUpdates,
+                        [key]: { ...(tempView.paramUpdates[key] || {}), [field]: value }
+                      })}
+                      onFittingToggle={() => handleTempViewChange('paramUpdates', {
+                        ...tempView.paramUpdates,
+                        [key]: { ...(tempView.paramUpdates[key] || {}), fitting: !(tempView.paramUpdates[key] || {}).fitting }
+                      })}
+                      unit={getUnitForParam(key)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Pulmonary Circulation Section */}
+              <div className="bg-white shadow rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-2 text-gray-700">肺循環</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { key: 'Rcp', label: '動脈抵抗' },
+                    { key: 'Rap', label: '末梢血管抵抗' },
+                    { key: 'Rvp', label: '静脈抵抗' },
+                    { key: 'Rap_prox', label: '近位部抵抗' },
+                    { key: 'Cap', label: '動脈コンプライアンス' },
+                    { key: 'Cvp', label: '静脈コンプライアンス' },
+                    { key: 'Cap_prox', label: '近位部コンプライアンス' }
+                  ].map(({ key, label }) => (
+                    <ParameterEditItem
+                    key={key}
+                    param={label}
+                    data={tempView.paramUpdates[key]}
+                    onChange={(field, value) => handleTempViewChange('paramUpdates', {
+                      ...tempView.paramUpdates,
+                      [key]: { ...(tempView.paramUpdates[key] || {}), [field]: value }
+                    })}
+                    onFittingToggle={() => handleTempViewChange('paramUpdates', {
+                      ...tempView.paramUpdates,
+                      [key]: { ...(tempView.paramUpdates[key] || {}), fitting: !(tempView.paramUpdates[key] || {}).fitting }
+                    })}
+                    unit={getUnitForParam(key)}
                   />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="mt-6 flex justify-end space-x-2">
+          <button
+            onClick={handleEditDialogClose}
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleEditDialogSave}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Save Changes
+          </button>
+        </div>
+      </div>
+    </Dialog>
+
+
+      <Dialog open={openResultDialog} onClose={() => setOpenResultDialog(false)} className="rounded-lg">
+        <div className="p-6 bg-white rounded-lg max-w-2xl w-full">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">Fitting Results</h3>
+          <div className="mb-4">
+            {/* 基本パラメータセクション */}
+            <div className="mb-4">
+              <h5 className="text-sm font-semibold mb-1 text-gray-600">基本パラメータ</h5>
+              <div className="grid grid-cols-2 gap-2">
+                {result && (
+                  <>
+                    <ParameterItem key="Volume" param="Volume" value={result?.best_parameters.parameters['Qvs_initial']?.value + 1233.01570263} />
+                    <ParameterItem key="HR" param="HR" value={result?.best_parameters.parameters['HR']?.value} />
+                  </>
                 )}
               </div>
-            ))}
+            </div>
+
+            {/* 心臓パラメータセクション */}
+            <div className="mb-4">
+              {result && ['LV', 'RV', 'LA', 'RA'].map(chamber => (
+                <div key={chamber} className="mb-4">
+                  <h6 className="text-sm font-semibold mb-1 text-gray-600">{t[chamber] || chamber}</h6>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Ees', 'V0', 'alpha', 'beta', 'Tmax', 'tau', 'AV_delay'].map(param => {
+                      const chamber_param = `${chamber}_${param}`;
+                      return result?.best_parameters.parameters[chamber_param] !== undefined ? (
+                        <ParameterItem key={chamber_param} param={param} value={result?.best_parameters.parameters[chamber_param]?.value} />
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 体循環セクション */}
+            <div className="mb-4">
+              <h5 className="text-sm font-semibold mb-1 text-gray-600">体循環</h5>
+              <div className="grid grid-cols-2 gap-2">
+                {result && [
+                  { key: 'Ras', label: '動脈抵抗' },
+                  { key: 'Rcs', label: '末梢血管抵抗' },
+                  { key: 'Rvs', label: '静脈抵抗' },
+                  { key: 'Ras_prox', label: '近位部抵抗' },
+                  { key: 'Cas', label: '動脈コンプライアンス' },
+                  { key: 'Cvs', label: '静脈コンプライアンス' },
+                  { key: 'Cas_prox', label: '近位部コンプライアンス' }
+                ].map(({ key, label }) => (
+                  <ParameterItem key={key} param={label} unit={key} value={result?.best_parameters.parameters[key]?.value} />
+                ))}
+              </div>
+            </div>
+
+            {/* 肺循環セクション */}
+            <div className="mb-4">
+              <h5 className="text-sm font-semibold mb-1 text-gray-600">肺循環</h5>
+              <div className="grid grid-cols-2 gap-2">
+                {result && [
+                  { key: 'Rcp', label: '動脈抵抗' },
+                  { key: 'Rap', label: '末梢血管抵抗' },
+                  { key: 'Rvp', label: '静脈抵抗' },
+                  { key: 'Rap_prox', label: '近位部抵抗' },
+                  { key: 'Cap', label: '動脈コンプライアンス' },
+                  { key: 'Cvp', label: '静脈コンプライアンス' },
+                  { key: 'Cap_prox', label: '近位部コンプライアンス' }
+                ].map(({ key, label }) => (
+                  <ParameterItem key={key} param={label} unit={key} value={result?.best_parameters.parameters[key]?.value} />
+                ))}
+              </div>
+            </div>
+
           </div>
-          <div className="mt-6 flex justify-end space-x-2">
-            <button
-              onClick={() => setEditDialogOpen(false)}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+          <div className="mb-4">
+            <h4 className="text-md font-semibold mb-2 text-gray-700">Apply to Patient</h4>
+            <select
+              value={selectedPatientId}
+              onChange={(e) => setSelectedPatientId(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              Cancel
+              <option value="">Select a patient...</option>
+              {patients.map((patient) => (
+                <option key={patient.id} value={patient.id}>{patient.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <button
+              onClick={() => setOpenResultDialog(false)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+            >
+              Close
             </button>
             <button
-              onClick={() => {
-                updateView({ ...view, paramUpdates });
-                setEditDialogOpen(false);
-              }}
-              className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700"
+              onClick={applyFittingResult}
+              disabled={!selectedPatientId}
+              className={`px-4 py-2 text-sm font-medium text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                selectedPatientId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
+              }`}
             >
-              Save Changes
+              Apply to Selected Patient
             </button>
           </div>
         </div>
       </Dialog>
-
-      <Dialog open={openResultDialog} onClose={() => setOpenResultDialog(false)} maxWidth="md" fullWidth>
-        <div className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Fitting Results</h2>
-          <p className="mb-2">Best Fitness: {result?.best_fitness.toFixed(4)}</p>
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-2">Target Metrics</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {metrics.map((metric) => (
-                <div key={metric.name} className="flex justify-between">
-                  <span>{t[metric.name]}:</span>
-                  <span>{metric.value} {metric.unit}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold mb-2">Optimized Parameters</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {result && Object.entries(result.best_parameters.parameters).map(([param, { value, default: defaultValue }]) => 
-                !['Ravs', 'Ravr', 'Rmvr', 'Rmvs', 'Rpvr', 'Rpvs', 'Rtvr', 'Rtvs', 'Rda', 'Cda'].includes(param) && (
-                  <div key={param} className="flex justify-between">
-                    <span>{t[param]}</span>
-                    <span>{value.toFixed(2)} </span>
-                  </div>
-              ))}
-            </div>
-          </div>
-        <div className="mt-6 flex flex-col space-y-4">
-        <select
-          value={selectedPatientId}
-          onChange={(e) => setSelectedPatientId(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-        >
-          <option value="">Select a patient...</option>
-          {patients.map((patient) => (
-            <option key={patient.id} value={patient.id}>{patient.name}</option>
-          ))}
-        </select>
-        <div className="flex justify-end space-x-2">
-          <button
-            onClick={() => setOpenResultDialog(false)}
-            className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Close
-          </button>
-          <button
-            onClick={applyFittingResult}
-            disabled={!selectedPatientId}
-            className={`px-4 py-2 rounded-md text-sm font-medium text-white ${
-              selectedPatientId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'
-            }`}
-          >
-            Apply to Selected Patient
-          </button>
-        </div>
-      </div>
-    </div>
-  </Dialog>
 </div>
 );
 });
 export default FittingPanel;
 
 
+export function getUnitForParam(param) {
+  // 流速パラメータ
+  if (param.includes('Q') || param.endsWith('_initial')) {
+    return 'ml/ms';
+  }
+  
+  // 圧力パラメータ
+  if (param.startsWith('P') || param.includes('pressure')) {
+    return 'mmHg';
+  }
+  
+  // コンプライアンスパラメータ
+  if (param.startsWith('C')) {
+    return 'ml/mmHg';
+  }
+  
+  // 抵抗パラメータ
+  if (param.startsWith('R')) {
+    return 'mmHg・ms/ml';
+  }
+  
+  // 容積パラメータ
+  if (param.endsWith('V0') || param.includes('volume')) {
+    return 'ml';
+  }
+  
+  // 時間関連パラメータ
+  if (param.includes('tau') || param.includes('Tmax') || param.includes('AV_delay')) {
+    return 'ms';
+  }
+  
+  // 弾性係数（Elastance）
+  if (param.includes('Ees')) {
+    return 'mmHg/ml';
+  }
+  
+  // 無次元パラメータ
+  if (param.includes('alpha') || param.includes('beta')) {
+    return '';
+  }
+  
+  // 心拍数
+  if (param === 'HR') {
+    return 'bpm';
+  }
+  
+  // その他のパラメータ（単位が不明な場合）
+  return '';
+}
 
+
+const ParameterItem = ({ param, value, unit }) => {
+  const t = useTranslation();
+  return (
+    <div className="flex items-center space-x-2">
+      <span className="text-sm  text-gray-700 flex-grow">{t[param] || param}:</span>
+      <span className="text-sm text-gray-800">{value?.toFixed(2)}</span>
+      <span className="text-xs text-gray-500">{getUnitForParam(unit || param)}</span>
+    </div>
+)};
+
+const ParameterEditItem = ({ param, data = {}, onChange, onFittingToggle, unit }) => {
+  console.log(param, data)
+  const fitting = data.fitting ?? false; // デフォルト値を false に設定
+
+  return (
+    <div className="bg-gray-50 rounded-lg p-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-gray-700">{param}</span>
+        <button
+          onClick={onFittingToggle}
+          className={`px-2 py-1 text-xs rounded ${
+            fitting
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700'
+          }`}
+        >
+          {fitting ? 'Fitting' : 'Fixed'}
+        </button>
+      </div>
+      {fitting ? (
+        <div className="flex items-center space-x-2">
+          <input
+            type="number"
+            value={data.range?.[0] ?? ''}
+            onChange={(e) => onChange('range', [parseFloat(e.target.value), data.range?.[1] ?? 0])}
+            className="w-1/2 p-2 border rounded text-right text-sm"
+          />
+          <span>-</span>
+          <input
+            type="number"
+            value={data.range?.[1] ?? ''}
+            onChange={(e) => onChange('range', [data.range?.[0] ?? 0, parseFloat(e.target.value)])}
+            className="w-1/2 p-2 border rounded text-right text-sm"
+          />
+          <span className="text-sm text-gray-500">{unit}</span>
+        </div>
+      ) : (
+        <div className="flex items-center space-x-2">
+          <input
+            type="number"
+            value={data.value ?? ''}
+            onChange={(e) => onChange('value', parseFloat(e.target.value))}
+            className="w-full p-2 border rounded text-right text-sm"
+          />
+          <span className="text-sm text-gray-500">{unit}</span>
+        </div>
+      )}
+    </div>
+  );
+};
