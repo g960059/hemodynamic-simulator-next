@@ -1,20 +1,16 @@
 'use client'
 
 import React, { useRef, useState, useEffect, useCallback} from 'react'
-import {useDocumentVisibilityChange, getVisibilityPropertyNames} from "./useDocumentVisibility"
+import {useDocumentVisibilityChange} from "./useDocumentVisibility"
 import {rk4}  from '../utils/RungeKutta/Rk4'
 import {e, pvFunc, P} from '../utils/pvFunc'
 import { nanoid } from 'nanoid'
 import {MutationTimings} from '../constants/InputSettings'
-import {DEFAULT_DATA, DEFAULT_TIME,DEFAULT_HEMODYANMIC_PROPS} from '../utils/presets'
-
 import { authState} from 'rxfire/auth';
 import { collectionData, docData,collection as collectionRef } from 'rxfire/firestore';
 import {collection,doc,query,where,setDoc,addDoc,updateDoc,collectionGroup,orderBy,limit, serverTimestamp, writeBatch, Timestamp, getFirestore } from 'firebase/firestore';
 import { concatMap,map,tap,switchMap,filter,mergeMap} from "rxjs/operators";
 import { combineLatest, of,zip } from 'rxjs';
-import {useObservable} from "./useObservable"
-import { addDays } from 'date-fns'
 import { getAuth } from 'firebase/auth'
 
 
@@ -50,127 +46,6 @@ export const useAnimationFrame = (callback,deps=[]) =>{
   return [isPlaying, setIsPlaying]
 }
 
-export const usePvLoop = (id,initialHemodynamicProps=DEFAULT_HEMODYANMIC_PROPS,initialData=DEFAULT_DATA, initialTime=DEFAULT_TIME,prevId=null) => {
-  const idRef = useRef(id);
-  const dataRef = useRef({});
-  const hemodynamicPropsRef = useRef({});
-  const tRef = useRef({});
-  const speedRef = useRef({});
-  const subscriptionsRef = useRef({})
-  const subscriptionIdsRef = useRef({});
-  const hdpMutationsRef = useRef({});
-
-  dataRef.current[id] ??= initialData;
-  hemodynamicPropsRef.current[id] ??= {...initialHemodynamicProps};
-  tRef.current[id] ??= initialTime;
-  speedRef.current[id] ??= 1.0;
-  hdpMutationsRef.current[id] ??= {};
-  subscriptionsRef.current[id] ??= {};
-  idRef.current = id;
-
-  if(prevId!=null){
-    for(const [prevSubsId,update] of Object.entries(subscriptionsRef.current[prevId])){
-      let originalSubsId;
-      for(const [originalId, [patientId,subsId]] of Object.entries(subscriptionIdsRef.current)){
-        if(subsId == prevSubsId){
-          originalSubsId = originalId;
-          break;
-        }
-      }
-      const nextSubsId = nanoid();
-      subscriptionIdsRef.current[originalSubsId] = [id,nextSubsId];
-      subscriptionsRef.current[id][nextSubsId] = update
-    }
-    delete subscriptionsRef.current[prevId]
-  }
-
-  const subscribe = (update) => {
-    const originalSubsId = nanoid()
-    subscriptionIdsRef.current[originalSubsId] = [idRef.current,originalSubsId];
-    subscriptionsRef.current[idRef.current][originalSubsId] = update
-    return originalSubsId
-  }
-
-  const unsubscribe = subs_id => {
-    if(subscriptionIdsRef.current[subs_id]){
-      const [currentPatientId,current_subs_id] = subscriptionIdsRef.current[subs_id]
-      delete subscriptionsRef.current[currentPatientId][current_subs_id]
-    }else{
-      delete subscriptionsRef.current[idRef.current][subs_id]
-    }
-  } 
-
-  const isTiming = (hdp) => {
-    const Timing = MutationTimings[hdp]
-    const maybeChamber =  hdp.slice(0,2)
-    let chamber = ['LV','LA','RA','RV'].includes(maybeChamber) ?  maybeChamber : 'LV'
-    const [_Tmax,_tau,_AV_delay]  = ['Tmax', 'tau', 'AV_delay'].map(x=>chamber+'_'+x)
-    const [Tmax,tau,AV_delay, HR] = [hemodynamicPropsRef.current[idRef.current][_Tmax], hemodynamicPropsRef.current[idRef.current][_tau], hemodynamicPropsRef.current[idRef.current][_AV_delay], hemodynamicPropsRef.current[idRef.current]['HR']]
-    return t => {
-      switch(Timing){
-        case 'EndDiastolic':
-          return e(t-AV_delay,Tmax,tau,HR) < 0.001
-        case 'EndSystolic':
-          return e(t-AV_delay,Tmax,tau,HR) > 0.999
-        default:
-          return true
-      }
-    }
-  }
-
-  const [isPlaying, setIsPlaying] = useAnimationFrame(deltaTime  => {
-    let delta = speedRef.current[idRef.current] * deltaTime
-    if (delta <= 0 || dataRef.current[idRef.current].length === 0) return;
-
-    const new_logger = {}
-    let flag = 0
-    const currentIdRef = idRef.current;
-    let currentDataRef = dataRef.current[currentIdRef];
-    const currentHemodynamicPropsRef = hemodynamicPropsRef.current[currentIdRef];
-    let currentTRef = tRef.current[currentIdRef];
-    const currentHdpMutationsRef = hdpMutationsRef.current[currentIdRef];
-
-    while (delta > 0) {
-      let dt = delta >= 1 ? 1 : delta;
-      currentDataRef = flag % 3 === 0 ? rk4(pvFunc, currentHemodynamicPropsRef, new_logger)(currentDataRef, currentTRef, dt) : rk4(pvFunc, currentHemodynamicPropsRef, null)(currentDataRef, currentTRef, dt);
-      currentTRef += dt;
-      delta -= dt;
-      flag++;
-    }
-    if (!subscriptionsRef.current[currentIdRef]) return;
-    for (let update of Object.values(subscriptionsRef.current[currentIdRef])) {
-      update(new_logger, currentTRef, currentHemodynamicPropsRef);
-    }
-
-    if (Object.keys(currentHdpMutationsRef).length > 0) {
-      Object.entries(hdpMutationsRef.current[id]).forEach(([hdpKey,hdpValue])=> {
-        if(hdpKey === 'Volume'){
-          dataRef.current[id][0] += hdpValue - dataRef.current[id].reduce((a,b)=>a+=b,0);
-          hemodynamicPropsRef.current[id][hdpKey] = hdpValue
-          delete hdpMutationsRef.current[id][hdpKey]
-        }else if(hdpKey === 'HR'){
-          if( ((60000/hdpValue) - (tRef.current[id]-160) % (60000/hdpValue)) < 100 && ((60000/hemodynamicPropsRef.current[id]['HR']) - (tRef.current[id]-160) % (60000/hemodynamicPropsRef.current[id]['HR'])) < 100 ){
-            hemodynamicPropsRef.current[id][hdpKey] = hdpValue
-            delete hdpMutationsRef.current[id][hdpKey]
-          }
-        }else{
-          if(isTiming(hdpKey)(tRef.current[id])){
-            hemodynamicPropsRef.current[id][hdpKey] = hdpValue
-            delete hdpMutationsRef.current[id][hdpKey]
-          }
-        }
-      })
-    }
-    
-  })
-  const setHdps = useCallback((hdpKey, hdpValue) => {hdpMutationsRef.current[idRef.current][hdpKey] = hdpValue})
-  const getHdps = () => hemodynamicPropsRef.current[idRef.current]
-  const setSpeed = useCallback(newSpeed => speedRef.current[idRef.current] = newSpeed)
-  const getDataSnapshot = () => dataRef.current[idRef.current];
-  const getTimeSnapshot = () => tRef.current[idRef.current];
-
-  return {subscribe, unsubscribe, isPlaying, setIsPlaying,setHdps, getHdps, setSpeed,getDataSnapshot,getTimeSnapshot}
-}
 
 export const useEngine = () => {
   const idsRef = useRef([]);
@@ -181,7 +56,8 @@ export const useEngine = () => {
   const dataRef = useRef({});
   const hemodynamicPropsRef = useRef({});
   const tRef = useRef({});
-  const speedRef = useRef(1.0);
+  const speedRef = useRef({});
+  const isPlayingRef = useRef({});
   const subscriptionsRef = useRef({})
   const hdpMutationsRef = useRef({});
   const hdpMutationSubscriptionsRef = useRef({});
@@ -198,6 +74,8 @@ export const useEngine = () => {
     hdpMutationsRef.current[id] = {};
     subscriptionsRef.current[id] = {};
     hdpMutationSubscriptionsRef.current[id] = {};
+    speedRef.current[id] = 1.0;
+    isPlayingRef.current[id] = true;
     if(!idsRef.current.includes(id)) {
       idsRef.current.push(id);
     }
@@ -214,7 +92,16 @@ export const useEngine = () => {
     delete hdpMutationsRef.current[id];
     delete subscriptionsRef.current[id];
     delete hdpMutationSubscriptionsRef.current[id];
+    delete speedRef.current[id];
+    delete isPlayingRef.current[id];
   }
+
+  const deleteModel = (id) => {
+    Object.values(hdpAllMutationSubscriptionsRef.current).forEach(callback => {
+      callback(id, 'DELETE_MODEL', null);
+    });
+    unregister(id);
+  };
 
   const clear = () => {
     dataRef.current={}
@@ -224,6 +111,8 @@ export const useEngine = () => {
     hdpMutationsRef.current={}
     subscriptionsRef.current={}
     hdpMutationSubscriptionsRef.current={}
+    speedRef.current = {};
+    isPlayingRef.current = {};
     idsRef.current = []
   }
 
@@ -238,6 +127,7 @@ export const useEngine = () => {
       delete subscriptionsRef.current[id][subs_id]
     }
   } 
+
   const subscribeHdpMutation = (id) => hdpKeys => callback =>{
     const subsId = nanoid();
     hdpKeys.forEach(hdpKey => {
@@ -283,7 +173,8 @@ export const useEngine = () => {
 
   const [isPlaying, setIsPlaying] = useAnimationFrame(deltaTime  => {
     for(let id of idsRef.current){
-      let delta = speedRef.current * deltaTime
+      if (!isPlayingRef.current[id]) return;
+      let delta = speedRef.current[id] * deltaTime
       if(delta >0 && dataRef.current[id].length>0){
         const new_logger = {}
         let flag = 0
@@ -301,6 +192,7 @@ export const useEngine = () => {
         if(Object.keys(hdpMutationsRef.current[id]).length > 0){
           Object.entries(hdpMutationsRef.current[id]).forEach(([hdpKey,hdpValue])=> {
             if(hdpKey === 'Volume'){
+              console.log(hdpValue, dataRef.current[id].reduce((a,b)=>a+=b,0))
               dataRef.current[id][0] += hdpValue - dataRef.current[id].reduce((a,b)=>a+=b,0);
               hemodynamicPropsRef.current[id][hdpKey] = hdpValue
               delete hdpMutationsRef.current[id][hdpKey]
@@ -311,6 +203,7 @@ export const useEngine = () => {
               }
             }else{
               if(isTiming(id,hdpKey)(tRef.current[id])){
+                console.log(id, hdpKey, hdpValue)
                 hemodynamicPropsRef.current[id][hdpKey] = hdpValue
                 delete hdpMutationsRef.current[id][hdpKey]
               }
@@ -321,7 +214,14 @@ export const useEngine = () => {
     }
   })
 
-  const setSpeed = useCallback(newSpeed => speedRef.current = newSpeed)
+  const setSpeed = (id) => (newSpeed) => {
+    speedRef.current[id] = newSpeed;
+  };
+
+  const setIsModelPlaying = (id) => (isPlaying) => {
+    isPlayingRef.current[id] = isPlaying;
+  };
+
   const setHdps = (id) =>(hdpKey, hdpValue) => {
     hdpMutationsRef.current[id][hdpKey] = hdpValue
     if(hdpMutationSubscriptionsRef.current[id]){
@@ -344,39 +244,32 @@ export const useEngine = () => {
   const getInitialDatas = (id) => () => initialDatasRef.current[id]
   const getInitialTimes   = (id) => () => initialTimesRef.current[id]
   const getPatient = id => {
-    return {id,getInitialHdps:getInitialHdps(id),getInitialDatas:getInitialDatas(id),getInitialTimes:getInitialTimes(id), subscribe:subscribe(id),unsubscribe:unsubscribe(id),subscribeHdpMutation:subscribeHdpMutation(id),unsubscribeHdpMutation:unsubscribeHdpMutation(id), getHdps:getHdps(id),setHdps:setHdps(id),getDataSnapshot:getDataSnapshot(id),getTimeSnapshot:getTimeSnapshot(id)}
+    return {
+      id,
+      getInitialHdps: getInitialHdps(id),
+      getInitialDatas: getInitialDatas(id),
+      getInitialTimes: getInitialTimes(id),
+      subscribe: subscribe(id),
+      unsubscribe: unsubscribe(id),
+      subscribeHdpMutation: subscribeHdpMutation(id),
+      unsubscribeHdpMutation: unsubscribeHdpMutation(id),
+      getHdps: getHdps(id),
+      setHdps: setHdps(id),
+      getDataSnapshot: getDataSnapshot(id),
+      getTimeSnapshot: getTimeSnapshot(id),
+      setSpeed: setSpeed(id),
+      setIsModelPlaying: setIsModelPlaying(id),
+      isPlaying: isPlayingRef.current[id],
+      speed: speedRef.current[id],
+    };
   }
   const getAllPatinets = () => idsRef.current.map(id=>getPatient(id))
-  const getPatientData = id =>({id, initialHdps:initialHdpsRef.current[id], initialData:initialDatasRef.current[id],initialTime: initialTimesRef.current[id],name: namesRef.current[id] })
+  const getPatientData = id =>({id, initialHdps:initialHdpsRef.current[id], initialData:initialDatasRef.current[id],initialTime: initialTimesRef.current[id],name: namesRef.current[id]})
   const getAllPatientsData = ()=>idsRef.current.map(id=>getPatientData(id));
-  return {register,unregister,clear,subscribe,unsubscribe,subscribeHdpMutation,unsubscribeHdpMutation,subscribeAllHdpMutation,unsubscribeAllHdpMutation, isPlaying,setIsPlaying,setSpeed,getPatient,getAllPatinets,getPatientData, getAllPatientsData, ids:idsRef.current, setHdps, getHdps}
+  return {register,unregister,clear,subscribe,unsubscribe,subscribeHdpMutation,unsubscribeHdpMutation,subscribeAllHdpMutation,unsubscribeAllHdpMutation, isPlaying,setIsPlaying,setIsModelPlaying, setSpeed,getPatient,getAllPatinets,getPatientData, getAllPatientsData, ids:idsRef.current, setHdps, getHdps,deleteModel}
 }
 
-class Patient {
-  constructor(id=null,name,initialHdps,initialData,initialTime,visibility,emoji,tags,uid,displayName,photoURL,favs,subscribe,unsubscribe ,isPlaying,setIsPlaying, setHdps, getHdps, setSpeed,getDataSnapshot,getTimeSnapshot){
-    this.id=id ? id :  nanoid();
-    this.name = name;
-    this.initialHdps=initialHdps;
-    this.initialData=initialData;
-    this.initialTime = initialTime;
-    this.visibility = visibility;
-    this.emoji = emoji;
-    this.tags = tags;
-    this.uid = uid;
-    this.displayName = displayName;
-    this.photoURL = photoURL;
-    this.favs = favs;
-    this.subscribe=subscribe;
-    this.unsubscribe=unsubscribe 
-    this.isPlaying=isPlaying;
-    this.setIsPlaying=setIsPlaying;
-    this.setHdps=setHdps;
-    this.getHdps=getHdps;
-    this.setSpeed=setSpeed;
-    this.getDataSnapshot = getDataSnapshot;
-    this.getTimeSnapshot = getTimeSnapshot;
-  }
-}
+
 
 
 export const user$ = authState(getAuth()).pipe(
@@ -412,144 +305,5 @@ export const user$ = authState(getAuth()).pipe(
 );
 
 
-
-
-
-
-// export const nextUser$ = user$.pipe(
-//   mergeMap(user => docData(doc(db,'users',user.uid),{idField: 'uid'})),
-// )
-
-
-// export const myPatients$ = user$.pipe(
-//   mergeMap(user =>user ? collectionData(collection(db, 'users',user?.uid,'patients'),{idField: 'id'}) : of([])),
-// )
-// export const allPatients$ = collectionData(query(collectionGroup(db,'patients')),{idField: 'id'})
-
-// export const selectedPatient$ = combineLatest([myPatients$,user$]).pipe(
-//   map(([patients,user])=>{
-//     if(user){
-//       console.log(user.selectedPatientId)
-//       return patients.find(p=>p.id==user.selectedPatientId)
-//     }else{
-//       return of(null)
-//     }
-//   })
-// )
-// export const patientsRef$ =  user$.pipe(
-//   filter(user => !!user.uid),
-//   map(user => collection(db, 'users',user?.uid,'patients'))
-// )
-// export const cases$ = user$.pipe(
-//   mergeMap(user => user ? collectionData(collection(db,'users',user?.uid,'cases'),{idField: 'id'}): of([])),
-// )
-// export const articles$ = user$.pipe(
-//   mergeMap(user => user ? collectionData(collection(db,'users',user?.uid,'articles'),{idField: 'id'}): of([])),
-// )
-// export const books$ = user$.pipe(
-//   mergeMap(user => user ? collectionData(collection(db,'users',user?.uid,'books'),{idField: 'id'}): of([])),
-// )
-
-// export const userRef$ = user$.pipe(
-//   filter(user => !!user.uid),
-//   map(user => doc(db,'users',user?.uid))
-// )
-
-// export const allCases$ = collectionData(query(collectionGroup(db,'cases'),orderBy("favs"),limit(50)),{idField: 'id'})
-
-// export const purchases$ = user$.pipe(
-//   mergeMap(user => user?.uid ?
-//     collectionData(collection(db,'users/'+user?.uid+'/purchases'),{idField:"id"}):
-//     of([])
-//   ),
-//   mergeMap(purchases => combineLatest(
-//     purchases?.map(purchase => 
-//       combineLatest({timestamp:of(purchase.timestamp.toDate()), bookData: docData(doc(db,`users/${purchase.sellerId}/books/${purchase.itemId}`),{idField:"id"}), authorData: docData(doc(db,`users/${purchase.sellerId}`))})
-//     )
-//   ))
-// )
-// export const favorites$ = user$.pipe(
-//   mergeMap(user => user?.uid ?
-//     collectionData(collection(db,'users/'+user?.uid+'/favorites'),{idField:"id"}):
-//     of([])
-//   ),
-//   mergeMap(favorites => combineLatest(
-//     favorites?.map(favorite =>{
-//       if(favorite.type =="book"){
-//         return  combineLatest({timestamp:of(favorite.timestamp?.toDate()), bookData: docData(doc(db,`users/${favorite.authorId}/books/${favorite.bookId}`),{idField:"id"}), authorData: docData(doc(db,`users/${favorite.authorId}`))})
-//       }
-//       if(favorite.type =="article"){
-//         return  combineLatest({timestamp:of(favorite.timestamp?.toDate()), articleData: docData(doc(db,`users/${favorite.authorId}/articles/${favorite.articleId}`),{idField:"id"}), authorData: docData(doc(db,`users/${favorite.authorId}`))})
-//       }
-//       return of(null)
-//     })
-//   ))
-// )
-// export const following$ = user$.pipe(
-//   mergeMap(user => user?.uid ?
-//     collectionData(query(collection(db,'followers'),where('users', 'array-contains', user.uid)),{idField:"id"}): of([])
-//   ),
-//   mergeMap(following => combineLatest(
-//     following?.map(({id:uid}) => combineLatest({userData: docData(doc(db,'users',uid),{idField: "uid"}), articles: collectionData(query(collection(db,'users',uid,'articles'),where("updatedAt",">",Timestamp.fromDate(addDays(new Date(),-30)))),{idField: "id"}), books: collectionData(query(collection(db,'users',uid,'books'),where("updatedAt",">",Timestamp.fromDate(addDays(new Date(),-30)))),{idField: "id"})}))
-//   ))
-// )
-
-// export const sales$ = user$.pipe(
-//   mergeMap(user => 
-//     combineLatest({user: of(user), sales: (user?.uid ? collectionData(collection(db,'users/'+user?.uid+'/sales'),{idField:"id"}) : of([]))})
-//   ),
-// )
-// export const salesDetail$ =  combineLatest([sales$,books$]).pipe(
-//   mergeMap(([sales,books]) => 
-//     combineLatest(sales.sales.map(sale => combineLatest({customerData: docData(doc(db,`users/${sale.customerId}`),{idField:"uid"}), saleData: of(sale), bookData: of(books.find(p=>p.id==sale.itemId))}) )) 
-//   )
-// )
-// export const payableHistory$ = user$.pipe(
-//   mergeMap(user => user?.uid ?
-//     collectionData(collection(db,'users/'+user?.uid+'/payable_history'),{idField:"id"}):
-//     of([])
-//   )
-// )
-// export const withdrawals$ = user$.pipe(
-//   mergeMap(user => user?.uid ?
-//     collectionData(collection(db,'users/'+user?.uid+'/withdrawals'),{idField:"id"}):
-//     of([])
-//   )
-// )
-
-
-// export const useEngine= ({id,name,hdps,initialData,initialTime}) => {
-//   console.log(id)
-//   const {subscribe,unsubscribe ,isPlaying,setIsPlaying, setHdps, getHdps, setSpeed,getDataSnapshot,getTimeSnapshot} = usePvLoop(id,hdps,initialData,initialTime)
-//   return {id,name,hdps,initialData,initialTime,subscribe,unsubscribe ,isPlaying,setIsPlaying, setHdps, getHdps, setSpeed,getDataSnapshot,getTimeSnapshot}
-// }
-
-export const usePatient = () => {
-  const [loadedPatient, setLoadedPatient] = useState(null);
-  const selectedPatient = useObservable("selectedPatient",selectedPatient$,{initialData:{id:"default",name:"Normal",hdps:DEFAULT_HEMODYANMIC_PROPS,initialData:DEFAULT_DATA,initialTime:DEFAULT_TIME}})
-  if(selectedPatient.status == 'success' && selectedPatient.data){
-    const {id,name,hdps,initialData,initialTime,visibility,emoji,tags,uid,displayName,photoURL,favs} = selectedPatient.data
-    let prevId;
-    // return loadedPatient;
-    if(loadedPatient && loadedPatient.id != id){
-      prevId = loadedPatient.id
-    }
-    const {subscribe,unsubscribe ,isPlaying,setIsPlaying, setHdps, getHdps, setSpeed,getDataSnapshot,getTimeSnapshot} = usePvLoop(id,hdps,initialData,initialTime,prevId)
-    const patient = new Patient(id,name, hdps,initialData,initialTime,visibility,emoji,tags,uid,displayName,photoURL,favs,subscribe,unsubscribe ,isPlaying,setIsPlaying, setHdps, getHdps, setSpeed,getDataSnapshot,getTimeSnapshot)
-    // setLoadedPatient(patient); 
-    if(!loadedPatient || loadedPatient?.id != id){
-      setLoadedPatient(patient)
-    }
-    return patient;
-    
-  }else{
-    const {subscribe,unsubscribe ,isPlaying,setIsPlaying, setHdps, getHdps, setSpeed,getDataSnapshot,getTimeSnapshot} = usePvLoop("default",DEFAULT_HEMODYANMIC_PROPS,DEFAULT_DATA,DEFAULT_TIME)
-    const patient = new Patient("default","normal", DEFAULT_HEMODYANMIC_PROPS,DEFAULT_DATA,DEFAULT_TIME,"private",emoji,tags,uid,displayName,photoURL,favs,subscribe,unsubscribe ,isPlaying,setIsPlaying, setHdps, getHdps, setSpeed,getDataSnapshot,getTimeSnapshot)
-    if(!loadedPatient || loadedPatient.id != "default" ){
-      setLoadedPatient(patient)
-    }
-    return patient
-  }
-}
 
 

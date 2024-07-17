@@ -214,7 +214,8 @@ const App = () => {
         const newPlaySpeedId = nanoid();
         const newOutputId = nanoid();
         const newControllerId = nanoid();
-        const newNoteId = nanoid();
+        const newModelManagerId = nanoid();
+        const newPressureVolueChartId= nanoid();
         const newBlocks = [
           {
             id: newControllerId,
@@ -261,10 +262,23 @@ const App = () => {
             options: {
               timeWindow: 6,
             },
-          },{
-            id: newPlaySpeedId,
-            type: "PlaySpeed",
-          },{
+          },
+          {
+            id: newPressureVolueChartId,
+            name: "Pressure Volume Chart",
+            type: "PressureVolumeCurve",
+            hideTitle:false,
+            items: [
+              {
+                patientId:newParamSetId,
+                id:nanoid(),
+                hdp:"LV",
+                label:"左室",
+                color: getRandomColor()
+              }
+            ],
+          },
+          {
             id: newOutputId,
             name: "Metrics",
             type: "Metrics",
@@ -277,15 +291,27 @@ const App = () => {
               },
               {
                 id: nanoid(),
+                label: "肺動脈圧",
+                patientId: newParamSetId,
+                hdp: "Pap",
+              },
+              {
+                id: nanoid(),
                 label: "中心静脈圧",
                 patientId: newParamSetId,
                 hdp: "Cvp",
               },
               {
                 id: nanoid(),
-                label: "心拍出量",
+                label: "肺動脈楔入圧",
                 patientId: newParamSetId,
-                hdp: "Co",
+                hdp: "Pcwp",
+              },
+              {
+                id: nanoid(),
+                label: "一回拍出量",
+                patientId: newParamSetId,
+                hdp: "Sv",
               },
               {
                 id: nanoid(),
@@ -293,38 +319,13 @@ const App = () => {
                 patientId: newParamSetId,
                 hdp: "Ef",
               },
-              {
-                id: nanoid(),
-                label: "左室仕事量",
-                patientId: newParamSetId,
-                hdp: "Cpo",
-              },
-              {
-                id: nanoid(),
-                label: "LMT流量",
-                patientId: newParamSetId,
-                hdp: "Ilmt",
-              },
-              {
-                id: nanoid(),
-                label: "SVO2",
-                patientId: newParamSetId,
-                hdp: "Svo2",
-              },
-              {
-                id: nanoid(),
-                label: "CS-SVO2",
-                patientId: newParamSetId,
-                hdp: "Cssvo2",
-              }
             ]
           },{
-            id: newNoteId,
-            name: "Note",
-            type: "Note",
+            id: newModelManagerId,
+            name: "Model Manager",
+            type: "ModelManager",
             hideTitle:false,
-            content: [{id:nanoid(),type:"paragraph",props:{textColor:"default",backgroundColor:"default",textAlignment:"left"},content:[],children:[]}],
-          },
+          }
         ]
         setBlocks(newBlocks);
         setDefaultBlocks(newBlocks);
@@ -341,8 +342,9 @@ const App = () => {
           photoURL: user?.photoURL,
           samplingInterval: 1000,
           layouts:{
-            xs: [{i:newControllerId,x:0,y:0,w:12,h:12, minW:3},{i:newChartId,x:0,y:1,w:12,h:10,minW:3},{i: newOutputId, x:0,y:2,w:12,h:7}, {i:newPlaySpeedId,x:0,y:3,w:12,h:2},{i: newNoteId, x:0,y:4,w:12,h:3}], 
-            md:[{i:newControllerId,x:0,y:0,w:4,h:10, minW:3},{i:newChartId,x:4,y:0,w:7,h:10,minW:3}, {i:newPlaySpeedId,x:11,y:0,w:1,h:6},{i: newOutputId, x:6,y:10,w:6,h:3}, {i: newNoteId, x:0,y:10,w:6,h:6}],
+            xs: [{i:newModelManagerId,x:0,y:0,w:12,h:5},{i:newChartId,x:0,y:5,w:12,h:10,},{i: newPressureVolueChartId, x:0,y:15,w:12,h:9}, {i:newOutputId,x:0,y:24,w:12,h:7},{i: newControllerId, x:0,y:31,w:12,h:14}], 
+            md:[{i:newModelManagerId,x:0,y:0,w:5,h:6},{i:newChartId,x:5,y:0,w:7,h:10}, {i:newOutputId,x:0,y:6,w:5,h:5},{i: newControllerId, x:0,y:11,w:5,h:10}, {i: newPressureVolueChartId, x:5,y:10,w:7,h:11}],
+            
           },
           updatedAt: serverTimestamp(),
           createdAt: serverTimestamp(),

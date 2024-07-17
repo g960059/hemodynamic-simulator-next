@@ -1,4 +1,4 @@
-export default {
+const ja = {
   Title:'CircleHeart',
   Description: "インタラクティブな循環動態シミュレーター",
   LpDescription: "CircleHeartは循環動態シミュレーターです。自分の循環動態に対する理解を深めたり、誰かのために洞察や知見を共有しましょう。",
@@ -175,15 +175,17 @@ export default {
   auto: "自動",
 
   Aop:"動脈圧",
-  Cvp:"CVP",
+  Cvp:"中心静脈圧",
   Pap:"肺動脈圧",
   Lap:"左房圧",
-  Sv:"Stroke Volume",
-  Ef:"Ejection Fraction",
+  Sv:"一回拍出量",
+  Ef:"EF",
+  ESV:"実効一回拍出量",
   Pv:"左室PVA",
   Sw:"左室SW",
   Cpo:"左室CPO",
   Lvedp:"左室拡張末期圧",
+  Rvedp:"右室拡張末期圧",
   Hr:"心拍数",
   Co:"心拍出量",
   Lkr:"左房キック率",
@@ -191,6 +193,9 @@ export default {
   Ilmt:"左冠動脈主幹部流量",
   Svo2:"中心静脈血酸素飽和度",
   Cssvo2:"冠静脈洞血酸素飽和度",
+  Pcwp:"肺動脈楔入圧",
+  LVEa:"左室Ea",
+  RVEa:"右室Ea",
 
   stroke_volume: "一回拍出量",
   central_venous_pressure: "中心静脈圧",
@@ -219,5 +224,11 @@ export default {
     Cssvo2: "CS-SvO2",
   }
 }
+
+export default new Proxy(ja, {
+  get: function(target, prop) {
+    return prop in target ? target[prop] : prop;
+  }
+});
 
 

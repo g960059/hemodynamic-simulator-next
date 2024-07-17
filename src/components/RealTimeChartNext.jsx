@@ -229,6 +229,27 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
     })();
   }, [view.items]);
 
+  useEffect(() => {
+    const subscriptionId = engine?.subscribeAllHdpMutation((patientId, key, value) => {
+      if (key === 'DELETE_MODEL') {
+        //患者(patient)が削除された場合に、同一PatientIdのデータを全て削除した上で、viewのitemsから同一PatientIdのデータを削除
+        const deletingItems = view.items.filter(item => item.patientId == patientId);
+        for(let item of deletingItems){
+          deleteDataSeries(item.id)
+        }
+        updateView(draft => {
+          draft.items = draft.items.filter(item => item.patientId !== patientId);
+        });
+        if(view.items.filter(item=>item.patientId !== patientId).length === 0){
+          removeView()
+        }
+      }
+    });
+    return () => {
+      engine?.unsubscribeAllHdpMutation(subscriptionId);
+    };
+  }, [engine, view]);
+
 
   return (
     <div className="w-full h-full">

@@ -40,5 +40,5 @@
     "src/utils/firebase.js",
     "src/styles/theme.jsx",
     ".next/types/**/*.ts"
-  ]
+, "src/components/CustomWebGLPlot.jsx"  ]
 }

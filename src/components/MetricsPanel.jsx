@@ -6,10 +6,28 @@ import DeleteMenuItemWithDialog from './DeleteMenuItemWithDialog'
 import MetricsDialog from './MetricsDialog'
 
 
-const MetricsPanel = React.memo(({patients, view, updateView,removeView, isOwner,}) => {
+const MetricsPanel = React.memo(({engine,patients, view, updateView,removeView, isOwner,}) => {
   const t = useTranslation()
   const [anchorEl, setAnchorEl] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  console.log(view)
+  useEffect(() => {
+    const subscriptionId = engine?.subscribeAllHdpMutation((patientId, key, value) => {
+      if (key === 'DELETE_MODEL') {
+        updateView(draft => {
+          draft.items = draft.items.filter(item => item.patientId !== patientId);
+        });
+        if(view.items.filter(item=>item.patientId !== patientId).length === 0){
+          removeView()
+        }
+      }
+    });
+    return () => {
+      engine?.unsubscribeAllHdpMutation(subscriptionId);
+    };
+  }, [engine]);
+
   return <>
     <div className='w-full h-full overflow-hidden'>
       <div className='flex items-center p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200 relative h-10'>
@@ -23,7 +41,7 @@ const MetricsPanel = React.memo(({patients, view, updateView,removeView, isOwner
       </div>
       <div className='px-2 flex flex-row flex-wrap items-start justify-start bg-white w-full h-[calc(100%_-_48px)] relative overflow-auto ' >
         {view.items?.map((o,index) => (
-          <Output  key={o.id} patient = {patients.find(p=>p.id==o.patientId)} output = {o}/>
+          patients.find(p=>p.id==o.patientId) && <Output  key={o.id} patient = {patients.find(p=>p.id==o.patientId)} output = {o}/>
         ))}
       </div>
     </div>

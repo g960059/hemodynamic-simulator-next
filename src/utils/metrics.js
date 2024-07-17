@@ -39,6 +39,57 @@ export class SV {
     }
   }
 }
+
+
+export class ESV {
+  constructor(){
+
+    this.last_t = 0;
+    this.total = 0;
+    this.flows = [];
+    this.HR = null
+  }
+  static getLabel(){
+    return "Effective SV"
+  }
+  static getUnit(){
+    return "ml"
+  }
+  update(data, time, hdps){
+    const HR = data['HR'][0]
+    this.HR = HR
+    const ts = data['t'].map(_t=> _t % (60000 / HR))
+
+    const ts_diff = ts.map((t, i) => i === 0 ? (ts[0]-this.last_t < 0 ? ts[0]-this.last_t+60000 / HR :  ts[0]-this.last_t) : 
+      ((t-ts[i-1])<0 ? t-ts[i-1]+60000 / HR : t-ts[i-1])
+    )
+
+    if(this.last_t > ts[0] || ts.some((t, i) => i > 0 && t < ts[i-1])){
+      if(this.flows.length > 10){
+        this.flows.shift()
+      }
+      if(this.total>0 ){
+        this.flows.push(this.total/1000)  
+      }
+      this.total =0;
+    }
+    this.total += data["Iasp"].reduce((acc, v, i) => acc + v * ts_diff[i], 0)
+    this.last_t = ts[ts.length-1]
+  }
+  reset(){
+    this.last_t = 0;
+    this.total = 0;
+    this.flows = [];
+    this.HR = null
+  }
+  get() {
+    return (this.flows.reduce((acc, v) => acc + v, 0) / this.flows.length)?.toPrecision(3) || 0
+  }
+  getMetric(){
+    return (this.flows.reduce((acc, v) => acc + v, 0) / this.flows.length) || 0
+  }
+}
+
 export class EF extends SV{
   constructor(){
     super()
@@ -84,6 +135,36 @@ export class LVEDP{
     return this.lvedp
   }
 }
+
+export class RVEDP{
+  constructor(){
+    this.rvedp = null
+  }
+  static getLabel(){
+    return "RVEDP"
+  }
+  static getUnit(){
+    return "mmHg"
+  }
+  update(data, time, hdps){
+    const ts = data['t'].map(_t=> (_t - hdps['RV_AV_delay']) % (60000 / data['HR'][0]))
+    const _ts = ts.map(_t=> _t< hdps["RV_Tmax"] ? 10000 : _t - hdps["RV_Tmax"])
+    const ted = Math.max(...ts)
+    if(60000/data['HR'][0] - ted  < 5){
+      const tedIndex = ts.findIndex(_t => _t === ted)
+      this.rvedp = data['Prv'][tedIndex];
+    } 
+  }
+  reset(){
+  }
+  get(){
+    return this.rvedp?.toPrecision(3)
+  }
+  getMetric(){
+    return this.rvedp
+  }
+}
+
 export class AoP{
   constructor(){
     this.min = Infinity
@@ -132,18 +213,103 @@ export class PAP extends AoP {
     return (this.max+this.min*2)/3
   }
 }
-export class CVP extends AoP {
-  constructor(){
-    super();
-    this.prop ="Pra"
+
+export class CVP {
+  constructor() {
+    this.values = [];
+    this.lastTime = 0;
+    this.cycleTime = 0;
   }
-  static getLabel(){
-    return "CVP"
+
+  static getLabel() {
+    return "CVP";
   }
-  getMetric(){
-    return (this.max+this.min*2)/3
+
+  static getUnit() {
+    return "mmHg";
+  }
+
+  update(data, time, hdps) {
+    const HR = data['HR'][0];
+    this.cycleTime = 60000 / HR;
+
+    const newValues = data['Pra'];
+    const newTimes = data['t'];
+
+    for (let i = 0; i < newValues.length; i++) {
+      this.values.push({ value: newValues[i], time: newTimes[i] });
+    }
+
+    // 1周期以上古いデータを削除
+    while (this.values.length > 0 && this.values[this.values.length - 1].time - this.values[0].time > this.cycleTime) {
+      this.values.shift();
+    }
+  }
+
+  reset() {
+    this.values = [];
+    this.lastTime = 0;
+  }
+
+  get() {
+    if (this.values.length === 0) return 0;
+    const sum = this.values.reduce((acc, val) => acc + val.value, 0);
+    return (sum / this.values.length).toFixed(1);
+  }
+
+  getMetric() {
+    return parseFloat(this.get());
   }
 }
+
+export class PCWP {
+  constructor() {
+    this.values = [];
+    this.lastTime = 0;
+    this.cycleTime = 0;
+  }
+
+  static getLabel() {
+    return "PCWP";
+  }
+
+  static getUnit() {
+    return "mmHg";
+  }
+
+  update(data, time, hdps) {
+    const HR = data['HR'][0];
+    this.cycleTime = 60000 / HR;
+
+    const newValues = data['Pla'];
+    const newTimes = data['t'];
+
+    for (let i = 0; i < newValues.length; i++) {
+      this.values.push({ value: newValues[i], time: newTimes[i] });
+    }
+
+    // 1周期以上古いデータを削除
+    while (this.values.length > 0 && this.values[this.values.length - 1].time - this.values[0].time > this.cycleTime) {
+      this.values.shift();
+    }
+  }
+
+  reset() {
+    this.values = [];
+    this.lastTime = 0;
+  }
+
+  get() {
+    if (this.values.length === 0) return 0;
+    const sum = this.values.reduce((acc, val) => acc + val.value, 0);
+    return (sum / this.values.length).toFixed(1);
+  }
+
+  getMetric() {
+    return parseFloat(this.get());
+  }
+}
+
 export class LAP extends AoP {
   constructor(){
     super();
@@ -630,91 +796,312 @@ export class CSSVO2 {
   }
 } 
 
+export class LVEa {
+  constructor(){
+    this.lvedv = -Infinity
+    this.lvesv = Infinity
+    this.lvesp = -Infinity
+  }
+  static getLabel(){
+    return "Ea(LV)"
+  }
+  static getUnit(){
+    return "mmHg/ml"
+  }
+  update(data, time, hdps){
+    const ts = data['t'].map(_t=> (_t - hdps['LV_AV_delay']) % (60000 / data['HR'][0]))
+    const _ts = ts.map(_t=> _t< hdps["LV_Tmax"] ? 10000 : _t - hdps["LV_Tmax"])
+    const tes = Math.min(..._ts)
+    if(tes < 5 ){
+      const tesIndex = _ts.findIndex(_t => _t === tes)
+      this.lvesv = data['Qlv'][tesIndex];
+      this.lvesp = data['Plv'][tesIndex];
+    }else{
+      const ted = Math.max(...ts)
+      if(60000/data['HR'][0] - ted  < 5){
+        const tedIndex = ts.findIndex(_t => _t === ted)
+        this.lvedv = data['Qlv'][tedIndex];
+      }
+    } 
+  }
+  reset(){
+  }
+  get() {
+    return (this.lvesp / (this.lvedv - this.lvesv))?.toPrecision(3)
+  }
+  getMetric(){
+    if (this.lvedv === -Infinity || this.lvesv === Infinity || this.lvesp === -Infinity) return null
+    else{
+      return this.lvesp / (this.lvedv - this.lvesv)
+    }
+  }
+}
+
+export class RVEa {
+  constructor(){
+    this.rvedv = -Infinity
+    this.rvesv = Infinity
+    this.rvesp = -Infinity
+  }
+  static getLabel(){
+    return "Ea(RV)"
+  }
+  static getUnit(){
+    return "mmHg/ml"
+  }
+  update(data, time, hdps){
+    const ts = data['t'].map(_t=> (_t - hdps['RV_AV_delay']) % (60000 / data['HR'][0]))
+    const _ts = ts.map(_t=> _t< hdps["RV_Tmax"] ? 10000 : _t - hdps["RV_Tmax"])
+    const tes = Math.min(..._ts)
+    if(tes < 5 ){
+      const tesIndex = _ts.findIndex(_t => _t === tes)
+      this.rvesv = data['Qrv'][tesIndex];
+      this.rvesp = data['Prv'][tesIndex];
+    }else{
+      const ted = Math.max(...ts)
+      if(60000/data['HR'][0] - ted  < 5){
+        const tedIndex = ts.findIndex(_t => _t === ted)
+        this.rvedv = data['Qrv'][tedIndex];
+      }
+    } 
+  }
+  reset(){
+  }
+  get() {
+    return (this.rvesp / (this.rvedv - this.rvesv))?.toPrecision(3)
+  }
+  getMetric(){
+    if (this.rvedv === -Infinity || this.rvesv === Infinity || this.rvesp === -Infinity) return null
+    else{
+      return this.rvesp / (this.rvedv - this.rvesv)
+    }
+  }
+}
+
+
+
+class BasicMetric {
+  constructor(prop) {
+    this.prop = prop;
+    this.values = [];
+  }
+
+  static getLabel() {
+    return this.name;
+  }
+
+  static getUnit() {
+    return "";
+  }
+
+  update(data, time, hdps) {
+    if (Array.isArray(data[this.prop])) {
+      this.values = this.values.concat(data[this.prop]);
+    } else {
+      this.values.push(data[this.prop]);
+    }
+  }
+
+  get() {
+    return this.values.map(v => v?.toPrecision(3));
+  }
+
+  getMetric() {
+    return this.values;
+  }
+}
+
+export class Time extends BasicMetric {
+  constructor() { super('t'); }
+  static getLabel() { return "Time"; }
+  static getUnit() { return "s"; }
+}
+
+// Volume metrics
+export class Qvs extends BasicMetric {
+  constructor() { super('Qvs'); }
+  static getLabel() { return "Systemic Venous Volume"; }
+  static getUnit() { return "ml"; }
+}
+
+export class Qas extends BasicMetric {
+  constructor() { super('Qas'); }
+  static getLabel() { return "Systemic Arterial Volume"; }
+  static getUnit() { return "ml"; }
+}
+
+export class Qap extends BasicMetric {
+  constructor() { super('Qap'); }
+  static getLabel() { return "Pulmonary Arterial Volume"; }
+  static getUnit() { return "ml"; }
+}
+
+export class Qvp extends BasicMetric {
+  constructor() { super('Qvp'); }
+  static getLabel() { return "Pulmonary Venous Volume"; }
+  static getUnit() { return "ml"; }
+}
+
+export class Qlv extends BasicMetric {
+  constructor() { super('Qlv'); }
+  static getLabel() { return "Left Ventricular Volume"; }
+  static getUnit() { return "ml"; }
+}
+
+export class Qla extends BasicMetric {
+  constructor() { super('Qla'); }
+  static getLabel() { return "Left Atrial Volume"; }
+  static getUnit() { return "ml"; }
+}
+
+export class Qrv extends BasicMetric {
+  constructor() { super('Qrv'); }
+  static getLabel() { return "Right Ventricular Volume"; }
+  static getUnit() { return "ml"; }
+}
+
+export class Qra extends BasicMetric {
+  constructor() { super('Qra'); }
+  static getLabel() { return "Right Atrial Volume"; }
+  static getUnit() { return "ml"; }
+}
+
+export class Qas_prox extends BasicMetric {
+  constructor() { super('Qas_prox'); }
+  static getLabel() { return "Proximal Systemic Arterial Volume"; }
+  static getUnit() { return "ml"; }
+}
+
+export class Qap_prox extends BasicMetric {
+  constructor() { super('Qap_prox'); }
+  static getLabel() { return "Proximal Pulmonary Arterial Volume"; }
+  static getUnit() { return "ml"; }
+}
+
+// Pressure metrics
+export class Plv extends BasicMetric {
+  constructor() { super('Plv'); }
+  static getLabel() { return "Left Ventricular Pressure"; }
+  static getUnit() { return "mmHg"; }
+}
+
+export class Pla extends BasicMetric {
+  constructor() { super('Pla'); }
+  static getLabel() { return "Left Atrial Pressure"; }
+  static getUnit() { return "mmHg"; }
+}
+
+export class Prv extends BasicMetric {
+  constructor() { super('Prv'); }
+  static getLabel() { return "Right Ventricular Pressure"; }
+  static getUnit() { return "mmHg"; }
+}
+
+export class Pra extends BasicMetric {
+  constructor() { super('Pra'); }
+  static getLabel() { return "Right Atrial Pressure"; }
+  static getUnit() { return "mmHg"; }
+}
+
+// Flow metrics
+export class Ias extends BasicMetric {
+  constructor() { super('Ias'); }
+  static getLabel() { return "Systemic Arterial Flow"; }
+  static getUnit() { return "ml/s"; }
+}
+
+export class Ics extends BasicMetric {
+  constructor() { super('Ics'); }
+  static getLabel() { return "Systemic Capillary Flow"; }
+  static getUnit() { return "ml/s"; }
+}
+
+export class Imv extends BasicMetric {
+  constructor() { super('Imv'); }
+  static getLabel() { return "Mitral Valve Flow"; }
+  static getUnit() { return "ml/s"; }
+}
+
+export class Ivp extends BasicMetric {
+  constructor() { super('Ivp'); }
+  static getLabel() { return "Pulmonary Venous Flow"; }
+  static getUnit() { return "ml/s"; }
+}
+
+export class Iap extends BasicMetric {
+  constructor() { super('Iap'); }
+  static getLabel() { return "Pulmonary Arterial Flow"; }
+  static getUnit() { return "ml/s"; }
+}
+
+export class Icp extends BasicMetric {
+  constructor() { super('Icp'); }
+  static getLabel() { return "Pulmonary Capillary Flow"; }
+  static getUnit() { return "ml/s"; }
+}
+
+export class Itv extends BasicMetric {
+  constructor() { super('Itv'); }
+  static getLabel() { return "Tricuspid Valve Flow"; }
+  static getUnit() { return "ml/s"; }
+}
+
+export class Ivs extends BasicMetric {
+  constructor() { super('Ivs'); }
+  static getLabel() { return "Systemic Venous Flow"; }
+  static getUnit() { return "ml/s"; }
+}
+
+export class Iasp extends BasicMetric {
+  constructor() { super('Iasp'); }
+  static getLabel() { return "Aortic Valve Flow"; }
+  static getUnit() { return "ml/s"; }
+}
+
+export class Iapp extends BasicMetric {
+  constructor() { super('Iapp'); }
+  static getLabel() { return "Pulmonary Valve Flow"; }
+  static getUnit() { return "ml/s"; }
+}
+
+
+
+// メトリクスのエクスポート
 export const metrics = {
+  Qvs, Qas, Qap, Qvp, Qlv, Qla, Qrv, Qra, Qas_prox, Qap_prox,
+  Plv, Pla, Prv, Pra,
+  Ias, Ics, Imv, Ivp, Iap, Icp, Itv, Ivs, Iasp, Iapp,
   Aop: AoP,
-  Cvp: CVP,
   Pap: PAP,
-  Lap: LAP,
+  Cvp: CVP,
+  Pcwp: PCWP,
   Sv: SV,
   Ef: EF,
+  ESV,
+  LVEa,
+  RVEa,
   Pv: PVA,
   Sw: SW,
   Cpo: CPO,
   Lvedp: LVEDP,
+  Rvedp: RVEDP,
   Hr: HR,
   Co: CO,
   Lkr: LaKickRatio,
   Ilmt: Ilmt,
   Svo2 : SVO2,
   Cssvo2: CSSVO2,
-  PvaSwRatio: PVA_SW_Ratio
-}
-export const metricOptions = ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "Pv","Sw", "Cpo", "Lvedp", "Hr", "Co", "Ilmt", "Svo2", "Cssvo2","PvaSwRatio"]
+  PvaSwRatio: PVA_SW_Ratio,
+};
+
+// メトリクスのカテゴリー
+export const metricCategories = {
+  "Volumes": ["Qvs", "Qas", "Qap", "Qvp", "Qlv", "Qla", "Qrv", "Qra", "Qas_prox", "Qap_prox"],
+  "Pressures": ["Plv", "Pla", "Prv", "Pra"],
+  "Flows": ["Ias", "Ics", "Imv", "Ivp", "Iap", "Icp", "Itv", "Ivs", "Iasp", "Iapp"],
+  "Calculated Metrics": ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "ESV", "Pv","Sw", "Cpo", "Lvedp", "Rvedp", "Hr", "Co", "Ilmt", "Svo2", "Cssvo2","PvaSwRatio", "Pcwp", "LVEa", "RVEa"]
+};
+export const metricOptions = ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "ESV", "Pv","Sw", "Cpo", "Lvedp", "Rvedp", "Hr", "Co", "Ilmt", "Svo2", "Cssvo2","PvaSwRatio", "Pcwp", "LVEa", "RVEa"]
 
 
 
-// export class PVA {
-//   constructor(){
-//     this.area=0;
-//     this.prev=0;
-//     this.areas=[];
-//     this.tc=0
-//     this.lastP=[];
-//     this.lastQ=[];
-//   }
-//   static getLabel(){
-//     return "PVA"
-//   }
-//   static getUnit(){
-//     return "mmHg・ml"
-//   }
-//   update(data, time, hdps){
-//     let HR = data['HR'][0]
-//     let tps = data["t"].map(x=>Math.floor(x/(60000/HR)))
-//     let index = null;
-//     for(let i=0; i< tps.length;i++){
-//       if(this.tc!=tps[i]) {
-//         index=i;
-//         this.tc=tps[i];
-//       }
-//       let pressures = [...data["Plv"]];
-//       let volumes = [...data["Qlv"]];
-//       let nextP
-//       let nextQ
-//       if(index != null){
-//         nextP = pressures.splice(index);
-//         nextQ = volumes.splice(index);
-//       }else{
-//         nextP = [pressures[pressures.length-1]];
-//         nextQ = [volumes[volumes.length-1]];
-//       }
-//       console.log("index:",index);
-//       console.log("tc:",this.tc);
-//       console.log("t:", data["t"]);
-//       console.log("tps:",tps);
-//       console.log("lastP: ",this.lastP,"lastQ:", this.lastQ);
-//       console.log("nextP: ",nextP,"nextQ:", nextQ);
-//       pressures = [...this.lastP, ...pressures];
-//       volumes = [...this.lastQ,...volumes];
-//       this.lastP = nextP;
-//       this.lastQ = nextQ;
-//       let len = pressures.length
-//       for(let i=0;i<len-1;i++){
-//         this.prev+=pressures[i]*(volumes[i]- volumes[i+1]);
-//       }
-//       if(index!=0){
-//         this.areas.push(this.prev);
-//         this.prev=0;
-//         if(this.areas.length>5){
-//           this.areas.shift();
-//         }
-//         let areas = [...this.areas].sort((a,b)=>a-b);
-//         this.area = areas[Math.floor(areas.length/2)];
-//       }
-//     }
-//   }
-//   reset(){}
-//   get() {
-//     return Math.round(this.area)
-//   }
-// }

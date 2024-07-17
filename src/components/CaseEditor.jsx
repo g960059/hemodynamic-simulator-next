@@ -9,6 +9,7 @@ import PressureVolumeCurveNext from './PressureVolumeCurveNext'
 import ActionRecorderPanel from './ActionRecorderPanel'
 import PlotPanel from './PlotPanel'
 import FittingPanel from './FittingPanel';
+import ModelManager from './ModelManager'
 
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { useImmer } from "use-immer";
@@ -115,82 +116,76 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
         </div>    
         <div className="flex-grow"/>
         <div className='flex flex-row justify-center items-center -mr-3'>
-          {isOwner && <>              
-            <ParamSetsDialog 
-              patients={patients} 
-              engine={engine}
-              setPatients = {setPatients}
-              caseData={caseData}
-              setViews={setViews}
-            />
-            <NewAddViewDialog 
-              addViewItem={(viewItem)=>{
-                let newView = {...viewItem, id:nanoid()}
-                setCaseData(draft=>{
-                  let wMd;
-                  let hMd;
-                  switch (viewItem.type) {
-                    case "FlowCurve":
-                    case "PressureCurve":
-                      hMd = 8
-                      if (viewItem.options?.timeWindow  >12){
-                        wMd = 12
-                      }else{
-                        wMd = viewItem.options?.timeWindow
-                      }
-                      break;
-                    case "PressureVolumeCurve":
-                      hMd = 12
-                      wMd = 6
-                      break;
-                    case "Metrics":
-                      if (viewItem.items.length<12){
-                        wMd = 1+viewItem.items.length
-                        hMd = 3
-                      }else{
-                        wMd = 12
-                        hMd = 6
-                      }
-                      break;
-                    case "Controller":
-                      wMd = 4
-                      hMd = viewItem.items?.length + 2
-                      break;
-                    case "PlaySpeed":
-                      wMd = 1
-                      hMd = 4
-                      break;
-                    case "Note":
-                      wMd = 6
+          <NewAddViewDialog 
+            addViewItem={(viewItem)=>{
+              let newView = {...viewItem, id:nanoid()}
+              setCaseData(draft=>{
+                let wMd;
+                let hMd;
+                switch (viewItem.type) {
+                  case "FlowCurve":
+                  case "PressureCurve":
+                    hMd = 8
+                    if (viewItem.options?.timeWindow  >12){
+                      wMd = 12
+                    }else{
+                      wMd = viewItem.options?.timeWindow
+                    }
+                    break;
+                  case "PressureVolumeCurve":
+                    hMd = 12
+                    wMd = 6
+                    break;
+                  case "Metrics":
+                    if (viewItem.items.length<12){
+                      wMd = 1+viewItem.items.length
+                      hMd = 3
+                    }else{
+                      wMd = 12
                       hMd = 6
-                      break;
-                    case "Plot":
-                      wMd = 6
-                      hMd = 12
-                      break;
-                    case "FittingPanel":
-                      wMd = 6
-                      hMd = 12
-                      break;
-                  }
-                  let wXs = 12
-                  let hXs = 8
-                  let xsPosition = calculatePosition(draft.layouts.xs,{w:wXs,h:hXs})
-                  draft.layouts.xs.push({i:newView.id, ...xsPosition, w:wXs, h:hXs})
-                  let mdPosition = calculatePosition(draft.layouts.md,{w:wMd,h:hMd})
-                  draft.layouts.md.push({i:newView.id, ...mdPosition, w:wMd, h:hMd})
-                })
-                setViews(draft=>{draft.push(newView)})
-              }} 
-              patients={patients}
-              addPatient = {(patient)=>{
-                const newPatient = {...patient,id:nanoid()}
-                engine.register(newPatient);
-                setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
-              }}
-            />
-          </>   
-        }
+                    }
+                    break;
+                  case "Controller":
+                    wMd = 4
+                    hMd = viewItem.items?.length + 2
+                    break;
+                  case "PlaySpeed":
+                    wMd = 1
+                    hMd = 4
+                    break;
+                  case "Note":
+                    wMd = 6
+                    hMd = 6
+                    break;
+                  case "Plot":
+                    wMd = 6
+                    hMd = 12
+                    break;
+                  case "FittingPanel":
+                    wMd = 6
+                    hMd = 12
+                    break;
+                  case "ModelManager":
+                    wMd = 6
+                    hMd = 12
+                    break;
+                }
+                let wXs = 12
+                let hXs = 8
+                let xsPosition = calculatePosition(draft.layouts.xs,{w:wXs,h:hXs})
+                draft.layouts.xs.push({i:newView.id, ...xsPosition, w:wXs, h:hXs})
+                let mdPosition = calculatePosition(draft.layouts.md,{w:wMd,h:hMd})
+                draft.layouts.md.push({i:newView.id, ...mdPosition, w:wMd, h:hMd})
+              })
+              setViews(draft=>{draft.push(newView)})
+            }} 
+            patients={patients}
+            addPatient = {(patient)=>{
+              const newPatient = {...patient,id:nanoid()}
+              engine.register(newPatient);
+              setPatients(draft=>{draft.push({...newPatient, ...engine.getPatient(newPatient.id)})})
+            }}
+          />
         </div>
       </div>
     </div>
@@ -215,6 +210,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
         <div key={view.id}  className={`bg-white border border-solid border-slate-200 rounded ${!["Note","Plot"].includes(view.type) && "overflow-hidden"}`}>
           {view.type === "Controller" && 
             <ControllerPanelNext
+              engine={engine}
               key = {view.id}
               view = {view}
               updateView={(newView) => updateView(view.id, newView)}
@@ -282,6 +278,7 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
           {
             view.type === "Metrics" &&
               <MetricsPanel 
+                engine={engine}
                 key={view.id}
                 view={view} 
                 patients={patients}
@@ -346,6 +343,21 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                 patients={patients}
                 updatePatientParameters={updatePatientParameters}
               />
+          }
+          {
+            view.type === "ModelManager" &&
+            <ModelManager
+              key={view.id}
+              view={view}
+              updateView={(newView) => updateView(view.id, newView)}
+              removeView={() => removeView(view.id)}
+              caseData={caseData}
+              patients={patients}
+              engine={engine}
+              setPatients={setPatients}
+              isOwner={isOwner}
+              isEdit={isEdit}
+            />
           }
                  
         </div>
@@ -621,6 +633,11 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
     setAnchorEl(null);
   };
 
+  const selectModelManagerDialog = () => {
+    addViewItem({id:nanoid(), type: "ModelManager"});
+    setAnchorEl(null);
+  };
+
   
   return <>
     <button type='button' onClick={e =>{setAnchorEl(e.currentTarget)}} 
@@ -654,6 +671,14 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
           </div>
           Model
         </button> */}
+        <button onClick={selectModelManagerDialog} className='text-gray-800 bg-white cursor-pointer border border-solid border-slate-200 hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center'>
+          <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
+            <svg className='w-6 h-6 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+            </svg>
+          </div>
+          Model Manager
+        </button>           
         <button onClick={selectControllerDialog} className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition  font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center'>
           <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
             <svg className='w-6 h-5 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
@@ -684,14 +709,14 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
           </div>
           Metrics
         </button>  
-        <button onClick={()=>{addViewItem({id:nanoid(),type:"PlaySpeed"});setAnchorEl(null)}} className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
+        {/* <button onClick={()=>{addViewItem({id:nanoid(),type:"PlaySpeed"});setAnchorEl(null)}} className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
           <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
             <svg className='w-6 h-5 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
               <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
             </svg>
           </div>
           Player
-        </button>               
+        </button>                */}
         <button onClick={selectNoteDialog} className='text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
           <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
             <svg className='w-6 h-5 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
@@ -700,14 +725,15 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
           </div>
           Note
         </button>
-        <button onClick={selectFittingPanel} className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
+     
+        {/* <button onClick={selectFittingPanel} className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
             <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
               <svg className='w-6 h-5 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
               </svg>
             </div>
             Fitting Panel
-          </button>        
+          </button>         */}
         {/* <button className=' text-gray-800 bg-white cursor-pointer border border-solid border-slate-200  hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center '>
           <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
             <svg className='w-6 h-5 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">

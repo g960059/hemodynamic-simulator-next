@@ -17,6 +17,8 @@ const ActionRecorderDialog = React.memo(({open, onClose, initialView=null, updat
   useEffect(() => {
     setView(initialView)
   }, [initialView]);
+  
+
   return <>
     <Dialog fullScreen={!isUpMd} sx={{ ".MuiDialog-paper": {m:0}}} open ={open} onClose ={onClose}>
       <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>

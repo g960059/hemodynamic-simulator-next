@@ -19,22 +19,34 @@ const Hdps = [
   "ECMO","Impella"
 ]
 
-const ControllerPanel = React.memo(({view,updateView,removeView, patient, patients, isOwner,}) => {
+const ControllerPanel = React.memo(({engine,view,updateView,removeView, patient, patients, isOwner,}) => {
   const t = useTranslation()
-  const [openInfoDialog, setOpenInfoDialog] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
+
+  useEffect(() => {
+    const subscriptionId = engine?.subscribeAllHdpMutation((patientId, key, value) => {
+      if (key === 'DELETE_MODEL') {
+        if(patient.id == patientId){
+          removeView()
+        }
+      }
+    });
+    return () => {
+      engine?.unsubscribeAllHdpMutation(subscriptionId);
+    };
+  }, [engine]);
 
   return (
     <div className='w-full h-full overflow-hidden'>
       <div className='flex items-center p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200 relative h-10'>
         <div className='draggable cursor-move font-bold text-base md:text-lg pl-1 whitespace-nowrap overflow-x-auto'>{view?.name || "Controller Panel"}</div>
         <div className='draggable cursor-move flex-grow h-full'></div>
-        {isOwner && <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget);}}>
+        <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget);}}>
           <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
           </svg>
-        </div>}
+        </div>
       </div>
       <Popover 
         open={Boolean(anchorEl)}
@@ -61,14 +73,7 @@ const ControllerPanel = React.memo(({view,updateView,removeView, patient, patien
             </svg>
             Edit
           </div>
-          <div onClick={()=> {setOpenInfoDialog(true); setAnchorEl(null)}} 
-            className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
-          >
-            <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-            </svg>
-              All Parameters
-          </div>
+
           <DeleteMenuItemWithDialog raw onDelete={()=>{removeView(); setAnchorEl();}} onClose={()=>setAnchorEl(null)} message ={"「"+(view?.name || "Metrics") + "」を削除しようとしています。この操作は戻すことができません。"}>
             <div className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1  text-red-500 hover:bg-red-500 hover:text-white">
               <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -91,7 +96,7 @@ const ControllerPanel = React.memo(({view,updateView,removeView, patient, patien
           }
         </div>
       }
-      <Dialog open={openInfoDialog} onClose={()=>{setOpenInfoDialog(false)}} maxWidth='md' sx={{"& .MuiDialog-paper":{width: "100%"}}}>
+      {/* <Dialog open={openInfoDialog} onClose={()=>{setOpenInfoDialog(false)}} maxWidth='md' sx={{"& .MuiDialog-paper":{width: "100%"}}}>
         <DialogTitle className='font-bold'>{patient?.name || "無題の患者"}のパラメータ</DialogTitle>
         <DialogContent>
           <div className='w-full md:grid md:grid-cols-2 md:gap-x-10'>
@@ -110,7 +115,7 @@ const ControllerPanel = React.memo(({view,updateView,removeView, patient, patien
             }
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
       <ControllerDialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} initialView={view} updateView={(newView)=>{updateView({id:view.id, ...newView});}} patients={patients} />
 
     </div>
@@ -223,7 +228,6 @@ export const AdvancedInputs = React.memo(({patient, controllerItem}) => {
     </div>
     <div className='flex flex-row items-center justify-center w-full mb-2 space-x-3' >
       <span className=' text-slate-500 text-sm'>x0.25</span>
-      {console.log(hdp, initialHdps[hdp], Math.log2(initialHdps[hdp]/4), Math.log2(initialHdps[hdp]*4), Math.log2(initialHdps[hdp])/100)}
         <Slider 
           value={Math.log2(value)}
           min={isFinite(Math.log2(initialHdps[hdp]/4)) ? Math.log2(initialHdps[hdp]/4) : InputRanges[hdp].min } 

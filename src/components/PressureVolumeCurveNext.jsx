@@ -181,10 +181,11 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
       const len = _x.length
       const y = _y[len-1]
       const x = _x[len-1]
-      if(dataRef.current[id].count()>PV_COUNT){
-        dataRef.current[id].removeRange(0,len)
+      if(dataRef.current[id] && dataRef.current[id].count() > PV_COUNT) {
+        const removeCount = Math.min(len, dataRef.current[id].count());
+        dataRef.current[id]?.removeRange(0, removeCount);
       }
-      dataRef.current[id].appendRange(_x, _y)
+      dataRef.current[id]?.appendRange(_x, _y)
 
       if(leadingPointRef.current[id].count()> 0){
         leadingPointRef.current[id].clear();
@@ -323,6 +324,27 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
       sciChartSurfaceRef.current?.delete()
     }
   }, []);
+
+  useEffect(() => {
+    const subscriptionId = engine?.subscribeAllHdpMutation((patientId, key, value) => {
+      if (key === 'DELETE_MODEL') {
+        //患者(patient)が削除された場合に、同一PatientIdのデータを全て削除した上で、viewのitemsから同一PatientIdのデータを削除
+        const deletingItems = view.items.filter(item => item.patientId == patientId);
+        for(let item of deletingItems){
+          deleteDataSeries(item.id)
+        }
+        updateView(draft => {
+          draft.items = draft.items.filter(item => item.patientId !== patientId);
+        });
+        if(view.items.filter(item=>item.patientId !== patientId).length === 0){
+          removeView()
+        }
+      }
+    });
+    return () => {
+      engine?.unsubscribeAllHdpMutation(subscriptionId);
+    };
+  }, [engine, view]);
 
 
   useEffect(() => {

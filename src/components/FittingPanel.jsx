@@ -166,13 +166,13 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
     setProgress(0);
     progressIntervalRef.current = setInterval(() => {
       setProgress(prev => Math.min(prev + 1, 100));
-    }, 270);
+    }, 370);
 
     const apiInput = {
       target_metrics: metrics.map(m => [m.value, m.name, 1.0]),
       param_updates: Object.entries(paramUpdates).reduce((acc, [key, value]) => {
         if (key !== 'HR') {
-          acc[key] = [value.value, value.range, value.fitting];
+          acc[key] = [value.fitting ? null : value.value, value.fitting ? value.range : null, value.fitting];
         }
         return acc;
       }, {}),
@@ -181,7 +181,7 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
 
     apiInput.param_updates['Qvs_initial'] = [749.9842973712131, [200.0, 6000.0], true];
     apiInput.param_updates['HR'] = [metrics.find(m => m.name === 'HR').value, null, false];
-
+    
     try {
       const response = await fetch('/api/optimize', {
         method: 'POST',
@@ -203,18 +203,16 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
     }
   };
 
-  console.log(paramUpdates, view.paramUpdates)
-  console.log(tempView);
 
   return (
     <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md overflow-hidden">
       <div className="flex items-center justify-between p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200">
         <div className='draggable cursor-move font-bold text-base md:text-lg pl-1 whitespace-nowrap overflow-x-auto'>{view?.name || "Fitting Panel"}</div>
-        {isOwner && <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
+        <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
           <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
           </svg>
-        </div>}
+        </div>
       </div>
 
       <div className="flex-grow overflow-y-auto p-4">
@@ -398,19 +396,19 @@ const FittingPanel = React.memo(({ patients, updatePatientParameters, view, upda
                     { key: 'Cap_prox', label: '近位部コンプライアンス' }
                   ].map(({ key, label }) => (
                     <ParameterEditItem
-                    key={key}
-                    param={label}
-                    data={tempView.paramUpdates[key]}
-                    onChange={(field, value) => handleTempViewChange('paramUpdates', {
-                      ...tempView.paramUpdates,
-                      [key]: { ...(tempView.paramUpdates[key] || {}), [field]: value }
-                    })}
-                    onFittingToggle={() => handleTempViewChange('paramUpdates', {
-                      ...tempView.paramUpdates,
-                      [key]: { ...(tempView.paramUpdates[key] || {}), fitting: !(tempView.paramUpdates[key] || {}).fitting }
-                    })}
-                    unit={getUnitForParam(key)}
-                  />
+                      key={key}
+                      param={label}
+                      data={tempView.paramUpdates[key]}
+                      onChange={(field, value) => handleTempViewChange('paramUpdates', {
+                        ...tempView.paramUpdates,
+                        [key]: { ...(tempView.paramUpdates[key] || {}), [field]: value }
+                      })}
+                      onFittingToggle={() => handleTempViewChange('paramUpdates', {
+                        ...tempView.paramUpdates,
+                        [key]: { ...(tempView.paramUpdates[key] || {}), fitting: !(tempView.paramUpdates[key] || {}).fitting }
+                      })}
+                      unit={getUnitForParam(key)}
+                    />
                 ))}
               </div>
             </div>
@@ -544,28 +542,8 @@ export default FittingPanel;
 
 
 export function getUnitForParam(param) {
-  // 流速パラメータ
-  if (param.includes('Q') || param.endsWith('_initial')) {
-    return 'ml/ms';
-  }
-  
-  // 圧力パラメータ
-  if (param.startsWith('P') || param.includes('pressure')) {
-    return 'mmHg';
-  }
-  
-  // コンプライアンスパラメータ
-  if (param.startsWith('C')) {
-    return 'ml/mmHg';
-  }
-  
-  // 抵抗パラメータ
-  if (param.startsWith('R')) {
-    return 'mmHg・ms/ml';
-  }
-  
   // 容積パラメータ
-  if (param.endsWith('V0') || param.includes('volume')) {
+  if (param.endsWith('V0') || param.includes('volume') || param.includes('Volume')) {
     return 'ml';
   }
   
@@ -588,24 +566,44 @@ export function getUnitForParam(param) {
   if (param === 'HR') {
     return 'bpm';
   }
+
+  
+  // 圧力パラメータ
+  if (param.startsWith('P') || param.includes('pressure')) {
+    return 'mmHg';
+  }
+  
+  // コンプライアンスパラメータ
+  if (param.startsWith('C')) {
+    return 'ml/mmHg';
+  }
+  
+  // 抵抗パラメータ
+  if (param.startsWith('R')) {
+    return 'mmHg・ms/ml';
+  }
+  
+  // 容積パラメータ
+  if (param.includes('Q') || param.endsWith('_initial')) {
+    return 'ml';
+  }
   
   // その他のパラメータ（単位が不明な場合）
   return '';
 }
 
 
-const ParameterItem = ({ param, value, unit }) => {
+export const ParameterItem = ({ param, value, unit }) => {
   const t = useTranslation();
   return (
     <div className="flex items-center space-x-2">
       <span className="text-sm  text-gray-700 flex-grow">{t[param] || param}:</span>
-      <span className="text-sm text-gray-800">{value?.toFixed(2)}</span>
-      <span className="text-xs text-gray-500">{getUnitForParam(unit || param)}</span>
+      <span className="text-sm text-gray-800">{(Number(value) || 0) < 1 ? (Number(value) || 0)?.toFixed(3) : (Number(value) || 0)?.toFixed(2)}</span>
+      <span className="text-xs text-gray-500">{unit || getUnitForParam(param)}</span>
     </div>
 )};
 
 const ParameterEditItem = ({ param, data = {}, onChange, onFittingToggle, unit }) => {
-  console.log(param, data)
   const fitting = data.fitting ?? false; // デフォルト値を false に設定
 
   return (
