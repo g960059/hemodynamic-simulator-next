@@ -40,8 +40,8 @@ const ColorPicker = ({ color, onChange }) => {
         >
           <div className='w-5 h-5 rounded-full flex justify-center items-center' style={{backgroundColor: c}}>
             {color === c && (
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" className="w-4 h-4  transform -translate-x-1/2 -translate-y-1/2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="white" className="w-4 h-4  transform -translate-x-1/2 -translate-y-1/2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
             )}
           </div>
@@ -54,8 +54,8 @@ const ColorPicker = ({ color, onChange }) => {
       >
         <div className='w-5 h-5 rounded-full flex justify-center items-center' style={{background: 'conic-gradient(from 90deg at 50% 50%,#b85ebf 0deg,#4882ab 61.83deg,#44bffc 121.33deg,#62c276 .498turn,#ffb024 238.04deg,#f75496 299.18deg,#fa4529 1turn)'}}>
           {!colors.includes(color) && (
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" className="w-4 h-4  transform -translate-x-1/2 -translate-y-1/2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="white" className="w-4 h-4  transform -translate-x-1/2 -translate-y-1/2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
           )}
         </div>

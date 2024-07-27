@@ -43,8 +43,8 @@ const ControllerPanel = React.memo(({engine,view,updateView,removeView, patient,
         <div className='draggable cursor-move font-bold text-base md:text-lg pl-1 whitespace-nowrap overflow-x-auto'>{view?.name || "Controller Panel"}</div>
         <div className='draggable cursor-move flex-grow h-full'></div>
         <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget);}}>
-          <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+          <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
           </svg>
         </div>
       </div>
@@ -68,16 +68,16 @@ const ControllerPanel = React.memo(({engine,view,updateView,removeView, patient,
           <div onClick={()=> {setDialogOpen(true); setAnchorEl(null)}} 
             className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
           >
-            <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
             </svg>
             Edit
           </div>
 
           <DeleteMenuItemWithDialog raw onDelete={()=>{removeView(); setAnchorEl();}} onClose={()=>setAnchorEl(null)} message ={"「"+(view?.name || "Metrics") + "」を削除しようとしています。この操作は戻すことができません。"}>
             <div className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1  text-red-500 hover:bg-red-500 hover:text-white">
-              <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+              <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
               </svg>                                
               Delete
             </div>
@@ -89,6 +89,7 @@ const ControllerPanel = React.memo(({engine,view,updateView,removeView, patient,
           {
             view.items?.map((controllerItem)=> (
               <InputItem 
+                key={controllerItem.id + controllerItem.type}
                 controllerItem={controllerItem} 
                 patient = {patient}
               />
@@ -179,7 +180,7 @@ export const BasicInputs = React.memo(({patient, controllerItem}) => {
       <div className='inline-flex rounded-md overflow-hidden border-solid border border-slate-200 text-sm font-semibold'>
         <button onClick={onHandle(-(controllerItem?.changeRatio || 10))} className="px-1.5 py-1 border-0 cursor-pointer border-r border-solid border-slate-200 bg-white text-slate-500 focus:z-10 hover:bg-slate-100 transition" >-{controllerItem?.changeRatio || 10}%</button>
         <button onClick={onHandle(0)} className="px-1.5 py-1 border-0 cursor-pointer border-r border-solid border-slate-200 bg-white text-slate-500 focus:z-10 hover:bg-slate-100 transition" >
-          <svg xmlns="http://www.w3.org/2000/svg" className='w-5 h-5' viewBox="0 0 512 512"><path d="M320 146s24.36-12-64-12a160 160 0 10160 160" fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M256 58l80 80-80 80"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" className='w-5 h-5' viewBox="0 0 512 512"><path d="M320 146s24.36-12-64-12a160 160 0 10160 160" fill="none" stroke="currentColor" strokeLinecap="round" strokeMiterlimit="10" strokeWidth="32"/><path fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="32" d="M256 58l80 80-80 80"/></svg>
         </button>
         <button  onClick={onHandle(controllerItem?.changeRatio || 10)} className="px-1.5 py-1 border-0 cursor-pointer bg-white text-slate-500 focus:z-10 hover:bg-slate-100 transition">+{controllerItem?.changeRatio || 10}%</button>
       </div>        
@@ -387,16 +388,16 @@ export const AutoInputs = React.memo(({patient, controllerItem}) => {
       <div className='flex-grow'></div>
       {timeoutIds?.length > 0  ? 
         <button className='border border-solid px-1.5 py-0.5 flex flex-row justify-center items-center rounded-md border-slate-200 stroke-slate-500 hover:stroke-slate-700 hover:bg-slate-100' onClick={stopAction} type="button">
-          <svg className='w-5 h-5 text-slate-500 stroke-slate-500 fill-slate-500' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z" fill="none" stroke-miterlimit="10" stroke-width="32" stroke="currentColor"/><path d="M310.4 336H201.6a25.62 25.62 0 01-25.6-25.6V201.6a25.62 25.62 0 0125.6-25.6h108.8a25.62 25.62 0 0125.6 25.6v108.8a25.62 25.62 0 01-25.6 25.6z"/></svg>
+          <svg className='w-5 h-5 text-slate-500 stroke-slate-500 fill-slate-500' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z" fill="none" strokeMiterlimit="10" strokeWidth="32" stroke="currentColor"/><path d="M310.4 336H201.6a25.62 25.62 0 01-25.6-25.6V201.6a25.62 25.62 0 0125.6-25.6h108.8a25.62 25.62 0 0125.6 25.6v108.8a25.62 25.62 0 01-25.6 25.6z"/></svg>
         </button>
          :
         replayDirection == "backward" ?
           <button className='border border-solid px-1.5 py-0.5 flex flex-row justify-center items-center rounded-md border-slate-200 stroke-slate-500 hover:stroke-slate-700 hover:bg-slate-100' onClick={replayAction} type="button">
-              <svg className='w-5 h-5 text-slate-500 stroke-slate-500 fill-slate-500' xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 512 512"><path d="M256 448c106 0 192-86 192-192S362 64 256 64 64 150 64 256s86 192 192 192z" fill="none" stroke-miterlimit="10" stroke-width="32" stroke="currentColor"/><path d="M192 176a16 16 0 0116 16v53l111.68-67.46a10.78 10.78 0 0116.32 9.33v138.26a10.78 10.78 0 01-16.32 9.31L208 267v53a16 16 0 01-32 0V192a16 16 0 0116-16z"/></svg>
+              <svg className='w-5 h-5 text-slate-500 stroke-slate-500 fill-slate-500' xmlns="http://www.w3.org/2000/svg"  viewBox="0 0 512 512"><path d="M256 448c106 0 192-86 192-192S362 64 256 64 64 150 64 256s86 192 192 192z" fill="none" strokeMiterlimit="10" strokeWidth="32" stroke="currentColor"/><path d="M192 176a16 16 0 0116 16v53l111.68-67.46a10.78 10.78 0 0116.32 9.33v138.26a10.78 10.78 0 01-16.32 9.31L208 267v53a16 16 0 01-32 0V192a16 16 0 0116-16z"/></svg>
           </button> :            
         <>
           <button className='border border-solid px-1.5 py-0.5 flex flex-row justify-center items-center rounded-md border-slate-200 stroke-slate-500 hover:stroke-slate-700 hover:bg-slate-100' onClick={replayAction} type="button">
-            <svg className='w-5 h-5 text-slate-500 stroke-slate-500 fill-slate-500' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M112 111v290c0 17.44 17 28.52 31 20.16l247.9-148.37c12.12-7.25 12.12-26.33 0-33.58L143 90.84c-14-8.36-31 2.72-31 20.16z" fill="none" stroke-miterlimit="10" stroke-width="32" stroke="currentColor"/></svg>
+            <svg className='w-5 h-5 text-slate-500 stroke-slate-500 fill-slate-500' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M112 111v290c0 17.44 17 28.52 31 20.16l247.9-148.37c12.12-7.25 12.12-26.33 0-33.58L143 90.84c-14-8.36-31 2.72-31 20.16z" fill="none" strokeMiterlimit="10" strokeWidth="32" stroke="currentColor"/></svg>
           </button>
         </>
       }      
