@@ -10,6 +10,7 @@ import ActionRecorderPanel from './ActionRecorderPanel'
 import PlotPanel from './PlotPanel'
 import FittingPanel from './FittingPanel';
 import ModelManager from './ModelManager'
+import GuytonStarlingPlot from './GuytonStarlingPlot'
 
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
 import { useImmer } from "use-immer";
@@ -20,6 +21,7 @@ import EditableText from './EditableText';
 import ChartDialog from './ChartDialog';
 import MetricsDialog from './MetricsDialog';
 import ControllerDialog from './ControllerDialog';
+import GuytonStarlingPlotDialog from './GuytonStarlingPlotDialog'
 import NoteDialog from './NoteDialog'
 import PlotDialog from './PlotDialog'
 import { styled } from '@mui/material/styles';
@@ -31,8 +33,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
-
-
+import { getRandomColor } from '../styles/chartConstants'
 
 
 SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY);
@@ -166,6 +167,10 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
                     hMd = 12
                     break;
                   case "ModelManager":
+                    wMd = 6
+                    hMd = 12
+                    break;
+                  case "GuytonStarlingPlot":
                     wMd = 6
                     hMd = 12
                     break;
@@ -359,7 +364,17 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
               isEdit={isEdit}
             />
           }
-                 
+          {
+            view.type === "GuytonStarlingPlot" &&
+              <GuytonStarlingPlot
+                key={view.id}
+                view={view}
+                updateView={(newView) => updateView(view.id, newView)}
+                removeView={() => removeView(view.id)}
+                patients={patients}
+                engine={engine}
+              />
+          }
         </div>
       )}      
       {
@@ -388,215 +403,215 @@ const CaseEditor = React.memo(({engine,caseData,setCaseData,patients,setPatients
 
 export default CaseEditor
 
-const ParamSetsDialog = ({patients, engine, setPatients,setViews,caseData}) => {
-  const [openDialog, setOpenDialog] = useState(false);
-  const [edittingIndex, setEdittingIndex] = useState(null);
-  const [openNewPatient, setOpenNewPatient] = useState(false);
-  const [itemAnchorEl, setItemAnchorEl] = useState(null);
-  const [selectedPatientId, setSelectedPatientId] = useState(null);
+// const ParamSetsDialog = ({patients, engine, setPatients,setViews,caseData}) => {
+//   const [openDialog, setOpenDialog] = useState(false);
+//   const [edittingIndex, setEdittingIndex] = useState(null);
+//   const [openNewPatient, setOpenNewPatient] = useState(false);
+//   const [itemAnchorEl, setItemAnchorEl] = useState(null);
+//   const [selectedPatientId, setSelectedPatientId] = useState(null);
 
-  const removeParamSet = (id) => {
-    setViews(draft => {
-        for (let i = draft.length - 1; i >= 0; i--) {
-          if (draft[i]?.patientId === id) {
-            draft.splice(i, 1);
-            continue; 
-          }
+//   const removeParamSet = (id) => {
+//     setViews(draft => {
+//         for (let i = draft.length - 1; i >= 0; i--) {
+//           if (draft[i]?.patientId === id) {
+//             draft.splice(i, 1);
+//             continue; 
+//           }
   
-          switch (draft[i].type) {
-            case "PressureCurve":
-            case "FlowCurve":
-            case "PressureVolumeCurve":
-            case "Metrics":
-              draft[i].items = draft[i].items?.filter(item => item.patientId !== id);
-              break;
-          }
-        }
-      }
-    )
-    engine.unregister(id);
-    setPatients(patients.filter(p=>p.id!=id));
-  }
-  return <>
-    <button onClick={()=>{setOpenDialog(true)}} className='mr-2 md:mr-3 bg-slate-100 fill-slate-500 stroke-slate-500 text-slate-500 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600 cursor-pointer py-1 md:py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center hover:bg-slate-200  border-none transition'>
-      {/* <svg xmlns="http://www.w3.org/2000/svg"  strokeWidth={1} height="20px" width="20px" version="1.1" id="Layer_1" viewBox="0 0 490.012 490.012" >
-        <g>
-          <g>
-            <path d="M429.039,38.5h-84.3V20.8c0-11.4-9.4-20.8-20.8-20.8h-157c-11.4,0-20.8,9.4-20.8,20.8v17.7h-85.3    c-5.5-0.4-19.9,4.5-20.8,20.8v409.9c0,11.4,9.4,20.8,20.8,20.8h369.3c13.3,0.5,20.3-14.1,19.8-20.8V59.3    C450.439,54.5,445.539,39.1,429.039,38.5z M187.739,41.6h116.5V77h-116.5L187.739,41.6L187.739,41.6z M409.339,449.4h-328.8V80.1    h65.5v16.6c1.3,17.2,15.6,20.8,20.8,20.8h158.1c10.4,0,19.8-9.4,19.8-20.8V80.1h64.5v369.3H409.339z"/>
-            <path d="M170.039,328.7h149.8c11.4,0,20.8-9.4,20.8-20.8s-9.4-20.8-20.8-20.8h-149.8c-11.4,0-20.8,9.4-20.8,20.8    S158.639,328.7,170.039,328.7z"/>
-            <path d="M322.939,366.2h-149.8c-11.4,0-20.8,9.4-20.8,20.8s9.4,20.8,20.8,20.8h149.8c10.4,0,19.8-9.4,20.8-20.8    C343.739,375.6,334.439,366.2,322.939,366.2z"/>
-            <path d="M213.739,219.5h11.4V231c0,11.4,9.4,20.8,20.8,20.8s20.8-9.4,20.8-20.8v-11.4h11.4c11.4,0,20.8-9.4,20.8-20.8    c0-11.4-9.4-20.8-20.8-20.8h-11.4v-11.4c0-11.4-9.4-20.8-20.8-20.8c-11.4,0-20.8,9.4-20.8,20.8V178h-11.4    c-11.4,0-20.8,9.4-20.8,20.8C192.939,210.1,202.239,219.5,213.739,219.5z"/>
-          </g>
-        </g>
-      </svg> */}
-      <span className='font-bold text-base'>{patients.length || 0} {patients.length <=1 ? "model" : "models"}</span>
-    </button>  
-    <Dialog open={openDialog} onClose={()=>setOpenDialog(false)} sx={{ ".MuiDialog-paper": {m:0}}}>
-      <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
-        <div className='text-base font-bold text-center inline-flex items-center'>
-          <svg className='w-6 h-5  mr-1.5 stroke-blue-500' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-          </svg>                 
-          Edit Models
-        </div>
-        <div className='flex-grow md:w-52'/>
-        <button onClick={()=>setOpenDialog(false)} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
-          <svg className='stroke-slate-600 w-4 h-4' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
+//           switch (draft[i].type) {
+//             case "PressureCurve":
+//             case "FlowCurve":
+//             case "PressureVolumeCurve":
+//             case "Metrics":
+//               draft[i].items = draft[i].items?.filter(item => item.patientId !== id);
+//               break;
+//           }
+//         }
+//       }
+//     )
+//     engine.unregister(id);
+//     setPatients(patients.filter(p=>p.id!=id));
+//   }
+//   return <>
+//     <button onClick={()=>{setOpenDialog(true)}} className='mr-2 md:mr-3 bg-slate-100 fill-slate-500 stroke-slate-500 text-slate-500 hover:fill-slate-600 hover:stroke-slate-600 hover:text-slate-600 cursor-pointer py-1 md:py-2 px-2 md:px-4 text-base rounded-md flex justify-center items-center hover:bg-slate-200  border-none transition'>
+//       {/* <svg xmlns="http://www.w3.org/2000/svg"  strokeWidth={1} height="20px" width="20px" version="1.1" id="Layer_1" viewBox="0 0 490.012 490.012" >
+//         <g>
+//           <g>
+//             <path d="M429.039,38.5h-84.3V20.8c0-11.4-9.4-20.8-20.8-20.8h-157c-11.4,0-20.8,9.4-20.8,20.8v17.7h-85.3    c-5.5-0.4-19.9,4.5-20.8,20.8v409.9c0,11.4,9.4,20.8,20.8,20.8h369.3c13.3,0.5,20.3-14.1,19.8-20.8V59.3    C450.439,54.5,445.539,39.1,429.039,38.5z M187.739,41.6h116.5V77h-116.5L187.739,41.6L187.739,41.6z M409.339,449.4h-328.8V80.1    h65.5v16.6c1.3,17.2,15.6,20.8,20.8,20.8h158.1c10.4,0,19.8-9.4,19.8-20.8V80.1h64.5v369.3H409.339z"/>
+//             <path d="M170.039,328.7h149.8c11.4,0,20.8-9.4,20.8-20.8s-9.4-20.8-20.8-20.8h-149.8c-11.4,0-20.8,9.4-20.8,20.8    S158.639,328.7,170.039,328.7z"/>
+//             <path d="M322.939,366.2h-149.8c-11.4,0-20.8,9.4-20.8,20.8s9.4,20.8,20.8,20.8h149.8c10.4,0,19.8-9.4,20.8-20.8    C343.739,375.6,334.439,366.2,322.939,366.2z"/>
+//             <path d="M213.739,219.5h11.4V231c0,11.4,9.4,20.8,20.8,20.8s20.8-9.4,20.8-20.8v-11.4h11.4c11.4,0,20.8-9.4,20.8-20.8    c0-11.4-9.4-20.8-20.8-20.8h-11.4v-11.4c0-11.4-9.4-20.8-20.8-20.8c-11.4,0-20.8,9.4-20.8,20.8V178h-11.4    c-11.4,0-20.8,9.4-20.8,20.8C192.939,210.1,202.239,219.5,213.739,219.5z"/>
+//           </g>
+//         </g>
+//       </svg> */}
+//       <span className='font-bold text-base'>{patients.length || 0} {patients.length <=1 ? "model" : "models"}</span>
+//     </button>  
+//     <Dialog open={openDialog} onClose={()=>setOpenDialog(false)} sx={{ ".MuiDialog-paper": {m:0}}}>
+//       <div className='border-solid border-0 border-b border-slate-200 w-full p-3 pl-4 flex flex-row items-center justify-center'>
+//         <div className='text-base font-bold text-center inline-flex items-center'>
+//           <svg className='w-6 h-5  mr-1.5 stroke-blue-500' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+//             <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+//           </svg>                 
+//           Edit Models
+//         </div>
+//         <div className='flex-grow md:w-52'/>
+//         <button onClick={()=>setOpenDialog(false)} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+//           <svg className='stroke-slate-600 w-4 h-4' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
+//             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+//           </svg>
+//         </button>
+//       </div>
 
-      <div className='w-full min-h-[320px] px-4 py-2'>
-        {patients.map((p,index) =>  
-          edittingIndex != index ?
-            <div key={p.id} className='w-full border-solid  flex flex-row items-center justify-center border border-slate-200 bg-slate-200 rounded-lg  my-3'>
-              <div onClick={()=>{setEdittingIndex(index)}} className='cursor-pointer bg-white rounded-lg pl-3 w-full flex items-center justify-center hover:bg-slate-100'>
-                <div className='text-base'>{p?.name}</div>
-                <div className='flex-grow'></div>
-                <div className='p-1 py-2 flex items-center' onClick={e => {e.stopPropagation();setSelectedPatientId(p.id); setItemAnchorEl(e.currentTarget)}}>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                  </svg>
-                </div>
-                <Popover 
-                  open={Boolean(itemAnchorEl)}
-                  anchorEl={itemAnchorEl}
-                  onClose={(e)=>{e.stopPropagation();setItemAnchorEl(null)}}
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right',
-                  }}
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                  elevation={0}
-                  marginThreshold={0}
-                  disablePortal
-                  PaperProps={{style: {backgroundColor: 'transparent',boxShadow: 'none',width: 'auto',maxWidth: 'none',}}}
-                >
-                  <div className='flex flex-col items-center justify-center py-2 bg-white border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
-                    <div onClick={()=> {setEdittingIndex(index); setItemAnchorEl(null)}} 
-                      className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
-                    >
-                      <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                      </svg>
-                      Edit
-                    </div>
-                    <div onClick={(e)=>{e.stopPropagation(); removeParamSet(selectedPatientId);setItemAnchorEl(null); setSelectedPatientId(null)}} 
-                      className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1 text-red-500 hover:bg-red-500 hover:text-white"
-                    >
-                      <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                      </svg>                                
-                      Delete
-                    </div>
-                  </div>
-                </Popover>                          
-              </div>
-            </div> :
-            <Grow in={edittingIndex == index}>
-              <div>
-                <ParamSetEditor 
-                  key={p?.id} initialPatient={p}  handleClose={()=>{setEdittingIndex(null)}} 
-                  handleUpdate={(newPatient)=>{setPatients(draft => { 
-                    const insertPatient = {...p,...newPatient}
-                    draft.splice(draft.findIndex(p=>p.id===insertPatient.id),1,insertPatient);
-                    setEdittingIndex(null);
-                  })}} 
-                />
-              </div>
-            </Grow>
-        )}
-      {!openNewPatient ?
-        <div onClick={()=>{setOpenNewPatient(true)}} className='cursor-pointer py-2 px-4 mt-2 text-base border-solid border border-slate-200 rounded-md flex justify-center items-center hover:bg-slate-100 hover:border-slate-100 text-slate-600 '>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          Add new model
-        </div> :
-        <Grow in={openNewPatient}>
-          <div>
-            <ParamSetEditor 
-              handleClose={()=>{setOpenNewPatient(false)}} 
-              handleUpdate={(newPatient)=>{
-                const insertPatient = {...newPatient,id:nanoid()}
-                engine.register(insertPatient);
-                setPatients(draft=>{draft.push({...insertPatient,uid:caseData.userId, canvasId: caseData.canvasId , ...engine.getPatient(insertPatient.id)})})
-              }}
-            />
-          </div> 
-        </Grow>
-      }  
-      </div>
+//       <div className='w-full min-h-[320px] px-4 py-2'>
+//         {patients.map((p,index) =>  
+//           edittingIndex != index ?
+//             <div key={p.id} className='w-full border-solid  flex flex-row items-center justify-center border border-slate-200 bg-slate-200 rounded-lg  my-3'>
+//               <div onClick={()=>{setEdittingIndex(index)}} className='cursor-pointer bg-white rounded-lg pl-3 w-full flex items-center justify-center hover:bg-slate-100'>
+//                 <div className='text-base'>{p?.name}</div>
+//                 <div className='flex-grow'></div>
+//                 <div className='p-1 py-2 flex items-center' onClick={e => {e.stopPropagation();setSelectedPatientId(p.id); setItemAnchorEl(e.currentTarget)}}>
+//                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+//                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+//                   </svg>
+//                 </div>
+//                 <Popover 
+//                   open={Boolean(itemAnchorEl)}
+//                   anchorEl={itemAnchorEl}
+//                   onClose={(e)=>{e.stopPropagation();setItemAnchorEl(null)}}
+//                   anchorOrigin={{
+//                     vertical: 'bottom',
+//                     horizontal: 'right',
+//                   }}
+//                   transformOrigin={{
+//                     vertical: 'top',
+//                     horizontal: 'right',
+//                   }}
+//                   elevation={0}
+//                   marginThreshold={0}
+//                   disablePortal
+//                   PaperProps={{style: {backgroundColor: 'transparent',boxShadow: 'none',width: 'auto',maxWidth: 'none',}}}
+//                 >
+//                   <div className='flex flex-col items-center justify-center py-2 bg-white border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
+//                     <div onClick={()=> {setEdittingIndex(index); setItemAnchorEl(null)}} 
+//                       className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
+//                     >
+//                       <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
+//                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+//                       </svg>
+//                       Edit
+//                     </div>
+//                     <div onClick={(e)=>{e.stopPropagation(); removeParamSet(selectedPatientId);setItemAnchorEl(null); setSelectedPatientId(null)}} 
+//                       className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1 text-red-500 hover:bg-red-500 hover:text-white"
+//                     >
+//                       <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+//                         <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+//                       </svg>                                
+//                       Delete
+//                     </div>
+//                   </div>
+//                 </Popover>                          
+//               </div>
+//             </div> :
+//             <Grow in={edittingIndex == index}>
+//               <div>
+//                 <ParamSetEditor 
+//                   key={p?.id} initialPatient={p}  handleClose={()=>{setEdittingIndex(null)}} 
+//                   handleUpdate={(newPatient)=>{setPatients(draft => { 
+//                     const insertPatient = {...p,...newPatient}
+//                     draft.splice(draft.findIndex(p=>p.id===insertPatient.id),1,insertPatient);
+//                     setEdittingIndex(null);
+//                   })}} 
+//                 />
+//               </div>
+//             </Grow>
+//         )}
+//       {!openNewPatient ?
+//         <div onClick={()=>{setOpenNewPatient(true)}} className='cursor-pointer py-2 px-4 mt-2 text-base border-solid border border-slate-200 rounded-md flex justify-center items-center hover:bg-slate-100 hover:border-slate-100 text-slate-600 '>
+//           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" class="w-6 h-6">
+//             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+//           </svg>
+//           Add new model
+//         </div> :
+//         <Grow in={openNewPatient}>
+//           <div>
+//             <ParamSetEditor 
+//               handleClose={()=>{setOpenNewPatient(false)}} 
+//               handleUpdate={(newPatient)=>{
+//                 const insertPatient = {...newPatient,id:nanoid()}
+//                 engine.register(insertPatient);
+//                 setPatients(draft=>{draft.push({...insertPatient,uid:caseData.userId, canvasId: caseData.canvasId , ...engine.getPatient(insertPatient.id)})})
+//               }}
+//             />
+//           </div> 
+//         </Grow>
+//       }  
+//       </div>
  
-      {/* <div className=' w-full p-3 pl-4 flex flex-row items-center justify-center'>
-        <div className='flex-grow'></div>
-        <Button onClick={()=>setOpenDialog(false)} color="inherit">キャンセル</Button>
-        <button 
-          type='button' 
-          onClick={()=>{
-            // addPatient(newPatient);
-            // setNewPatient({id:nanoid(),...paramPresets[newPatient.baseParamSet]})
-            setOpenDialog(false)
-          }} 
-          className=' bg-blue-500 text-white cursor-pointer py-2 px-4 ml-4 text-base rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition'
-        >
-          追加する
-        </button> 
+//       {/* <div className=' w-full p-3 pl-4 flex flex-row items-center justify-center'>
+//         <div className='flex-grow'></div>
+//         <Button onClick={()=>setOpenDialog(false)} color="inherit">キャンセル</Button>
+//         <button 
+//           type='button' 
+//           onClick={()=>{
+//             // addPatient(newPatient);
+//             // setNewPatient({id:nanoid(),...paramPresets[newPatient.baseParamSet]})
+//             setOpenDialog(false)
+//           }} 
+//           className=' bg-blue-500 text-white cursor-pointer py-2 px-4 ml-4 text-base rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition'
+//         >
+//           追加する
+//         </button> 
         
-      </div>            */}
-    </Dialog>      
-  </>
-}
+//       </div>            */}
+//     </Dialog>      
+//   </>
+// }
 
-const ParamSetEditor = ({initialPatient=null, handleClose, handleUpdate }) =>{
-  const [newPatient, setNewPatient] = useImmer(initialPatient || {...paramPresets["Normal"]});
-  return <>
-    <div className='flex flex-col items-center w-full border-solid border border-slate-200  rounded-lg p-2 mt-2'>
-      {!initialPatient && <div className='flex flex-row items-center w-full '>
-        <div className='text-base'>ベースモデル</div>
-        <div className='flex-grow'/>
-        <Select  variant="standard" disableUnderline id="new-patient-base-model" 
-          value={newPatient.baseParamSet} 
-          onChange={e=>{setNewPatient({id:nanoid(),...paramPresets[e.target.value]})}}
-        >
-          {
-            Object.keys(paramPresets).map((baseKey,index)=>{
-              return <MenuItem key={index} value={baseKey}>{baseKey}</MenuItem>
-            })
-          }
-        </Select>
-      </div> }
-      <div className='flex flex-row items-center w-full mt-1'>
-        <div className='text-base'>モデル名</div>
-        <div className='flex-grow'/>
-        <EditableText value={newPatient?.name} updateValue={newTitle=>{setNewPatient(draft=>{draft.name=newTitle})}}  />
-      </div>
+// const ParamSetEditor = ({initialPatient=null, handleClose, handleUpdate }) =>{
+//   const [newPatient, setNewPatient] = useImmer(initialPatient || {...paramPresets["Normal"]});
+//   return <>
+//     <div className='flex flex-col items-center w-full border-solid border border-slate-200  rounded-lg p-2 mt-2'>
+//       {!initialPatient && <div className='flex flex-row items-center w-full '>
+//         <div className='text-base'>ベースモデル</div>
+//         <div className='flex-grow'/>
+//         <Select  variant="standard" disableUnderline id="new-patient-base-model" 
+//           value={newPatient.baseParamSet} 
+//           onChange={e=>{setNewPatient({id:nanoid(),...paramPresets[e.target.value]})}}
+//         >
+//           {
+//             Object.keys(paramPresets).map((baseKey,index)=>{
+//               return <MenuItem key={index} value={baseKey}>{baseKey}</MenuItem>
+//             })
+//           }
+//         </Select>
+//       </div> }
+//       <div className='flex flex-row items-center w-full mt-1'>
+//         <div className='text-base'>モデル名</div>
+//         <div className='flex-grow'/>
+//         <EditableText value={newPatient?.name} updateValue={newTitle=>{setNewPatient(draft=>{draft.name=newTitle})}}  />
+//       </div>
                                       
-      <div className=' w-full pl-3 mt-3 flex flex-row items-center justify-center'>
-        <div className='flex-grow'></div>
-        <button type='button' 
-          onClick={handleClose} 
-          className='bg-slate-100 text-slate-700 cursor-pointer py-2 px-3 text-sm rounded-md flex justify-center items-center hover:bg-slate-200 border-none transition'
-        >
-          Cancel
-        </button>
-        <button 
-          type='button' 
-          disabled={!newPatient?.name }
-          onClick={()=>{handleUpdate(newPatient); handleClose()}}
-          className='bg-blue-500 text-white disabled:bg-slate-100 disabled:text-slate-400 cursor-pointer py-2 px-3 ml-3 text-sm rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition'
-        >
-        {initialPatient ? "Update" : "Add"}
-      </button>
-      </div>                
-    </div>  
-    </>
+//       <div className=' w-full pl-3 mt-3 flex flex-row items-center justify-center'>
+//         <div className='flex-grow'></div>
+//         <button type='button' 
+//           onClick={handleClose} 
+//           className='bg-slate-100 text-slate-700 cursor-pointer py-2 px-3 text-sm rounded-md flex justify-center items-center hover:bg-slate-200 border-none transition'
+//         >
+//           Cancel
+//         </button>
+//         <button 
+//           type='button' 
+//           disabled={!newPatient?.name }
+//           onClick={()=>{handleUpdate(newPatient); handleClose()}}
+//           className='bg-blue-500 text-white disabled:bg-slate-100 disabled:text-slate-400 cursor-pointer py-2 px-3 ml-3 text-sm rounded-md flex justify-center items-center hover:bg-sky-700 border-none transition'
+//         >
+//         {initialPatient ? "Update" : "Add"}
+//       </button>
+//       </div>                
+//     </div>  
+//     </>
 
-}
+// }
 
 const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{  
   const [anchorEl, setAnchorEl] = useState(null);
@@ -629,12 +644,17 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
   }
 
   const selectFittingPanel = ()=>{
-    addViewItem({id:nanoid(), type: "FittingPanel"});
+    addViewItem({type: "FittingPanel"});
     setAnchorEl(null);
   };
 
   const selectModelManagerDialog = () => {
-    addViewItem({id:nanoid(), type: "ModelManager"});
+    addViewItem({type: "ModelManager"});
+    setAnchorEl(null);
+  };
+
+  const selectGuytonStarlingPlotDialog = () => {
+    setOpenDialog("GuytonStarling");
     setAnchorEl(null);
   };
 
@@ -743,6 +763,17 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
           Image
         </button>   */}
       </>
+      <button onClick={selectGuytonStarlingPlotDialog} className='text-gray-800 bg-white cursor-pointer border border-solid border-slate-200 hover:bg-sky-50 transition font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center'>
+        <div className='relative inline-flex items-center justify-center w-9 h-9 mr-2 overflow-hidden bg-sky-100 rounded-full'>
+          <svg className='w-6 h-6 stroke-sky-700' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 4v16h18" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 20l6-6 4 4 8-8" />
+            <circle cx="7" cy="8" r="2" fill="none" />
+            <circle cx="15" cy="10" r="2" fill="none" />
+          </svg>
+        </div>
+        Guyton-Starling
+      </button>
     </Popover>
 
 
@@ -818,6 +849,17 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
     {/* PlotDialog */}
     <PlotDialog open={openDialog == "Plot"} onClose={()=>setOpenDialog(null)} updateView={addViewItem} patients={patients}/>
     
+    {/* GuytonStarlingPlotDialog */}
+    <GuytonStarlingPlotDialog 
+      open={openDialog === "GuytonStarling"} 
+      onClose={() => setOpenDialog(null)} 
+      updateView={(newView) => {
+        if (newView.items.length > 0) {
+          addViewItem({...newView, type: "GuytonStarlingPlot"});
+        }
+      }} 
+      patients={patients}
+    />
   </>
 }
 

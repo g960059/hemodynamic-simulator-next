@@ -61,7 +61,9 @@ export const useEngine = () => {
   const subscriptionsRef = useRef({})
   const hdpMutationsRef = useRef({});
   const hdpMutationSubscriptionsRef = useRef({});
+  const hdpMutationSubscriptionsAllRef = useRef({});
   const hdpAllMutationSubscriptionsRef = useRef({});
+
   
   const register = useCallback(({id,initialHdps,initialData,initialTime,name}) => {
     initialHdpsRef.current[id] = initialHdps;
@@ -74,12 +76,14 @@ export const useEngine = () => {
     hdpMutationsRef.current[id] = {};
     subscriptionsRef.current[id] = {};
     hdpMutationSubscriptionsRef.current[id] = {};
+    hdpMutationSubscriptionsAllRef.current[id] = {};
     speedRef.current[id] = 1.0;
     isPlayingRef.current[id] = true;
     if(!idsRef.current.includes(id)) {
       idsRef.current.push(id);
     }
   },[])
+
   const unregister = (id) => {
     idsRef.current = idsRef.current.filter(x=>x!=id);
     delete initialHdpsRef.current[id];
@@ -92,6 +96,7 @@ export const useEngine = () => {
     delete hdpMutationsRef.current[id];
     delete subscriptionsRef.current[id];
     delete hdpMutationSubscriptionsRef.current[id];
+    delete hdpMutationSubscriptionsAllRef.current[id];
     delete speedRef.current[id];
     delete isPlayingRef.current[id];
   }
@@ -111,6 +116,7 @@ export const useEngine = () => {
     hdpMutationsRef.current={}
     subscriptionsRef.current={}
     hdpMutationSubscriptionsRef.current={}
+    hdpAllMutationSubscriptionsRef.current={}
     speedRef.current = {};
     isPlayingRef.current = {};
     idsRef.current = []
@@ -139,6 +145,16 @@ export const useEngine = () => {
   const unsubscribeHdpMutation = (id) => subs_id => {
     if(hdpMutationSubscriptionsRef.current[id]){
       delete hdpMutationSubscriptionsRef.current[id][subs_id]
+    }
+  }
+  const subscribeHdpMutationAll = (id) => callback => {
+    const subsId = nanoid();
+    hdpMutationSubscriptionsAllRef.current[id][subsId] = callback
+    return subsId
+  }
+  const unsubscribeHdpMutationAll = (id) => subs_id => {
+    if(hdpMutationSubscriptionsAllRef.current[id]){
+      delete hdpMutationSubscriptionsAllRef.current[id][subs_id]
     }
   }
   const subscribeAllHdpMutation =  callback =>{
@@ -224,12 +240,18 @@ export const useEngine = () => {
 
   const setHdps = (id) =>(hdpKey, hdpValue) => {
     hdpMutationsRef.current[id][hdpKey] = hdpValue
-    if(hdpMutationSubscriptionsRef.current[id]){
-      Object.entries(hdpMutationSubscriptionsRef.current[id]).forEach(([subsId,hdpCallbacks])=>{
-        if(hdpCallbacks[hdpKey]){
-          hdpCallbacks[hdpKey](hdpKey, hdpValue);
+    if (hdpMutationSubscriptionsRef.current[id]) {
+      Object.values(hdpMutationSubscriptionsRef.current[id]).forEach(hdpCallbacks => {
+        const callback = hdpCallbacks[hdpKey];
+        if (callback) {
+          callback(hdpKey, hdpValue);
         }
-      })
+      });
+    }
+    if(hdpMutationSubscriptionsAllRef.current[id]){
+      Object.values(hdpMutationSubscriptionsAllRef.current[id]).forEach(callback => {
+        callback(id,hdpKey, hdpValue);
+      });
     }
     if(hdpAllMutationSubscriptionsRef.current){
       Object.entries(hdpAllMutationSubscriptionsRef.current).forEach(([subsId,callback])=>{
@@ -253,6 +275,8 @@ export const useEngine = () => {
       unsubscribe: unsubscribe(id),
       subscribeHdpMutation: subscribeHdpMutation(id),
       unsubscribeHdpMutation: unsubscribeHdpMutation(id),
+      subscribeHdpMutationAll: subscribeHdpMutationAll(id),
+      unsubscribeHdpMutationAll: unsubscribeHdpMutationAll(id),
       getHdps: getHdps(id),
       setHdps: setHdps(id),
       getDataSnapshot: getDataSnapshot(id),
@@ -266,7 +290,7 @@ export const useEngine = () => {
   const getAllPatinets = () => idsRef.current.map(id=>getPatient(id))
   const getPatientData = id =>({id, initialHdps:initialHdpsRef.current[id], initialData:initialDatasRef.current[id],initialTime: initialTimesRef.current[id],name: namesRef.current[id]})
   const getAllPatientsData = ()=>idsRef.current.map(id=>getPatientData(id));
-  return {register,unregister,clear,subscribe,unsubscribe,subscribeHdpMutation,unsubscribeHdpMutation,subscribeAllHdpMutation,unsubscribeAllHdpMutation, isPlaying,setIsPlaying,setIsModelPlaying, setSpeed,getPatient,getAllPatinets,getPatientData, getAllPatientsData, ids:idsRef.current, setHdps, getHdps,deleteModel}
+  return {register,unregister,clear,subscribe,unsubscribe,subscribeHdpMutation,unsubscribeHdpMutation,subscribeAllHdpMutation,unsubscribeAllHdpMutation,subscribeHdpMutationAll,unsubscribeHdpMutationAll, isPlaying,setIsPlaying,setIsModelPlaying, setSpeed,getPatient,getAllPatinets,getPatientData, getAllPatientsData, ids:idsRef.current, setHdps, getHdps,deleteModel}
 }
 
 

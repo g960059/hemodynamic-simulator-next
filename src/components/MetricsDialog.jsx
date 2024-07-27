@@ -1,7 +1,9 @@
 import React, {useState} from 'react';
 import {Dialog,Grow,Popover,MenuItem,Select,useMediaQuery} from '@mui/material'
 import EditableText from './EditableText';
-import { DragDropContext,Droppable,Draggable} from 'react-beautiful-dnd';
+import { DndContext, closestCenter, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
+import { SortableContext, arrayMove, useSortable, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {nanoid} from "../utils/utils"
 import { AllHdpOptions}  from "../utils/presets"
 import { useImmer } from "use-immer";
@@ -16,6 +18,13 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
   const [activeItemId, setActiveItemId] = useState(null);
   const [openNewMetric, setOpenNewMetric] = useState(false);
   const isUpMd = useMediaQuery((theme) => theme.breakpoints.up('md'));
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    })
+  );
 
   return <>
     <Dialog fullScreen={!isUpMd} sx={{ ".MuiDialog-paper": {m:0}}} open ={open} onClose ={onClose}>
@@ -44,95 +53,39 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
         <div className='mt-7 text-base text-slate-500 font-bold'>表示データ</div>
         <hr class="mb-3 h-px border-0 bg-gray-300" /> 
         <div className='w-full min-h-[320px]'>
-          <DragDropContext onDragEnd={({source:src, destination:dest})=>{
-            if(!dest ) return;
-            setView(draft=>{
-              const [insertItem] = draft.items.splice(src.index,1);
-              draft.items.splice(dest.index,0,insertItem);
-              if(dest.index == edittingIndex) setEdittingIndex(src.index)
-              else if(src.index == edittingIndex) setEdittingIndex(dest.index)
-            })
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={({ active, over }) => {
+            if (over == null) return;
+            if (active.id !== over.id) {
+              setView(draft => {
+                const oldIndex = draft.items.findIndex(item => item.id === active.id);
+                const newIndex = draft.items.findIndex(item => item.id === over.id);
+                draft.items = arrayMove(draft.items, oldIndex, newIndex);
+              });
+            }
           }}>
-            <Droppable droppableId="droppable">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="space-y-2"
-                >
-                  {view.items.map((item,index)=> ( 
-                    <Draggable key={item.id} draggableId={item.id} index={index}>
-                      {(provided) =>
-                        <Transition in={edittingIndex != index} timeout={150}>
-                          {state=>(
-                            <div {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef} className={clsx("border-solid border rounded-lg overflow-hidden" , (state=="exiting" || state=="exited" || state=="entering") && "border-2 border-blue-500  ring-4 ring-blue-50",state =="entered" && "border border-slate-200")}>
-                              <div className={clsx("cursor-grab flex flex-row items-center justify-center  bg-slate-200 ", state== "entered" && "animate-in fade-in", state=="exiting" && "animate-out fade-out", (state=="exited" || state=="entering") && "hidden")}>
-                                <svg className="w-6 h-6 " focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="DragIndicatorIcon"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
-                                <div onClick={()=>{setEdittingIndex(index);setOpenNewMetric(false)}} className='cursor-pointer bg-white rounded-lg pl-2 w-full flex items-center justify-center hover:bg-slate-100'>
-                                  <div className='text-base'>{item?.label}</div>
-                                  <div className='flex-grow'></div>
-                                  <div className='p-1 py-2 flex items-center' onClick={e => {e.stopPropagation(); setViewItemAnchorEl(e.currentTarget);setActiveItemId(item.id)}}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
-                                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                                    </svg>
-                                  </div>
-                                  <Popover 
-                                    open={Boolean(viewItemAnchorEl) && activeItemId === item.id}
-                                    anchorEl={viewItemAnchorEl}
-                                    onClose={(e)=>{e.stopPropagation();setViewItemAnchorEl(null);setActiveItemId(null)}}
-                                    anchorOrigin={{
-                                      vertical: 'bottom',
-                                      horizontal: 'right',
-                                    }}
-                                    transformOrigin={{
-                                      vertical: 'top',
-                                      horizontal: 'right',
-                                    }}
-                                    elevation={0}
-                                    marginThreshold={0}
-                                    disablePortal
-                                    PaperProps={{style: {backgroundColor: 'transparent',boxShadow: 'none',width: 'auto',maxWidth: 'none',}}}
-                                  >
-                                    <div className='flex flex-col items-center justify-center py-2 bg-white border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
-                                      <div onClick={()=> {setEdittingIndex(index); setViewItemAnchorEl(null);setActiveItemId(null)}} 
-                                        className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
-                                      >
-                                        <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
-                                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                                        </svg>
-                                        Edit
-                                      </div>
-                                      <div onClick={(e)=>{e.stopPropagation();setView(draft=>{draft.items.splice(index,1)});setViewItemAnchorEl(null);setActiveItemId(null)}} 
-                                        className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1 text-red-500 hover:bg-red-500 hover:text-white"
-                                      >
-                                        <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                          <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                                        </svg>                                
-                                        Delete
-                                      </div>
-                                    </div>
-                                  </Popover>                          
-                                </div>
-                              </div>
-                              <div className={clsx(state=="exited" && "animate-in fade-in", state=="entering" && "animate-out fade-out", (state=="entered" || state=="exiting") && "hidden")}>
-                                <EditableDataForm  
-                                  key={item.id} initialItem={item} viewType = {view.type} patients={patients} handleClose={()=>{setEdittingIndex(null)}} 
-                                  handleUpdate={(newItem)=>{setView(draft=>{draft = draft.items.splice(index,1,newItem);setEdittingIndex(null);})}} 
-                                  updateText='Update'
-                                  hasColor={false}
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </Transition>
-                      }
-                    </Draggable> 
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+            <SortableContext items={view.items}>
+              <div className="space-y-2">
+                {view?.items?.map((item, index) => (
+                  <SortableItem
+                    key={item.id}
+                    id={item.id}
+                    item={item}
+                    index={index}
+                    patients={patients}
+                    view = {view}
+                    setView={setView}
+                    edittingIndex={edittingIndex}
+                    setEdittingIndex={setEdittingIndex}
+                    setOpenNewMetric={setOpenNewMetric}
+                    setViewItemAnchorEl={setViewItemAnchorEl}
+                    setActiveItemId={setActiveItemId}
+                    viewItemAnchorEl={viewItemAnchorEl}
+                    activeItemId={activeItemId}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
           <Transition in={!openNewMetric} timeout={150}>
             {state=>(            
               <div className={clsx("mt-4 border-solid rounded-lg", (state=="exiting" || state=="exited" || state=="entering") && "border-2 border-blue-500  ring-4 ring-sky-100",state =="entered" && "border border-slate-200")}>          
@@ -195,6 +148,78 @@ const MetricsDialog = React.memo(({open, onClose, initialView=null, updateView,p
 
 export default MetricsDialog;
 
+const SortableItem = ({ id, item, index, patients,view, setView, edittingIndex, setEdittingIndex, setOpenNewMetric, setViewItemAnchorEl, setActiveItemId, viewItemAnchorEl, activeItemId }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <Transition in={edittingIndex != index} timeout={100}>
+      {state => (
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className={clsx("border-solid border rounded-lg overflow-hidden", (state == "exiting" || state == "exited" || state == "entering") && "border-2 border-blue-500  ring-4 ring-blue-50", state == "entered" && "border border-slate-200")}>
+          <div className={clsx("cursor-grab flex flex-row items-center justify-center  bg-slate-200 ", state== "entered" && "animate-in fade-in", state=="exiting" && "animate-out fade-out", (state=="exited" || state=="entering") && "hidden")}>
+            <svg className="w-6 h-6 " focusable="false" aria-hidden="true" viewBox="0 0 24 24" data-testid="DragIndicatorIcon"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path></svg>
+            <div onClick={()=>{setEdittingIndex(index);setOpenNewMetric(false)}} className='cursor-pointer bg-white rounded-lg pl-2 w-full flex items-center justify-center hover:bg-slate-100'>
+              <div className='text-base'>{item?.label}</div>
+              <div className='flex-grow'></div>
+              <div className='p-1 py-2 flex items-center' onClick={e => {e.stopPropagation(); setViewItemAnchorEl(e.currentTarget);setActiveItemId(item.id)}}>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
+                </svg>
+              </div>
+              <Popover 
+                open={Boolean(viewItemAnchorEl) && activeItemId === item.id}
+                anchorEl={viewItemAnchorEl}
+                onClose={(e)=>{e.stopPropagation();setViewItemAnchorEl(null);setActiveItemId(null)}}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                transformOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+                elevation={0}
+                marginThreshold={0}
+                disablePortal
+                PaperProps={{style: {backgroundColor: 'transparent',boxShadow: 'none',width: 'auto',maxWidth: 'none',}}}
+              >
+                <div className='flex flex-col items-center justify-center py-2 bg-white border-solid border border-slate-200 rounded shadow-md m-2 mr-1 mt-0'>
+                  <div onClick={()=> {setEdittingIndex(index); setViewItemAnchorEl(null);setActiveItemId(null)}} 
+                    className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
+                  >
+                    <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" >
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                    Edit
+                  </div>
+                  <div onClick={(e)=>{e.stopPropagation();setView(draft=>{draft.items.splice(index,1)});setViewItemAnchorEl(null);setActiveItemId(null)}} 
+                    className="cursor-pointer text-sm inline-flex w-full pl-2 pr-6 py-1 text-red-500 hover:bg-red-500 hover:text-white"
+                  >
+                    <svg className='w-4 h-4 mr-3' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>                                
+                    Delete
+                  </div>
+                </div>
+              </Popover>                          
+            </div>
+          </div>
+          <div className={clsx(state=="exited" && "animate-in fade-in", state=="entering" && "animate-out fade-out", (state=="entered" || state=="exiting") && "hidden")}>
+            <EditableDataForm  
+              key={item.id} initialItem={item} viewType = {view.type} patients={patients} handleClose={()=>{setEdittingIndex(null)}} 
+              handleUpdate={(newItem)=>{setView(draft=>{draft = draft.items.splice(index,1,newItem);setEdittingIndex(null);})}} 
+              updateText='Update'
+              hasColor={false}
+            />
+          </div>
+        </div>
+      )}
+    </Transition>
+  );
+};
 
 const EditableDataForm = ({initialItem=null,viewType,patients, handleClose, handleUpdate, hasColor=true}) =>{
   const t = useTranslation()

@@ -11,7 +11,6 @@ import DeleteMenuItemWithDialog from './DeleteMenuItemWithDialog';
 import { format } from 'date-fns';
 import EditableText from './EditableText';
 import { metrics, metricCategories, Time } from '../utils/metrics';
-import GuytonStarlingPlot from './GuytonStarlingPlot';
 
 const ModelManager = ({ view, updateView, removeView, patients, engine, setPatients,caseData, isOwner, isEdit }) => {
   const t = useTranslation();
@@ -334,10 +333,10 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
     setProcessType('export');
     setProcessProgress(0);
     handleExportClose();
-
+  
     const model = patients.find(p => p.id === exportingModelId);
     if (!model) return;
-
+  
     const metricsInstances = {
       t: new Time(),
     };
@@ -346,48 +345,58 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
         metricsInstances[metricName] = new metrics[metricName]();
       }
     });
-
+  
     const subscriptionId = nanoid();
     let unsubscribeId;
     const startTime = Date.now();
     let lastUpdateTime = startTime;
     const updateInterval = 100; // ミリ秒単位でのプログレス更新間隔
-
+    const samplingInterval = exportOptions.samplingInterval || 1000; // サンプリング間隔
+  
+    const recordedData = {
+      t: [],
+      ...Object.fromEntries(exportOptions.selectedMetrics.map(metricName => [metricName, []]))
+    };
+  
     const exportPromise = new Promise((resolve, reject) => {
       const updateProgress = () => {
         const currentTime = Date.now();
         const elapsedTime = (currentTime - startTime) / 1000;
         const progress = Math.min((elapsedTime / exportOptions.duration) * 100, 99);
         setProcessProgress(progress);
-
+  
         if (elapsedTime >= exportOptions.duration) {
           resolve();
         } else {
           setTimeout(updateProgress, updateInterval);
         }
       };
-
+  
       updateProgress();
-
+  
       unsubscribeId = model.subscribe((newData, time, hdprops) => {
         metricsInstances.t.update(newData, time, hdprops);
         Object.values(metricsInstances).forEach(instance => {
           instance.update(newData, time, hdprops);
         });
-
+  
         const currentTime = Date.now();
-        if (currentTime - lastUpdateTime >= updateInterval) {
+        if (currentTime - lastUpdateTime >= samplingInterval) {
           lastUpdateTime = currentTime;
+          recordedData.t.push(time);
+          exportOptions.selectedMetrics.forEach(metricName => {
+            recordedData[metricName].push(metricsInstances[metricName].getMetric());
+          });
           const elapsedTime = (currentTime - startTime) / 1000;
           const progress = Math.min((elapsedTime / exportOptions.duration) * 100, 99);
           setProcessProgress(progress);
         }
       }, subscriptionId);
     });
-
+  
     try {
       await exportPromise;
-      const csvContent = generateCSV(metricsInstances, exportOptions);
+      const csvContent = generateCSV(recordedData, exportOptions);
       downloadCSV(csvContent, `${model.name}_export.csv`);
     } catch (error) {
       console.error('Export failed:', error);
@@ -404,22 +413,17 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
     }
   };
   
-  const generateCSV = (metricsInstances, options) => {
+  const generateCSV = (recordedData, options) => {
     const headers = ['Time', ...options.selectedMetrics];
     let csvContent = headers.join(',') + '\n';
   
-    const timePoints = metricsInstances.t.values.length;
-    const startTime = metricsInstances.t.values[0]; // 開始時間
+    const timePoints = recordedData.t.length;
   
     for (let i = 0; i < timePoints; i++) {
-      const elapsedTime = Number((metricsInstances.t.values[i] - startTime).toFixed(1));
-      
-      const row = [elapsedTime];
+      const row = [recordedData.t[i]];
       options.selectedMetrics.forEach(metricName => {
-        const instance = metricsInstances[metricName];
-        const values = instance.getMetric();
-        const formattedValue = values[i] !== undefined ? Number(values[i].toPrecision(5)) : '';
-        row.push(formattedValue);
+        const value = recordedData[metricName][i];
+        row.push(value);
       });
       csvContent += row.join(',') + '\n';
     }
@@ -710,7 +714,7 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
             <div className="w-full group flex flex-row items-center justify-start">
               {isEditing ? (
                 <EditableText
-                  value={selectedPatient.name}
+                  value={patients.find(p => p.id === selectedPatient.id)?.name}
                   updateValue={(newName) =>
                     handleModelNameChange(selectedPatient.id, newName)
                   }
@@ -721,7 +725,7 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
               ) : (
                 <>
                   <span className="text-xl font-bold">
-                    {selectedPatient.name}
+                    {patients.find(p => p.id === selectedPatient.id)?.name}
                   </span>
                   <button
                     onClick={() => setIsEditing(true)}
@@ -737,7 +741,6 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
             <ParameterDetails
               parameters={getParametersFromModel(selectedPatient)}
             />
-            <GuytonStarlingPlot model={selectedPatient} />
           </DialogContent>
           <DialogActions>
             <button

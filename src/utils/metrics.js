@@ -90,6 +90,47 @@ export class ESV {
   }
 }
 
+export class RVSV {
+  constructor(){
+    this.rvedv = -Infinity
+    this.rvesv = Infinity
+  }
+  static getLabel(){
+    return "right ventricular SV"
+  }
+  static getUnit(){
+    return "ml"
+  }
+  update(data, time, hdps){
+    const ts = data['t'].map(_t=> (_t - hdps['RV_AV_delay']) % (60000 / data['HR'][0]))
+    const _ts = ts.map(_t=> _t< hdps["RV_Tmax"] ? 10000 : _t - hdps["RV_Tmax"])
+    const tes = Math.min(..._ts)
+    if(tes < 5 ){
+      const tesIndex = _ts.findIndex(_t => _t === tes)
+      this.rvesv = data['Qrv'][tesIndex];
+    }else{
+      const ted = Math.max(...ts)
+      if(60000/data['HR'][0] - ted  < 5){
+        const tedIndex = ts.findIndex(_t => _t === ted)
+        this.rvedv = data['Qrv'][tedIndex];
+      }
+    } 
+  }
+  reset(){
+  }
+  get() {
+    return (this.rvedv - this.rvesv)?.toPrecision(3)
+  }
+  getMetric(){
+    if (this.rvedv === -Infinity || this.rvesv === Infinity) return null
+    else{
+      return (this.rvedv - this.rvesv)
+    }
+  }
+}
+
+
+
 export class EF extends SV{
   constructor(){
     super()
@@ -1078,6 +1119,7 @@ export const metrics = {
   Sv: SV,
   Ef: EF,
   ESV,
+  RVSV,
   LVEa,
   RVEa,
   Pv: PVA,
@@ -1099,9 +1141,9 @@ export const metricCategories = {
   "Volumes": ["Qvs", "Qas", "Qap", "Qvp", "Qlv", "Qla", "Qrv", "Qra", "Qas_prox", "Qap_prox"],
   "Pressures": ["Plv", "Pla", "Prv", "Pra"],
   "Flows": ["Ias", "Ics", "Imv", "Ivp", "Iap", "Icp", "Itv", "Ivs", "Iasp", "Iapp"],
-  "Calculated Metrics": ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "ESV", "Pv","Sw", "Cpo", "Lvedp", "Rvedp", "Hr", "Co", "Ilmt", "Svo2", "Cssvo2","PvaSwRatio", "Pcwp", "LVEa", "RVEa"]
+  "Calculated Metrics": ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "ESV", "Pv","Sw", "Cpo", "Lvedp", "Rvedp", "Hr", "Co", "Ilmt", "Svo2", "Cssvo2","PvaSwRatio", "Pcwp", "LVEa", "RVEa", "RVSV"]
 };
-export const metricOptions = ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "ESV", "Pv","Sw", "Cpo", "Lvedp", "Rvedp", "Hr", "Co", "Ilmt", "Svo2", "Cssvo2","PvaSwRatio", "Pcwp", "LVEa", "RVEa"]
+export const metricOptions = ["Aop", "Cvp", "Pap", "Lap", "Sv", "Ef", "ESV", "Pv","Sw", "Cpo", "Lvedp", "Rvedp", "Hr", "Co", "Ilmt", "Svo2", "Cssvo2","PvaSwRatio", "Pcwp", "LVEa", "RVEa", "RVSV"]
 
 
 

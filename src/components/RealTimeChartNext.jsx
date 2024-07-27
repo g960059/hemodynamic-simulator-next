@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect, useCallback} from 'react'
 import {Box, Typography, CircularProgress, Popover, useMediaQuery, NoSsr} from '@mui/material'
 import { alpha } from '@mui/material/styles';
 import { SciChartSurface } from "scichart/Charting/Visuals/SciChartSurface";
-import { chartBuilder } from "scichart/Builder/chartBuilder";
 import { NumericAxis } from "scichart/Charting/Visuals/Axis/NumericAxis";
 import {FastLineRenderableSeries} from "scichart/Charting/Visuals/RenderableSeries/FastLineRenderableSeries";
 import {XyDataSeries} from "scichart/Charting/Model/XyDataSeries";

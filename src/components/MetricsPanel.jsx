@@ -11,7 +11,7 @@ const MetricsPanel = React.memo(({engine,patients, view, updateView,removeView, 
   const [anchorEl, setAnchorEl] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  console.log(view)
+
   useEffect(() => {
     const subscriptionId = engine?.subscribeAllHdpMutation((patientId, key, value) => {
       if (key === 'DELETE_MODEL') {
