@@ -234,7 +234,7 @@ function Layout(props) {
         <div >
           {notificationsWithDetails?.length > 0 && <div className='w-[330px] max-h-80  overflow-auto'>
             { notificationsWithDetails?.map((notification,index) => (
-              <div onClick={()=>{if(notification.type != "follow"){router.push(`/canvas/${notification.canvasId}`)}else{setNotificationAnchorEl(null)}}} className={`flex flex-row justify-center items-center py-3 px-4 border-0 ${index!=0 && "border-t"} border-solid border-slate-200 hover:bg-slate-50 cursor-pointer`}>
+              <div key={notification.id} onClick={()=>{if(notification.type != "follow"){router.push(`/canvas/${notification.canvasId}`)}else{setNotificationAnchorEl(null)}}} className={`flex flex-row justify-center items-center py-3 px-4 border-0 ${index!=0 && "border-t"} border-solid border-slate-200 hover:bg-slate-50 cursor-pointer`}>
                 { notification?.actor?.photoURL ?
                   <div className="h-10 w-10 rounded-full overflow-hidden cursor-pointer hover:opacity-60" onClick={()=>{router.push(`/users/${notification?.actor?.userId}`)}}>
                     <Image src={notification?.actor?.photoURL} height="40" width="40" alt="userPhoto"/>

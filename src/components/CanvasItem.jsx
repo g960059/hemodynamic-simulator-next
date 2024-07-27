@@ -46,7 +46,7 @@ const CanvasItem = ({canvasItem,removeCanvas=null, isOwner=false, isEdit=false})
             {canvasItem?.name || "Untitled"}
         </div>
         <div className='flex flex-row items-center justify-start mt-2'>
-          {canvasItem.tags?.map(tag=><span class="inline-flex items-center gap-1.5 py-1 px-2 mr-2 rounded-md text-xs font-medium bg-slate-100 text-slate-800">{tag}</span>)}
+          {canvasItem.tags?.map(tag=><span key={tag} className="inline-flex items-center gap-1.5 py-1 px-2 mr-2 rounded-md text-xs font-medium bg-slate-100 text-slate-800">{tag}</span>)}
         </div>
       </div>
       <div className='flex-grow'/>
@@ -67,8 +67,8 @@ const CanvasItem = ({canvasItem,removeCanvas=null, isOwner=false, isEdit=false})
         {
           isOwner && (
             canvasItem.visibility=="public" ?  
-              <span class="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium text-blue-500 border border-solid border-blue-500">公開中</span> :
-              <span class="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium text-slate-400 border border-solid border-slate-300">下書き</span>
+              <span className="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium text-blue-500 border border-solid border-blue-500">公開中</span> :
+              <span className="inline-flex items-center py-1 px-2 rounded-md text-xs font-medium text-slate-400 border border-solid border-slate-300">下書き</span>
           )
         }
       </div>

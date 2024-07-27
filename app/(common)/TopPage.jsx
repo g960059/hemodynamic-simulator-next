@@ -164,7 +164,7 @@ const TopPage = () => {
           <div className='max-w-4xl w-full mx-auto py-4 md:py-10 px-4 min-h-[440px]'>
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {
-                canvasList.map(c => <CanvasItem canvasItem={c} />)
+                canvasList.map(c => <CanvasItem key={c.id} canvasItem={c} />)
               }
               {
                 canvasList.length == 0 && [1,2,3,4,5,6,7,8].map(i=><CanvasItemSkeleton key={i}/>)
