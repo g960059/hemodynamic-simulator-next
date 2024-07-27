@@ -3,6 +3,7 @@ import axios from 'axios';
 const CLOUD_RUN_URL = 'https://cardiovascular-model-fitting-avoqm4qv7q-an.a.run.app/optimize';
 
 export const maxDuration = 60; 
+export const dynamic = 'force-dynamic';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
