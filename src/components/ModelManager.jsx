@@ -135,6 +135,7 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
     const tmpPlaying = engine.isPlaying;
     engine.setIsPlaying(false);
     const originalModel = patients.find(patient => patient.id === id);
+    console.log(originalModel?.name)
     if (originalModel) {
       const newModel = {
         id: nanoid(),
@@ -664,7 +665,7 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
                       className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDuplicateModel(patient.id);
+                        handleDuplicateModel(selectedPatient.id);
                         setAnchorEl(null);
                       }}
                     >
@@ -1130,7 +1131,7 @@ const getParametersFromModel = (patient) => {
     acc[key] = patient[key].value;
     return acc;
   }, {})
-  const volume =  patient?.getDataSnapshot().reduce((a, b) => a + b, 0) || hdps?.Qvs_initial + 1233.01570263 || hdps?.Volume;
+  const volume =  patient?.getDataSnapshot()?.reduce((a, b) => a + b, 0) || hdps?.Qvs_initial + 1233.01570263 || hdps?.Volume;
   return { ...hdps, Volume: volume };
 };
 
