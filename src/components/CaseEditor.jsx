@@ -793,7 +793,7 @@ const NewAddViewDialog = ({addViewItem,patients,addPatient})=>{
           Add New Model
         </div>
         <div className='flex-grow md:w-52'/>
-        <button onClick={()=>setOpenDialog(null)} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+        <button onClick={()=>setOpenDialog(null)} type="button" className="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
           <svg className='stroke-slate-600 w-4 h-4' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>

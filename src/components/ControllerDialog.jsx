@@ -31,7 +31,7 @@ const ControllerDialog = React.memo(({open, onClose, initialView=null, updateVie
           {initialView ? "Edit Controller" : "Add New Controller"}     
         </div>
         <div className='md:w-60 flex-grow'/>
-        <button onClick={onClose} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+        <button onClick={onClose} type="button" className="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
           <svg className='stroke-slate-600 w-4 h-4' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -53,14 +53,14 @@ const ControllerDialog = React.memo(({open, onClose, initialView=null, updateVie
           </Select>
         </div>
         <div className='text-base text-slate-500 font-bold mt-7'>コントローラの設定</div>
-        <hr class="mb-3 h-px border-0 bg-gray-300" />
+        <hr className="mb-3 h-px border-0 bg-gray-300" />
         <div className='flex flex-row items-center w-full mt-1'>
           <div className='text-base'>コントローラ名</div>
           <div className='flex-grow'/>
           <EditableText value={view?.name} updateValue={newTitle=>{setView(draft=>{draft.name=newTitle})}}  />
         </div>
         <div className='mt-7 text-base text-slate-500 font-bold'>操作パラメータ</div>
-        <hr class="mb-3 h-px border-0 bg-gray-300" /> 
+        <hr className="mb-3 h-px border-0 bg-gray-300" /> 
         <div className='w-full min-h-[280px]'>
           <DragDropContext onDragEnd={({source:src, destination:dest})=>{
             if(!dest ) return;
@@ -158,7 +158,7 @@ const ControllerDialog = React.memo(({open, onClose, initialView=null, updateVie
                   onClick={()=>{setOpenNewItem(true); setEdittingIndex(null)}} 
                   className={ clsx(state== "entered" && "animate-in fade-in", state=="exiting" && "animate-out fade-out", (state=="exited" || state=="entering") && "hidden", "cursor-pointer py-2 px-4 text-base flex justify-center items-center hover:bg-slate-100 hover:border-slate-100 text-slate-600")}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" class="w-6 h-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
                   Add new parameter
@@ -266,7 +266,7 @@ const ControllerEdittor = ({initialItem=null, handleClose, handleUpdate, patient
         {newItem.mode == "customized" &&
           <div className='w-full'>
             <div className='text-slate-500 font-bold mt-3'>カスタム設定</div>
-            <hr class="mb-3 h-px border-0 bg-gray-300" />
+            <hr className="mb-3 h-px border-0 bg-gray-300" />
             <div className='w-full '>
               <DragDropContext onDragEnd={({source:src, destination:dest})=>{
                 if(!dest ) return;
@@ -358,7 +358,7 @@ const ControllerEdittor = ({initialItem=null, handleClose, handleUpdate, patient
               </DragDropContext>
               {!openNewOption ?
                 <div onClick={()=>{setOpenNewOption(true)}} className='cursor-pointer py-2 px-4 mt-2 text-base border-solid border border-slate-200 rounded-md flex justify-center items-center hover:bg-slate-100 hover:border-slate-100 text-slate-600 '>
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" class="w-6 h-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
                   Add new parameter
@@ -385,7 +385,7 @@ const ControllerEdittor = ({initialItem=null, handleClose, handleUpdate, patient
         {newItem.mode == "auto" && 
           <div className='w-full'>
             <div className='text-slate-500 font-bold mt-3'>自動設定</div>
-            <hr class="mb-3 h-px border-0 bg-gray-300" />
+            <hr className="mb-3 h-px border-0 bg-gray-300" />
             <div className='flex flex-row items-center w-full'>
               <div className='text-base'>Start Value</div>           
               <div className='flex-grow'/>

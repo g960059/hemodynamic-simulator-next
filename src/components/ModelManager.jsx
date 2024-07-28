@@ -267,7 +267,6 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
       const newHistory = [newHistoryItem, ...fittingHistory];
       setFittingHistory(newHistory);
       setShowHistory(true); 
-      setSelectedHistoryItem(newHistoryItem); 
     } catch (error) {
       console.error('Error during fitting:', error);
     } finally {
@@ -771,7 +770,7 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
           <button
             onClick={handleNewModelDialogClose}
             type="button"
-            class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center "
+            className="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center "
           >
             <svg
               className="stroke-slate-600 w-4 h-4"
@@ -1283,7 +1282,7 @@ const HistoryDialog = ({ open, onClose, history, createFromFittingResult, runnin
           Fitting History 
         </div>
         <div className='md:w-60 flex-grow'/>
-        <button onClick={onClose} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+        <button onClick={onClose} type="button" className="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
           <svg className='stroke-slate-600 w-4 h-4' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>

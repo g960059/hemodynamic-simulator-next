@@ -40,7 +40,7 @@ const  ChartDialog = React.memo(({open, onClose, initialView=null, updateView,pa
           {initialView ? "Edit Chart" : "Add New Chart"}
         </div>
         <div className='md:w-64 flex-grow'/>
-        <button onClick={onClose} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+        <button onClick={onClose} type="button" className="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
           <svg className='stroke-slate-600 w-4 h-4' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -76,7 +76,7 @@ const  ChartDialog = React.memo(({open, onClose, initialView=null, updateView,pa
           </Select>
         </div>    
         <div className='text-base text-slate-500 font-bold mt-7'>設定</div>
-        <hr class="mb-3 h-px border-0 bg-gray-300" />
+        <hr className="mb-3 h-px border-0 bg-gray-300" />
         <div className='flex flex-row items-center w-full mt-1'>
           <div className='text-base'>タイトル</div>
           <div className='flex-grow'/>
@@ -96,7 +96,7 @@ const  ChartDialog = React.memo(({open, onClose, initialView=null, updateView,pa
           </>
         } 
         <div className='text-base text-slate-500 font-bold mt-7'>表示データ</div>
-        <hr class="mb-3 h-px border-0 bg-gray-300" /> 
+        <hr className="mb-3 h-px border-0 bg-gray-300" /> 
         <div className='w-full min-h-[320px]'>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={({ active, over }) => {
             if (over == null) return;
@@ -138,7 +138,7 @@ const  ChartDialog = React.memo(({open, onClose, initialView=null, updateView,pa
                   onClick={()=>{setOpenNewItem(true); setEdittingIndex(null)}} 
                   className={ clsx(state== "entered" && "animate-in fade-in", state=="exiting" && "animate-out fade-out", (state=="exited" || state=="entering") && "hidden", "cursor-pointer py-2 px-4 text-base flex justify-center items-center hover:bg-slate-100 hover:border-slate-100 text-slate-600")}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" class="w-6 h-6">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
                   Add new item
@@ -275,14 +275,14 @@ const EditableDataForm = ({initialItem=null,viewType,patients, handleClose, hand
         <div className='text-base'>Data</div>
         <div className='flex-grow'/>
         <Select  variant="standard" disableUnderline id="chart-new-items" value={newItem.hdp} onChange={e=>{setNewItem(draft=>{draft.hdp=e.target.value; draft.label = t[e.target.value]})}}>
-          {AllHdpOptions[viewType].map(hdpOption=><MenuItem value={hdpOption}>{t[hdpOption]}</MenuItem>)}
+          {AllHdpOptions[viewType].map(hdpOption=><MenuItem key={hdpOption} value={hdpOption}>{t[hdpOption]}</MenuItem>)}
         </Select>
       </div>
       <div className='flex flex-row items-center w-full mt-1'>
         <div className='text-base'>Model</div>
         <div className='flex-grow'/>
         <Select  variant="standard" disableUnderline id="chart-new-items" value={newItem.patientId} onChange={e=>{setNewItem(draft=>{draft.patientId=e.target.value})}}>
-          {patients.map(patient=><MenuItem value={patient.id}>{patient?.name || "無題のモデル"}</MenuItem>)}
+          {patients.map(patient=><MenuItem key={patient.id} value={patient.id}>{patient?.name || "無題のモデル"}</MenuItem>)}
         </Select>
       </div>  
       <div className='flex flex-row items-center w-full mt-1'>

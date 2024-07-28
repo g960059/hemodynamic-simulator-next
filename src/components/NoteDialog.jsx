@@ -18,7 +18,7 @@ const NoteDialog = React.memo(({open, onClose, initialView=null, updateView}) =>
           {initialView ? "Edit Note" : "Add New Note"}  
         </div>
         <div className='md:w-60 flex-grow'/>
-        <button onClick={onClose} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+        <button onClick={onClose} type="button" className="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
           <svg className='stroke-slate-600 w-4 h-4' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" >
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -26,7 +26,7 @@ const NoteDialog = React.memo(({open, onClose, initialView=null, updateView}) =>
       </div>
       <div className='w-full px-6 py-5 mb-10'>
         <div className='text-base text-slate-500 font-bold '>設定</div>
-        <hr class="mb-3 h-px border-0 bg-gray-300" />
+        <hr className="mb-3 h-px border-0 bg-gray-300" />
         <div className='flex flex-row items-center w-full mt-1'>
           <div className='text-base'>タイトル</div>
           <div className='flex-grow'/>

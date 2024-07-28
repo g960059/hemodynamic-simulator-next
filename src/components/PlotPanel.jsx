@@ -318,12 +318,12 @@ const PlotPanel = React.memo(({engine,view : initialView,updateView: updateViewP
             <Tooltip>
               <TooltipTrigger asChild>
                 <button onClick={handleRecording} type="button" className='text-slate-700  cursor-pointer py-1 px-2 md:px-3 text-sm rounded-md items-center border-none bg-slate-100 hover:bg-slate-200  transition'>
-                  {isRecording ? <span class="relative inline-flex h-2.5 w-2.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-200 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                  {isRecording ? <span className="relative inline-flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-200 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
                   </span > :
-                  <span class="relative inline-flex h-2.5 w-2.5">
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-900"></span>
+                  <span className="relative inline-flex h-2.5 w-2.5">
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-900"></span>
                   </span>
                   }
                   {/* <div className='inline-block ml-2'>{isRecording ? "Stop" : "Start"}</div> */}

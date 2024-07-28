@@ -189,7 +189,7 @@ function UserSummary(){
               フォロワー
             </div>
             <div className='flex-grow md:w-52'/>
-            <button onClick={()=>setOpenFollowers(false)} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+            <button onClick={()=>setOpenFollowers(false)} type="button" className="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
               <svg className='stroke-slate-400 hover:stroke-slate-600 w-4 md:w-6 h-4 md:h-6 transition' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -232,7 +232,7 @@ function UserSummary(){
               フォロー中
             </div>
             <div className='flex-grow md:w-52'/>
-            <button onClick={()=>setOpenFollowing(false)} type="button" class="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
+            <button onClick={()=>setOpenFollowing(false)} type="button" className="bg-white cursor-pointer rounded-full pr-2 py-1 border-none inline-flex items-center justify-center ">
               <svg className='stroke-slate-400 hover:stroke-slate-600 w-4 md:w-6 h-4 md:h-6 transition' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>

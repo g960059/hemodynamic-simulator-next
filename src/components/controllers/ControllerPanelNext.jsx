@@ -401,9 +401,9 @@ export const AutoInputs = React.memo(({patient, controllerItem}) => {
           </button>
         </>
       }      
-      <div class="w-32 ml-2 bg-gray-200 rounded-full dark:bg-gray-700">
+      <div className="w-32 ml-2 bg-gray-200 rounded-full dark:bg-gray-700">
         <div 
-          class="bg-blue-500 text-xs h-4 font-medium text-sky-100 text-center p-0.5 leading-none rounded-full" 
+          className="bg-blue-500 text-xs h-4 font-medium text-sky-100 text-center p-0.5 leading-none rounded-full" 
           style={{ width: `${replayDirection == "forward" ? elapsedTime/duration*100 : 100- elapsedTime/duration*100}%` }}>
           {(replayDirection == "forward" ) ? Math.round(elapsedTime/duration*100) : Math.round(100- elapsedTime/duration*100)}%
         </div>

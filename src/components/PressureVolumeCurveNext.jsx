@@ -118,6 +118,10 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
 
   const deleteDataSeries = (id) => {
     if(dataRef.current[id] === undefined) return
+    const {patientId,subscriptionId} = subscriptionsRef.current.find(sub => sub.id==id);
+    engine.unsubscribe(patientId)(subscriptionId);
+    subscriptionsRef.current = subscriptionsRef.current.filter(sub => sub.id !== id);
+
     dataRef.current[id]?.delete();
     leadingPointRef.current[id]?.delete();
     espvrDataRef.current[id]?.delete();
@@ -134,10 +138,6 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
     delete scatterSeriesRef.current[id];
     delete espvrLineSeriesRef.current[id];
     delete edpvrLineSeriesRef.current[id];
-
-    const {patientId,subscriptionId} = subscriptionsRef.current.find(sub => sub.id==id);
-    engine.unsubscribe(patientId)(subscriptionId);
-    subscriptionsRef.current = subscriptionsRef.current.filter(sub => sub.id !== id);
   }
   const initSciChart = async () => {
     SciChartSurface.setRuntimeLicenseKey(process.env.NEXT_PUBLIC_LICENSE_KEY)
@@ -181,16 +181,16 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
       const len = _x.length
       const y = _y[len-1]
       const x = _x[len-1]
-      if(dataRef.current[id] && dataRef.current[id].count() > PV_COUNT) {
-        const removeCount = Math.min(len, dataRef.current[id].count());
+      if(dataRef.current[id] && dataRef.current[id]?.count() > PV_COUNT) {
+        const removeCount = Math.min(len, dataRef.current[id]?.count());
         dataRef.current[id]?.removeRange(0, removeCount);
       }
       dataRef.current[id]?.appendRange(_x, _y)
 
-      if(leadingPointRef.current[id].count()> 0){
+      if(leadingPointRef.current[id]?.count()> 0){
         leadingPointRef.current[id].clear();
       }
-      leadingPointRef.current[id].append(x,y);
+      leadingPointRef.current[id]?.append(x,y);
       if(tp!=tcRef.current[id]){
         xMaxRef.current[id] = xMaxPrevRef.current[id];
         yMaxRef.current[id] = yMaxPrevRef.current[id];
@@ -238,21 +238,21 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
       const yMax = yMaxRef.current["All"];
       const {alpha, beta, Ees, V0} = getHdProps[hdp](hdprops)
 
-      if(Ees!=EesRef.current[id] || changedVisibleRange.current || espvrDataRef.current[id].count()<=1){
+      if(Ees!=EesRef.current[id] || changedVisibleRange.current || espvrDataRef.current[id]?.count()<=1){
         EesRef.current[id] = Ees;
         V0Ref.current[id] = V0;
         espvrDataRef.current[id].clear()
         if(Ees*(xMax-V0)<yMax){
           if(xMax && Math.abs(xMax) !== Infinity && Ees*(xMax-V0) ){
-            espvrDataRef.current[id].appendRange([V0,xMax],[0,Ees*(xMax-V0)])
+            espvrDataRef.current[id]?.appendRange([V0,xMax],[0,Ees*(xMax-V0)])
           }
         }else{
           if(yMax/Ees && yMax && Math.abs(yMax) !== Infinity){
-            espvrDataRef.current[id].appendRange([V0,yMax/Ees+V0],[0,yMax])
+            espvrDataRef.current[id]?.appendRange([V0,yMax/Ees+V0],[0,yMax])
           }
         }
       }
-      if(alpha!=alphaRef.current[id] || beta!=betaRef.current[id] || V0!=V0Ref.current[id] || changedVisibleRange.current || edpvrDataRef.current[id].count()<=1){
+      if(alpha!=alphaRef.current[id] || beta!=betaRef.current[id] || V0!=V0Ref.current[id] || changedVisibleRange.current || edpvrDataRef.current[id]?.count()<=1){
         alphaRef.current[id]= alpha
         betaRef.current[id] = beta
         V0Ref.current[id] = V0
@@ -261,12 +261,12 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
           const stepSize = (xMax-V0)/EDPVR_STEP
           const px = [...(Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize+V0)
           const py = px.map(_px=>beta* (Math.exp(alpha * (_px-V0))-1))
-          edpvrDataRef.current[id].appendRange(px,py)
+          edpvrDataRef.current[id]?.appendRange(px,py)
         }else{
           const stepSize = yMax/EDPVR_STEP
           const py = [...(Array(EDPVR_STEP)).keys()].map(pxIndex => pxIndex*stepSize)
           const px = py.map(_py=> Math.log1p(_py/beta)/alpha + V0) 
-          edpvrDataRef.current[id].appendRange(px,py)
+          edpvrDataRef.current[id]?.appendRange(px,py)
         }
       }      
     }

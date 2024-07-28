@@ -189,12 +189,12 @@ const ActionRecorder = React.memo(({updateHdp,patients, view, updateView,setView
         <div className='draggable cursor-move font-bold text-base md:text-lg pl-1 whitespace-nowrap overflow-x-auto'>{view?.name || "Recorder"}</div>
         <div className='draggable cursor-move flex-grow h-full'></div>
         <button onClick={handleRecord} type="button" className=' text-slate-700  cursor-pointer py-1 px-1.5 md:px-3 text-sm rounded-md items-center border-none bg-slate-100 hover:bg-slate-200  transition'>
-          {subscription ?<span class="relative inline-flex h-2.5 w-2.5 mr-2">
-            <span class="animate-ping duration-75 absolute inline-flex h-full w-full rounded-full bg-red-200 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+          {subscription ?<span className="relative inline-flex h-2.5 w-2.5 mr-2">
+            <span className="animate-ping duration-75 absolute inline-flex h-full w-full rounded-full bg-red-200 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
           </span > :
-          <span class="relative inline-flex h-2.5 w-2.5 mr-2">
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-900"></span>
+          <span className="relative inline-flex h-2.5 w-2.5 mr-2">
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-900"></span>
           </span>
           }
           <div className='inline-block w-28'>{subscription ? "Stop Recording" : "Start Recording"}</div>
@@ -262,8 +262,8 @@ const ActionRecorder = React.memo(({updateHdp,patients, view, updateView,setView
                         ))}
                       </div>
                     </Popover>
-                    <div class="flex-grow ml-2 bg-gray-200 rounded-full dark:bg-gray-700">
-                      <div class="bg-blue-500 text-xs h-4 font-medium text-sky-100 text-center p-0.5 leading-none rounded-full" style={{ width: `${ Math.round(progress[scenario.id])>3  ? ( Math.round(progress[scenario.id])>97 ? 100 : Math.ceil(progress[scenario.id] || 0)) : 0 }%` }}>{Math.round(progress[scenario.id])>3  ? ( Math.round(progress[scenario.id])>97 ? 100 : Math.ceil(progress[scenario.id] || 0))+"%": ""}</div>
+                    <div className="flex-grow ml-2 bg-gray-200 rounded-full dark:bg-gray-700">
+                      <div className="bg-blue-500 text-xs h-4 font-medium text-sky-100 text-center p-0.5 leading-none rounded-full" style={{ width: `${ Math.round(progress[scenario.id])>3  ? ( Math.round(progress[scenario.id])>97 ? 100 : Math.ceil(progress[scenario.id] || 0)) : 0 }%` }}>{Math.round(progress[scenario.id])>3  ? ( Math.round(progress[scenario.id])>97 ? 100 : Math.ceil(progress[scenario.id] || 0))+"%": ""}</div>
                     </div>                      
                   </div>
                 </div>: <div className='w-full flex flex-col items-start justify-center p-2 md:px-4' >
