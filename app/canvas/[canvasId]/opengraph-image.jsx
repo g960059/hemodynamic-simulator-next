@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og'
 import { db } from '../../../src/utils/firebaseAdmin'
 import { loadGoogleFont } from '../../../src/utils/font'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function generateImageMetadata({ params: { canvasId } }) {
   const canvasSnap = await db.doc(`canvas/${canvasId}`).get()
