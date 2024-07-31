@@ -114,8 +114,7 @@ const TopPage = () => {
 
   const removeCanvas = async (canvasId) => {
     const batch = writeBatch(db);
-    const canvasRef = doc(db, "canvas", canvasId);
-    batch.delete(canvasRef);
+
     const paramSetsSnapshot = await getDocs(query(collection(db, "paramSets"), where("canvasId", "==", canvasId)));
     paramSetsSnapshot.forEach(paramSetDoc => {
       batch.delete(paramSetDoc.ref);
@@ -124,7 +123,10 @@ const TopPage = () => {
     blocksSnapshot.forEach(blockDoc => {
       batch.delete(blockDoc.ref);
     });
+    const canvasRef = doc(db, "canvas", canvasId);
+    batch.delete(canvasRef);
     await batch.commit();
+    loadMoreCanvas();
   }
 
   useEffect(() => {
@@ -164,7 +166,7 @@ const TopPage = () => {
           <div className='max-w-4xl w-full mx-auto py-4 md:py-10 px-4 min-h-[440px]'>
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {
-                canvasList.map(c => <CanvasItem key={c.id} canvasItem={c} />)
+                canvasList.map(c => <CanvasItem key={"trending-" + c.id + c.createdAt} canvasItem={c} />)
               }
               {
                 canvasList.length == 0 && [1,2,3,4,5,6,7,8].map(i=><CanvasItemSkeleton key={i}/>)
@@ -184,7 +186,7 @@ const TopPage = () => {
           <div className='max-w-4xl w-full mx-auto py-4 md:py-10 px-4 min-h-[440px] '>
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {
-                myCases?.map(c=><CanvasItem key={c.id} canvasItem={c} removeCanvas={removeCanvas} isOwner={true} isEdit={true}/>)
+                myCases?.map((c,i)=><CanvasItem key={"mypage-" + c.id + i} canvasItem={c} removeCanvas={removeCanvas} isOwner={true} isEdit={true}/>)
               }
             </div>
             { myCases.length >= PAGE_SIZE && 
@@ -203,7 +205,7 @@ const TopPage = () => {
           <div className='max-w-4xl w-full mx-auto py-4 md:py-10 px-4 min-h-[440px]'>
             <div className="grid md:grid-cols-2 gap-4 md:gap-8">
               {
-                bookmarkedCanvases?.map(c => <CanvasItem canvasItem={c} />)
+                bookmarkedCanvases?.map(c => <CanvasItem key={"bookmark-" + c.id + c.createdAt} canvasItem={c} />)
               }
             </div>
             { bookmarkedCanvases.length >= PAGE_SIZE  &&

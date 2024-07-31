@@ -381,7 +381,7 @@ const PlotPanel = React.memo(({engine,view : initialView,updateView: updateViewP
         <div className='pl-4 flex flex-row w-full'>
           <div className='flex flex-row px-4 pt-2 flex-wrap space-x-2'>
             {view.items.map((item,i)=>(
-              <div className='flex flex-row items-center justify-center' key={item} > 
+              <div className='flex flex-row items-center justify-center' key={item.id} > 
                 <div className='w-3 h-3 rounded-full mr-0.5' style={{ backgroundColor: item.color}} />
                 <span className='text-sm'>{item.label}</span>
               </div>

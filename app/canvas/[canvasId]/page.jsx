@@ -360,35 +360,6 @@ const App = () => {
 
 
 
-  const deleteUnusedImagesFromStorage = async () => {
-    const allImageURLsInBlocks = blocks.flatMap(block => {
-      if (block.type === "Note" && block.content) {
-        return block.content.flatMap(contentItem => {
-          if (contentItem.type === "image") {
-            return contentItem.props.src;
-          }
-          return [];
-        });
-      }
-      return [];
-    });
-  
-    const allImagesInStorage = canvas.allImagesInStorage || [];
-  
-    // allImagesInStorageの中で、allImageURLsInBlocksに存在しないものを削除
-    for (const imageUrl of allImagesInStorage) {
-      if (!allImageURLsInBlocks.includes(imageUrl) && imageUrl ) {
-        const imagePath = new URL(imageUrl).pathname.split('/o/')[1].split('?')[0];
-        const decodedPath = decodeURIComponent(imagePath);
-        
-        const imageRef = ref(storage, decodedPath);
-        await deleteObject(imageRef);
-      }
-    }
-    setCanvas(draft => {
-      draft.allImagesInStorage = allImageURLsInBlocks.filter(Boolean);
-    });
-  };
 
   const updateCanvas = async () =>{
     const batch = writeBatch(db);
@@ -447,7 +418,6 @@ const App = () => {
       }
     })
     await batch.commit()
-    await deleteUnusedImagesFromStorage();
   }
 
   return <>
@@ -686,6 +656,36 @@ const LoadingSkelton = () => {
 //   }
 // }
 
+// const deleteUnusedImagesFromStorage = async () => {
+//   const allImageURLsInBlocks = blocks.flatMap(block => {
+//     if (block.type === "Note" && block.content) {
+//       return block.content.flatMap(contentItem => {
+//         if (["image", "video", "audio", "file"].includes(contentItem.type)) {
+//           return contentItem.props.url;
+//         }
+//         return [];
+//       });
+//     }
+//     return [];
+//   });
+  
+//   const allImagesInStorage = canvas.allImagesInStorage || [];
+//   console.log(allImagesInStorage)
+//   console.log(allImageURLsInBlocks)
+//   // allImagesInStorageの中で、allImageURLsInBlocksに存在しないものを削除
+//   for (const imageUrl of allImagesInStorage) {
+//     if (!allImageURLsInBlocks.includes(imageUrl) && imageUrl ) {
+//       const imagePath = new URL(imageUrl).pathname.split('/o/')[1].split('?')[0];
+//       const decodedPath = decodeURIComponent(imagePath);
+      
+//       const imageRef = ref(storage, decodedPath);
+//       await deleteObject(imageRef);
+//     }
+//   }
+//   setCanvas(draft => {
+//     draft.allImagesInStorage = allImageURLsInBlocks.filter(Boolean);
+//   });
+// };
 
 
   // const cases = useObservable("cases", combineLatest([user$,cases$]).pipe(

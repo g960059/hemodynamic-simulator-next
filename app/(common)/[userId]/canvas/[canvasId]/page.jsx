@@ -10,7 +10,7 @@ import { docData, collectionData} from 'rxfire/firestore';
 import {collection,doc, serverTimestamp,writeBatch,  query, where, getFirestore} from 'firebase/firestore';
 import { useImmer } from "use-immer";
 import { getAuth } from 'firebase/auth';
-import CanvasViewer from '../../../../../src/components/CanvasViewer';
+import CaseEditor from '../../../../../src/components/CaseEditor';
 
 
 const App = () => {
@@ -157,7 +157,7 @@ const App = () => {
   return (
     loading ? <LoadingSkelton/> : 
     <div className='px-2 md:px-4 lg:px-6'>
-      {canvas?.createdAt  &&  <CanvasViewer engine={engine} caseData={canvas} setCaseData={setCanvas} patients={paramSets} setPatients={setParamSets} views={blocks} setViews={setBlocks} isLogin={isLogin} isOwner={isOwner} addLike={addLike} removeLike={removeLike} addBookmark={addBookmark} removeBookmark={removeBookmark} liked={liked} bookmarked ={bookmarked}/>}   
+      {canvas?.createdAt  &&  <CaseEditor engine={engine} caseData={canvas} setCaseData={setCanvas} patients={paramSets} setPatients={setParamSets} views={blocks} setViews={setBlocks} isLogin={isLogin} isOwner={isOwner} addLike={addLike} removeLike={removeLike} addBookmark={addBookmark} removeBookmark={removeBookmark} liked={liked} bookmarked ={bookmarked}/>}   
     </div>
   )
 }

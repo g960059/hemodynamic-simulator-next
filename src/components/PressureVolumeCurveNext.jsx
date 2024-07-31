@@ -16,6 +16,7 @@ import { useImmer } from "use-immer";
 import ChartDialog from './ChartDialog';
 import  DeleteMenuItemWithDialog from "../components/DeleteMenuItemWithDialog"
 import {getHdProps} from "../utils/utils"
+import { Thickness } from 'scichart';
 
 const PV_COUNT = 1000
 const EDPVR_STEP = 50
@@ -78,7 +79,7 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
       stroke: alpha(color, 0.5),
       strokeThickness: 3,
       dataSeries: dataRef.current[id],
-      drawNaNAs:ELineDrawMode.PolyLine
+      drawNaNAs:ELineDrawMode.PolyLine,
     })
     const espvrSeries = new FastLineRenderableSeries(wasmContextRef.current, { 
       stroke: "#9c9c9c7a",
@@ -94,10 +95,10 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
     })        
     const leadingSeries = new XyScatterRenderableSeries(wasmContextRef.current, {
         pointMarker: new EllipsePointMarker(wasmContextRef.current, {
-            width: 8,
-            height: 8,
+            width: 7,
+            height: 7,
             strokeThickness: 2,
-            fill: color,
+            fill: "#f9fbfda3",
             stroke: color
         }),
         dataSeries: leadingPointRef.current[id],
@@ -151,17 +152,30 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
     sciChartSurfaceRef.current = sciChartSurface
     wasmContextRef.current = wasmContext
     sciChartSurface.applyTheme(LightTheme)
+    sciChartSurfaceRef.current.padding = new Thickness(10, 10, 0, 10)
     const xAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Bottom,autoRange: EAutoRange.Never,drawMinorTickLines:false});
     const yAxis = new NumericAxis(wasmContext,{axisAlignment: EAxisAlignment.Left,autoRange: EAutoRange.Never,drawMinorTickLines:false});
     xAxis.drawMajorGridLines =false;
     xAxis.drawMinorGridLines =false;
-    yAxis.drawMinorGridLines =false;    
+    yAxis.drawMinorGridLines =false; 
+    xAxis.axisTitle = "Volume (ml)"
+    yAxis.axisTitle = "Pressure (mmHg)"
+    xAxis.axisTitleStyle = {
+        fontSize: 14,
+        color:"#666",
+        padding: new Thickness(15, 0, 0, 0),
+    }
+    yAxis.axisTitleStyle = {
+        fontSize: 14,
+        color:"#666"
+    }
     yAxis.axisBorder = {
       borderRight: 1,
-      color: "#e5e5e5"
+      color: "#e5e5e5",
     };
     yAxis.growBy = new NumberRange(0.1, 0.05);
     yAxis.labelProvider.formatLabel = (dataValue => dataValue?.toFixed(0))
+    xAxis.labelProvider.formatLabel = (dataValue => dataValue?.toFixed(0))
     xAxisRef.current = xAxis
     yAxisRef.current = yAxis
     sciChartSurface.xAxes.add(xAxis);
@@ -378,11 +392,11 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
         <div className='flex p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200'>
           <div className='draggable cursor-move font-bold text-base md:text-lg pl-1 whitespace-nowrap overflow-x-auto'>{view?.name || ""}</div>
           <div className='draggable cursor-move flex-grow'></div>
-          {isOwner && <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
+          <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
             <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" >
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
             </svg>
-          </div>}
+          </div>
         </div>
         <Popover 
           open={Boolean(anchorEl)}
@@ -422,17 +436,17 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
         <ChartDialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} initialView={view} updateView={(newView)=>{updateView({id:view.id, ...newView});}} patients={patients}/>
         
         <div className='flex w-full'>
-          <div className='flex flex-row px-4 pt-2 flex-wrap'>
+          <div className='flex flex-row px-4 pt-2 flex-wrap space-x-2'>
             {view.items.map((item,i)=>(
-              <div className='flex flex-row' key={item.id + item.type} > 
-                <FiberManualRecord sx={{color:item.color}} />
+              <div className='flex flex-row items-center justify-center' key={item.id + item.type} > 
+                <FiberManualRecord sx={{color:item.color}} fontSize='small' />
                 <Typography variant='subtitle2' noWrap>{item.label}</Typography>
               </div>
             ))}
           </div>
         </div>
 
-        <div id={"scichart-pv-root"+view.id} style={{width: '100%',height:"calc(100% - 100px)", aspectRatio : "auto"}}/>
+        <div id={"scichart-pv-root"+view.id} style={{width: '100%',height:"calc(100% - 95px)", aspectRatio : "auto"}}/>
       </div>
       <Box sx={{display: loading  ? 'block': 'none', zIndex:100, position: 'absolute'}}>
         <CircularProgress/>

@@ -59,7 +59,7 @@ module.exports = {
         }
     },
     images: {
-        domains: ['lh3.googleusercontent.com',"firebasestorage.googleapis.com", "127.0.0.1", "localhost"],
+        domains: ['circleheart.dev','www.circleheart.dev','lh3.googleusercontent.com',"firebasestorage.googleapis.com", "127.0.0.1", "localhost"],
     },    
-    experimental: { esmExternals: true },
+    experimental: { esmExternals: true, appDir: true },
   }

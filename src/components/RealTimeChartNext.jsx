@@ -19,6 +19,7 @@ import { useImmer } from "use-immer";
 import ChartDialog from './ChartDialog';
 import  DeleteMenuItemWithDialog from "../components/DeleteMenuItemWithDialog"
 import { nanoid } from 'nanoid'
+import { EllipsePointMarker, Thickness, XyScatterRenderableSeries } from 'scichart';
 
 
 const TIME_WINDOW_GAP = 300
@@ -40,11 +41,12 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
   const wasmContextRef = useRef();
   const subscriptionsRef = useRef([]);
   const lastUpdatedTimeRef = useRef({});
+  const leadingPointRef = useRef({});
+  const scatterSeriesRef = useRef({});
 
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const [anchorEl, setAnchorEl] = useState();
-
 
   const addDataSeries = (item)=>{
     const {id} = item;
@@ -62,13 +64,23 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
       fastLineSeriesRef.current[id] = fastLineSeriesRef.current[id] ? [...fastLineSeriesRef.current[id], fastLineSeries] : [fastLineSeries]
       sciChartSurfaceRef.current.renderableSeries.add(fastLineSeries)
     }
+    leadingPointRef.current[id] = new XyDataSeries(wasmContextRef.current, { containsNaN:false, isSorted:true});
+    scatterSeriesRef.current[id] = new XyScatterRenderableSeries(wasmContextRef.current, {
+      pointMarker: new EllipsePointMarker(wasmContextRef.current, { fill: "#f9fbfda3", width: 7, height: 7, stroke: item.color, strokeThickness: 2 }),
+      dataSeries: leadingPointRef.current[id],
+    })
+    sciChartSurfaceRef.current.renderableSeries.add(scatterSeriesRef.current[id])
     subscriptionsRef.current.push({id:item.id, patientId: item.patientId, subscriptionId: engine.subscribe(item.patientId)(update(item))})
   }
   const deleteDataSeries = (id) => {
+    fastLineSeriesRef.current[id]?.forEach(x=>{sciChartSurfaceRef.current?.renderableSeries.remove(x)})
+    sciChartSurfaceRef.current?.renderableSeries.remove(scatterSeriesRef.current[id])
     dataRef.current[id]?.forEach(x=>{x.delete()})
+    leadingPointRef.current[id]?.delete()
     delete dataRef.current[id];
-    fastLineSeriesRef.current[id]?.forEach(x=>{sciChartSurfaceRef.current.renderableSeries.remove(x)})
+    delete leadingPointRef.current[id];
     delete fastLineSeriesRef.current[id];
+    delete scatterSeriesRef.current[id];
     try{
       const res =  subscriptionsRef.current.find(sub => sub.id==id);
       if (!res) return;
@@ -89,6 +101,7 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
     sciChartSurfaceRef.current = sciChartSurface
     wasmContextRef.current = wasmContext
     sciChartSurface.applyTheme(LightTheme)
+    sciChartSurfaceRef.current.padding = new Thickness(10, 10, 0, 10)
     const xAxis = new NumericAxis(wasmContext,
       {
         autoRange: EAutoRange.Never,
@@ -115,9 +128,14 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
         }) 
       }
     );
+    yAxis.axisTitle = view?.type == "PressureCurve" ? "Pressure (mmHg)" : ""
+    yAxis.axisTitleStyle = {
+      fontSize: 14,
+      color:"#666",
+    }
+    yAxis.labelProvider.formatLabel = (dataValue =>  view?.type == "PressureCurve" ? dataValue?.toFixed(0) : dataValue?.toFixed(1))
     sciChartSurface.xAxes.add(xAxis);
     sciChartSurface.yAxes.add(yAxis);
-
   }  
 
   function countOutOfOrder(arr) {
@@ -155,9 +173,12 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
       }
       const _data = getTimeSeriesFn(hdprops)[hdp](data)
 
-      // if(!(startTime <= timeWindow && timeWindow <= endTime) && startTime <= endTime && dataSeries[j].getXRange().max <= _time[0] ){ 
-        dataSeries[j].appendRange(_time, _data)
-      // }
+      dataSeries[j].appendRange(_time, _data)
+      if(leadingPointRef.current[id]?.count()>0){
+        leadingPointRef.current[id].clear();
+      }
+      leadingPointRef.current[id].append(_time[_time.length-1], _data[_data.length-1])
+     
       if(dataSeries[j]?.hasValues ){
         const indiceRange1 = dataSeries[j]?.getIndicesRange(new NumberRange(endTime, timeWindow))
         const indexMin1 = indiceRange1.min
@@ -256,11 +277,11 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
         <div className='flex p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200'>
           <div className='draggable cursor-move font-bold text-base md:text-lg pl-1 whitespace-nowrap overflow-x-auto'>{view?.name || ""}</div>
           <div className='draggable cursor-move flex-grow'></div>
-          {isOwner && <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
+          <div className='p-1 px-3 -my-2 flex items-center cursor-pointer text-slate-600 hover:text-lightBlue-500 transition' onClick={e => { setAnchorEl(e.currentTarget)}}>
             <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" >
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
             </svg>
-          </div>}
+          </div>
         </div>
         <Popover 
           open={Boolean(anchorEl)}
@@ -299,16 +320,16 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
         </Popover>
         <ChartDialog open={dialogOpen} onClose={()=>{setDialogOpen(false)}} initialView={view} updateView={(newView)=>{updateView({id:view.id, ...newView});}} patients={patients} />
         <div className='flex w-full'>
-          <div className='flex flex-row px-4 pt-2 flex-wrap'>
+          <div className='flex flex-row px-4 pt-2 flex-wrap space-x-2'>
             {view.items.map((item,i)=>(
-              <div className='flex flex-row' key={item.id + item.type} > 
-                <FiberManualRecord sx={{color:item.color}} />
+              <div className='flex flex-row items-center justify-center' key={item.id + item.type} > 
+                <FiberManualRecord sx={{color:item.color}} fontSize='small' />
                 <Typography variant='subtitle2' noWrap>{item.label}</Typography>
               </div>
             ))}
           </div>
         </div>
-        <div id={"scichart-root-realtime"+view.id} style={{width: '100%',height:"calc(100% - 100px)", aspectRatio : "auto"}}/>
+        <div id={"scichart-root-realtime"+view.id} style={{width: '100%',height:"calc(100% - 95px)", aspectRatio : "auto"}}/>
       </div>
       <Box sx={{display: loading? 'block': 'none', zIndex:100, position: 'absolute'}}>
         <CircularProgress/>

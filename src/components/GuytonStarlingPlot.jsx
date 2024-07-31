@@ -17,10 +17,11 @@ import {NumericLabelProvider} from "scichart/Charting/Visuals/Axis/LabelProvider
 import {EAxisAlignment} from "scichart/types/AxisAlignment";
 import { EllipsePointMarker } from "scichart/Charting/Visuals/PointMarkers/EllipsePointMarker";
 import { XyScatterRenderableSeries } from "scichart/Charting/Visuals/RenderableSeries/XyScatterRenderableSeries";
+import { Thickness } from 'scichart';
 
 
 const clonedModels = {};
-const modelsToDelete = new Set();
+const modelsToDelete = {};
 const relationsCache = {};
 
 const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) => {
@@ -50,8 +51,9 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
     return {TW, SBV};
   };
 
-  const estimateRelations = async (cloneModel, originalVolume, itemId) => {
-    const hdps = cloneModel.getHdps();
+  const estimateRelations = async (clonedModel, originalVolume, itemId) => {
+    console.log(clonedModel?.name +"-"+ clonedModel?.id?.slice(0, 2), originalVolume)
+    const hdps = clonedModel.getHdps();
     const cacheKey = JSON.stringify(hdps) + '_' + Math.round(originalVolume / 5) * 5;
   
     // キャッシュが存在し、かつ有効であれば、キャッシュを返す
@@ -61,27 +63,31 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
   
     const volumes = [originalVolume * 0.9, originalVolume * 0.8, originalVolume * 0.7];
 
-    const lvedps = [cloneModel.metrics.lvedp.getMetric()];
-    const rvedps = [cloneModel.metrics.rvedp.getMetric()];
-    const pcwps = [cloneModel.metrics.pcwp.getMetric()];
-    const cvps = [cloneModel.metrics.cvp.getMetric()];
+    const lvedps = [clonedModel.metrics.lvedp.getMetric()];
+    const rvedps = [clonedModel.metrics.rvedp.getMetric()];
+    const pcwps = [clonedModel.metrics.pcwp.getMetric()];
+    const cvps = [clonedModel.metrics.cvp.getMetric()];
+
 
     for (let i = 0; i < volumes.length; i++) {
       const volume = volumes[i];
-      cloneModel.setHdps("Volume", volume);
+      if (!clonedModel) return;
+      console.log("change volume of ", clonedModel.name + clonedModel.id.slice(0, 2), " to", volume)
+      clonedModel?.setHdps("Volume", volume);
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      lvedps[i] = cloneModel.metrics.lvedp.getMetric();
-      rvedps[i] = cloneModel.metrics.rvedp.getMetric();
-      pcwps[i] = cloneModel.metrics.pcwp.getMetric();
-      cvps[i] = cloneModel.metrics.cvp.getMetric();
+      lvedps[i] = clonedModel.metrics.lvedp.getMetric();
+      rvedps[i] = clonedModel.metrics.rvedp.getMetric();
+      pcwps[i] = clonedModel.metrics.pcwp.getMetric();
+      cvps[i] = clonedModel.metrics.cvp.getMetric();
 
       setProgress(prev => ({
         ...prev,
         [itemId]: Math.min(prev[itemId] + 10, 99) // Adjust the increment as needed
       }));
     }
-    cloneModel.setHdps("Volume", originalVolume);
+    if (!clonedModel) return;
+    clonedModel?.setHdps("Volume", originalVolume);
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     setProgress(prev => ({
@@ -198,14 +204,14 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
   const plotGuyton3DSurface = (hdps, metrics,item) => {
     const {TW, SBV} = calculateTW_SBV(hdps, metrics);
 
-    const pra_range = Array.from({ length: 301 }, (_, i) => i * 0.1);
-    const pla_range = Array.from({ length: 501 }, (_, i) => i * 0.1);
+    const pra_range = Array.from({ length: 31 }, (_, i) => i * 1);
+    const pla_range = Array.from({ length: 51 }, (_, i) => i * 1);
 
     const z_data = pla_range.map(pla => 
       pra_range.map(pra => {
         const CO = (SBV / TW - ((hdps.Cvs + hdps.Cas + hdps.Cas_prox) / TW) * pra - 
                     ((hdps.Cvp + hdps.Cap + hdps.Cap_prox) / TW) * pla) * 60;
-        return CO > 0 ? CO : null;
+        return CO ;
       })
     );
     const patientName = patients.find(p => p.id === item.patientId)?.name;
@@ -286,21 +292,23 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
 
       if (needsUpdate) {
           updateProgress(2000, 0, Math.round(2/9*100));
-          let cloneModel = await createClonedModel(item);
+          console.log("creating clonedModel: ", item.id);
+          let clonedModel = await createClonedModel(item);
+          console.log("created clonedModel: ", clonedModel.name +"-"+ clonedModel.id.slice(-2));
           await new Promise(resolve => setTimeout(resolve, 3000))
           
-          hdps = cloneModel.getHdps();
+          hdps = clonedModel.getHdps();
           metrics = {
-            co: cloneModel.metrics.co.getMetric(),
-            cvp: cloneModel.metrics.cvp.getMetric(),
-            pcwp: cloneModel.metrics.pcwp.getMetric(),
-            lvedp: cloneModel.metrics.lvedp.getMetric(),
-            rvedp: cloneModel.metrics.rvedp.getMetric(),
-            lvea: cloneModel.metrics.lvea.getMetric(),
-            rvea: cloneModel.metrics.rvea.getMetric(),
-            rvsv: cloneModel.metrics.rvsv.getMetric(),
-            sv: cloneModel.metrics.sv.getMetric(),
-            esv: cloneModel.metrics.esv.getMetric(),
+            co: clonedModel.metrics.co.getMetric(),
+            cvp: clonedModel.metrics.cvp.getMetric(),
+            pcwp: clonedModel.metrics.pcwp.getMetric(),
+            lvedp: clonedModel.metrics.lvedp.getMetric(),
+            rvedp: clonedModel.metrics.rvedp.getMetric(),
+            lvea: clonedModel.metrics.lvea.getMetric(),
+            rvea: clonedModel.metrics.rvea.getMetric(),
+            rvsv: clonedModel.metrics.rvsv.getMetric(),
+            sv: clonedModel.metrics.sv.getMetric(),
+            esv: clonedModel.metrics.esv.getMetric(),
           }
           const cacheKey = JSON.stringify(hdps) + '_' + Math.round(originalVolume / 5) * 5;
           const cachedResult = relationsCache[cacheKey];
@@ -310,7 +318,9 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
             updateProgress(500,  Math.round(2/9*100), Math.round(8/9*100));
             ({ lvFit, rvFit } = cachedResult);
           } else {
-            ({ lvFit, rvFit } = await estimateRelations(cloneModel, originalVolume, item.id));
+            console.log("start estimateRelations for ", clonedModel.name +"-"+ clonedModel.id.slice(-2));
+            ({ lvFit, rvFit } = await estimateRelations(clonedModel, originalVolume, item.id));
+            console.log("end estimateRelations for ", clonedModel.name +"-"+ clonedModel.id.slice(-2));
           }
 
           updateView(draft => {
@@ -326,7 +336,7 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
               };
             }
           });   
-          markClonedModelForDeletion(item.id, item.patientId);
+          markClonedModelForDeletion(item.id, item.patientId, clonedModel.id);
       }else{
         updateProgress(500, 0, Math.round(8/9*100));
         lvFit = item.lvFit;
@@ -346,6 +356,7 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
         ]);
       } else {
         updateProgress(500, Math.round(8/9*100), 100);
+        console.log("delete2DGuytonStarling(calculatePlotData): ", patients?.find(patient => patient.id === item.patientId)?.name);
         delete2DGuytonStarling(item);
         plot2DGuytonStarling(hdps, metrics, lvFit, rvFit, item);
       }      
@@ -440,7 +451,6 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
   };
 
   const delete2DGuytonStarling = (item) => {
-    console.log("delete2DGuytonStarling: ", item.id);
     if(dataRef.current[item.id] === undefined) return;
     const { guytonDataSeries, starlingDataSeries, currentPointDataSeries } = dataRef.current[item.id];
     guytonDataSeries?.delete();
@@ -455,10 +465,7 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
   }
 
   const createClonedModel = async (item) => {
-    if (clonedModels[item.id + item.patientId]) {
-      return clonedModels[item.id + item.patientId];
-    }
-    const originalModel = engine.getPatient(item.patientId);
+    const originalModel = patients?.find(patient => patient.id === item.patientId);
     const clonedModelId = nanoid();
     const clonedModelParams = {
       id: clonedModelId,
@@ -469,6 +476,7 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
     };
     engine.register(clonedModelParams);
     const clonedModel = engine.getPatient(clonedModelId);
+    clonedModel["name"] = `${originalModel.name} for Guyton-Starling`;
     clonedModel.setSpeed(10.0);
     clonedModel.setIsModelPlaying(true);
 
@@ -486,24 +494,48 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
     };
 
     const subscriptionId = clonedModel.subscribe(update(clonedModel));
-    clonedModels[item.id + item.patientId] = clonedModel;
+    console.log("creating clonedModel: ", clonedModel.name +"-"+ clonedModel.id.slice(-2));
+    clonedModels[item.id + item.patientId] = clonedModels[item.id + item.patientId] ? {...clonedModels[item.id + item.patientId], [clonedModelId]: clonedModel} : {[clonedModelId]: clonedModel};
     return clonedModel;
   };
 
-  const markClonedModelForDeletion = useCallback((id, patientId) => {
-    console.log("markClonedModelForDeletion: ", id, patientId);
-    modelsToDelete.add(id + patientId);
+  const markClonedModelForDeletion = useCallback((id, patientId, clonedModelId = null) => {
+    if(! clonedModels[id + patientId]) return;
+    if(!clonedModelId){
+      if (!modelsToDelete[id + patientId]) {
+        modelsToDelete[id + patientId] = {};
+      }
+      Object.keys( clonedModels[id + patientId]).forEach(clonedModelId => {
+        console.log("markALlClonedModelForDeletion: ", clonedModels[id + patientId][clonedModelId]?.name);
+        modelsToDelete[id + patientId][clonedModelId] = true;
+      });
+    }else{
+      console.log("markClonedModelForDeletion: ", clonedModels[id + patientId][clonedModelId]?.name +"-"+ id?.slice(0, 2));
+      if (!modelsToDelete[id + patientId]) {
+        modelsToDelete[id + patientId] = {};
+      }
+      modelsToDelete[id + patientId][clonedModelId] = true;
+    }
   }, []);
 
+  // const markAllClonedModelsForDeletion = useCallback((id, patientId) => {
+  //   Object.keys(clonedModels[id + patientId]).forEach(clonedModelId => {
+  //     markClonedModelForDeletion(id, patientId, clonedModelId);
+  //   });
+  // }, []);
+
+
   const deleteMarkedModels = useCallback(() => {
-    modelsToDelete.forEach(uid => {
-      if (clonedModels[uid]) {
-        engine.deleteModel(clonedModels[uid].id);
-        console.log("delete clonedModel: ", uid);
-        delete clonedModels[uid];
-      }
+    Object.keys(modelsToDelete).forEach(uid => {
+      Object.keys(modelsToDelete[uid]).forEach(clonedModelId => {
+        if (clonedModels[uid][clonedModelId]) {
+          engine.deleteModel(clonedModelId);
+          console.log("delete clonedModel: ", clonedModels[uid][clonedModelId].name +"-"+ clonedModelId?.slice(-2));
+          delete clonedModels[uid][clonedModelId];
+          delete modelsToDelete[uid][clonedModelId];
+        }
+      });
     });
-    modelsToDelete.clear();
   }, [engine]);
 
 
@@ -513,38 +545,6 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
     });
   }, []);
 
-  useEffect(() => {
-    const calculateAllPlotData = async () => {
-      for (const item of view.items) {
-        await calculatePlotData(item, true);
-      }
-    };
-
-    calculateAllPlotData();
-
-  
-    const subscriptionIds = view.items.map(item => {
-      return engine.subscribeHdpMutationAll(item.patientId)((id,hdpKey, hdpValue) => {
-        delete calculationRef.current[item.id];
-        markClonedModelForDeletion(item.id, item.patientId);
-        if(hdpKey === "Volume" || hdpKey === "HR"){
-          setTimeout(() => {
-            calculatePlotData(item);
-          }, 1000);
-        }else{
-          calculatePlotData(item);
-        }
-      });
-    });
-    return () => {
-      view.items.forEach((item, index) => {
-        if (subscriptionIds[index]) {
-          engine.unsubscribeHdpMutationAll(item.patientId)(subscriptionIds[index]);
-        }
-        markClonedModelForDeletion(item.id, item.patientId);
-      });
-    };
-  }, [view.items, engine]);
 
   const handleAddModel = (patientId) => {
     updateView(draft => {
@@ -572,6 +572,7 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
     sciChartSurfaceRef.current = sciChartSurface;
     wasmContextRef.current = wasmContext;
     sciChartSurface.applyTheme(LightTheme)
+    sciChartSurfaceRef.current.padding = new Thickness(10, 10, 0, 10)
     const xAxis = new NumericAxis(wasmContext,
       {
         autoRange: EAutoRange.Always,
@@ -600,30 +601,72 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
         }) 
       }
     );
+    xAxis.axisTitle = plotMode === '2D-LV' ? "PCWP (mmHg)" : "CVP (mmHg)"
+    xAxis.axisTitleStyle = {
+      fontSize: 14,
+      color:"#666",
+      padding: new Thickness(15, 0, 0, 0),
+    }
+    yAxis.axisTitle = "CO (L/min)"
+    yAxis.axisTitleStyle = {
+      fontSize: 14,
+      color:"#666",
+    }
 
     sciChartSurface.xAxes.add(xAxis);
     sciChartSurface.yAxes.add(yAxis);
   };
+  
+
+
   useEffect(() => {
     (async () => {
-      console.log("plotMode: ", plotMode);
       if (plotMode !== '3D' && !sciChartSurfaceRef.current) {
         await initSciChart();
       }
-      view.items.forEach(item =>{ 
-        delete calculationRef.current[item.id];
-        calculatePlotData(item, true);
-      });
     })();
-
+  
     return () => {
-      view.items.forEach(item => delete2DGuytonStarling(item));
       if (sciChartSurfaceRef.current) {
         sciChartSurfaceRef.current.delete();
         sciChartSurfaceRef.current = null;
       }
+    }
+  }, [plotMode]);
+
+
+  useEffect(() => {
+    (async () => {
+      if (plotMode !== '3D' && !sciChartSurfaceRef.current) {
+        await initSciChart();
+      }
+      await Promise.all(view.items.map(async (item) => {
+        delete calculationRef.current[item.id];
+        console.log("calculatePlotData: ", item.id);
+        await calculatePlotData(item, true);
+      }));
+    })()
+
+    const subscriptionIds = view.items.map(item => {
+      return engine.subscribeHdpMutationAll(item.patientId)((id,hdpKey, hdpValue) => {
+        delete calculationRef.current[item.id];
+        // markClonedModelForDeletion(item.id, item.patientId);
+        setTimeout(() => {
+          calculatePlotData(item);
+        }, 1000);
+      });
+    });
+
+    return () => {
+      view.items.forEach((item, index) => {
+        delete2DGuytonStarling(item);
+        if (subscriptionIds[index]) {
+          engine.unsubscribeHdpMutationAll(item.patientId)(subscriptionIds[index]);
+        }
+        markClonedModelForDeletion(item.id, item.patientId);
+      });
     };
-  }, [plotMode, view.items]);
+  }, [view.items]);
 
   useEffect(() => {
     const subscriptionId = engine?.subscribeAllHdpMutation((patientId, key, value) => {
@@ -646,7 +689,8 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
       .filter(([id, _]) => itemCalculationStatus[id] === 'inProgress')
       .map(([_, value]) => value)
   );
-
+  console.log("modelsToDelete: ", modelsToDelete);
+  console.log("clonedModels: ", clonedModels);
   return (
     <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md overflow-hidden">
       <div className="flex items-center justify-between p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200">
@@ -669,18 +713,18 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
           <LinearProgress className="w-1/2" variant="determinate" value={maxProgress} />
         </div>
     
-        <div className='flex flex-wrap px-4 pt-2 mb-2'>
+        <div className='flex flex-wrap px-4 pt-2 mb-2 space-x-2'>
           {view.items.map((item) => (
-            <div key={item.id} className='flex items-center mr-4 mb-2'> 
+            <div key={item.id} className='flex items-center mb-2'> 
               <div className='relative'>
-                <div className='w-4 h-4 rounded-full mr-2' style={{backgroundColor: item.color}}></div>
+                <div className='w-3.5 h-3.5 rounded-full mr-1' style={{backgroundColor: item.color}}></div>
                 {itemCalculationStatus[item.id] === 'inProgress' && (
                   <div className='absolute inset-0 flex items-center justify-center'>
-                    <div className='animate-ping w-3 h-3 rounded-full bg-white'></div>
+                    <div className='animate-ping w-2.5 h-2.5 rounded-full bg-white'></div>
                   </div>
                 )}
               </div>
-              <span className='text-md font-medium text-gray-700'>
+              <span className='text-md text-gray-700'>
                 {patients.find(p => p.id === item.patientId)?.name || "Unknown Model"}
                 {itemCalculationStatus[item.id] === 'inProgress' && (
                   <span className="ml-2 text-xs text-blue-500 animate-pulse">計算中...</span>
@@ -698,7 +742,7 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
                 scene: {
                   xaxis: { title: 'RAP (mmHg)', range: [0, 30], tickfont: { size: 10 } },
                   yaxis: { title: 'LAP (mmHg)', range: [0, 50], tickfont: { size: 10 } },
-                  zaxis: { title: 'CO (L/min)', tickfont: { size: 10 } },
+                  zaxis: { title: 'CO (L/min)', range: [0, null], tickfont: { size: 10 } },
                   camera: {
                     eye: { x: 1.5, y: 1.5, z: 1.5 },
                     center: { x: 0, y: 0, z: -0.3 }
@@ -716,7 +760,7 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
               style={{ width: '100%', height: '100%' }}
             />
           ) : (
-            <div id={"scichart-root-guyton-starling-" + view.id} style={{ width: '100%', height:"calc(100% - 80px)", aspectRatio : "auto" }} />
+            <div id={"scichart-root-guyton-starling-" + view.id} style={{ width: '100%', height:"calc(100% - 65px)", aspectRatio : "auto" }} />
           )}
         </div>
       </div>

@@ -189,7 +189,7 @@ export const useEngine = () => {
 
   const [isPlaying, setIsPlaying] = useAnimationFrame(deltaTime  => {
     for(let id of idsRef.current){
-      if (!isPlayingRef.current[id]) return;
+      if (!isPlayingRef.current[id]) continue;
       let delta = speedRef.current[id] * deltaTime
       if(delta >0 && dataRef.current[id].length>0){
         const new_logger = {}
@@ -208,7 +208,6 @@ export const useEngine = () => {
         if(Object.keys(hdpMutationsRef.current[id]).length > 0){
           Object.entries(hdpMutationsRef.current[id]).forEach(([hdpKey,hdpValue])=> {
             if(hdpKey === 'Volume'){
-              console.log(hdpValue, dataRef.current[id].reduce((a,b)=>a+=b,0))
               dataRef.current[id][0] += hdpValue - dataRef.current[id].reduce((a,b)=>a+=b,0);
               hemodynamicPropsRef.current[id][hdpKey] = hdpValue
               delete hdpMutationsRef.current[id][hdpKey]
@@ -239,6 +238,7 @@ export const useEngine = () => {
   };
 
   const setHdps = (id) =>(hdpKey, hdpValue) => {
+    console.log(hdpMutationsRef.current[id], hdpKey, hdpValue)
     hdpMutationsRef.current[id][hdpKey] = hdpValue
     if (hdpMutationSubscriptionsRef.current[id]) {
       Object.values(hdpMutationSubscriptionsRef.current[id]).forEach(hdpCallbacks => {

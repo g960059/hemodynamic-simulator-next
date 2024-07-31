@@ -647,9 +647,28 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
                         setAnchorEl(null);
                       }}
                     >
-                      <Edit className="w-4 h-4 mr-3" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>  
                       {t['View Details']}
                     </button>
+                    <button
+                      className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDialogOpen(true);
+                        setAnchorEl(null);
+                        setTimeout(() => {
+                          setIsEditing(true);
+                        }, 100);
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                      {t['Change Name']}
+                    </button>                    
                     <button
                       className="cursor-pointer text-sm text-slate-700 inline-flex w-full pl-2 pr-6 py-1 hover:bg-slate-200"
                       onClick={(e) => {
@@ -658,7 +677,9 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
                       }}
                       disabled={isProcessing}
                     >
-                      <Tune className="w-4 h-4 mr-3" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                      </svg>
                       {t['Optimize']}
                     </button>
                     <button
@@ -669,7 +690,9 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
                         setAnchorEl(null);
                       }}
                     >
-                      <FileCopy className="w-4 h-4 mr-3" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
                       {t['Duplicate']}
                     </button>
                     <button
@@ -680,7 +703,9 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
                         setAnchorEl(null);
                       }}
                     >
-                      <CloudDownload className="w-4 h-4 mr-3" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
                       {t['Export']}
                     </button>            
                   </div>
@@ -718,7 +743,7 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
                   updateValue={(newName) =>
                     handleModelNameChange(selectedPatient.id, newName)
                   }
-                  className="pointer-events-auto w-full flex-grow appearance-none px-2 py-1 text-lg font-semibold border-none bg-slate-100 focus:outline-none focus:border-none"
+                  className="pointer-events-auto w-full flex-grow appearance-none rounded-md px-2 py-1 text-lg font-semibold border-solid border-1 border-slate-200 bg-slate-100  focus:outline-2 focus:outline-[#bfdcff] focus:outline focus:border-blue-500"
                   autoFocus
                   onBlur={() => setIsEditing(false)}
                 />
@@ -1128,7 +1153,7 @@ export default ModelManager;
 
 const getParametersFromModel = (patient) => {
   const hdps = patient?.getHdps() || Object.keys(patient).reduce((acc, key) => {
-    acc[key] = patient[key].value;
+    acc[key] = patient[key]?.value;
     return acc;
   }, {})
   const volume =  patient?.getDataSnapshot()?.reduce((a, b) => a + b, 0) || hdps?.Qvs_initial + 1233.01570263 || hdps?.Volume;
