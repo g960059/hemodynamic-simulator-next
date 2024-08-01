@@ -53,8 +53,8 @@ export const initializeFirebaseApp = () => {
 // }
 const app = initializeFirebaseApp();
 
-export const getFirebaseAuth =  (typeof window !== 'undefined') ? () => getAuth(app) : null;
-export const getFirebaseFirestore =  (typeof window !== 'undefined') ? () => getFirestore(app) : null;
+export const getFirebaseAuth =  () => getAuth(app);
+export const getFirebaseFirestore = () => getFirestore(app);
 
 export const StyledAuth = () => {
   return <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={auth} />
