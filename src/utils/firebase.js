@@ -32,7 +32,7 @@ const uiConfig = {
 
 
 export const initializeFirebaseApp = () => {
-  if (typeof window !== 'undefined' && !getApps().length) {
+  if ( !getApps().length) {
     return initializeApp(firebaseConfig);
   }
   return getApps()[0];
