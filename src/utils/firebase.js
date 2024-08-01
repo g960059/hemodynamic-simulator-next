@@ -31,8 +31,12 @@ const uiConfig = {
 
 
 
-export const initializeFirebaseApp = () =>
-  !getApps().length ? initializeApp(firebaseConfig) : getApp()
+export const initializeFirebaseApp = () => {
+  if (!getApps().length) {
+    return initializeApp(firebaseConfig);
+  }
+  return getApps()[0];
+}
 // Initialize Firebase
 
 // export const analytics = getAnalytics(app);
@@ -47,7 +51,10 @@ export const initializeFirebaseApp = () =>
 //   connectAuthEmulator(auth, "http://localhost:9099",{disableWarnings: true});
 //   connectStorageEmulator(storage, "localhost", 9199);
 // }
+const app = initializeFirebaseApp();
 
+export const getFirebaseAuth = () => getAuth(app);
+export const getFirebaseFirestore = () => getFirestore(app);
 
 export const StyledAuth = () => {
   return <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={auth} />

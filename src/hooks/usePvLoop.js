@@ -12,6 +12,7 @@ import {collection,doc,query,where,setDoc,addDoc,updateDoc,collectionGroup,order
 import { concatMap,map,tap,switchMap,filter,mergeMap} from "rxjs/operators";
 import { combineLatest, of,zip } from 'rxjs';
 import { getAuth } from 'firebase/auth'
+import { getFirebaseAuth } from '../utils/firebase'
 
 
 export const useAnimationFrame = (callback,deps=[]) =>{
@@ -296,7 +297,7 @@ export const useEngine = () => {
 
 
 
-export const user$ = authState(getAuth()).pipe(
+export const user$ = authState(getFirebaseAuth()).pipe(
   switchMap(user => {
     if (user) {
       const db = getFirestore()
