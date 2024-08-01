@@ -32,7 +32,7 @@ const uiConfig = {
 
 
 export const initializeFirebaseApp = () => {
-  if (!getApps().length) {
+  if (typeof window !== 'undefined' && !getApps().length) {
     return initializeApp(firebaseConfig);
   }
   return getApps()[0];
@@ -53,8 +53,8 @@ export const initializeFirebaseApp = () => {
 // }
 const app = initializeFirebaseApp();
 
-export const getFirebaseAuth = () => getAuth(app);
-export const getFirebaseFirestore = () => getFirestore(app);
+export const getFirebaseAuth =  (typeof window !== 'undefined') ? () => getAuth(app) : null;
+export const getFirebaseFirestore =  (typeof window !== 'undefined') ? () => getFirestore(app) : null;
 
 export const StyledAuth = () => {
   return <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={auth} />
