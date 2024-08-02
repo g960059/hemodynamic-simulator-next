@@ -2,30 +2,20 @@ import { ImageResponse } from 'next/og'
 import { db } from '../../../src/utils/firebaseAdmin'
 import { loadGoogleFont } from '../../../src/utils/font'
 
-export const runtime = 'nodejs'
 
-export async function generateImageMetadata({ params: { canvasId } }) {
-  const canvasSnap = await db.doc(`canvas/${canvasId}`).get()
-  const canvas = canvasSnap.data()
+export const contentType =  'image/png';
+export const size = { width: 1200, height: 630 };
 
-  return [
-    {
-      contentType: 'image/png',
-      size: { width: 1200, height: 630 },
-      alt: canvas?.name || 'Untitled Canvas',
-    },
-  ]
-}
-
-export default async function og({ params: { canvasId } }) {
+export default async function Image({ params: { canvasId } }) {
   const notoSansArrayBuffer = await loadGoogleFont({
     family: 'Noto Sans JP',
     weight: 700,
   });
 
-  const canvasSnap = await db.doc(`canvas/${canvasId}`).get()
-  const canvas = canvasSnap.data()
-  
+  const canvasDoc = await db.collection('canvas').doc(canvasId).get()
+  const canvas = canvasDoc.data()
+
+
   return new ImageResponse(
     (
       <div
@@ -93,8 +83,7 @@ export default async function og({ params: { canvasId } }) {
       </div>
     ),
     {
-      width: 1200,
-      height: 630,
+      ...size,
       fonts: [
         {
           name: 'NotoSansJP',

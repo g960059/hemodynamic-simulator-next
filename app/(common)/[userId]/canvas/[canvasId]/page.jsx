@@ -1,20 +1,15 @@
 import { db } from '../../../../../src/utils/firebaseAdmin'
 import ClientPage from './ClientPage'
 
-export async function generateMetadata({ params }, parent) {
+export async function generateMetadata({ params }) {
   try {
-    console.log('Generating metadata for canvasId:', params.canvasId) // ログ出力
-
-    // canvasIdを使ってFirestoreからデータを取得
     const canvasDoc = await db.collection('canvas').doc(params.canvasId).get()
     const canvas = canvasDoc.data()
 
-    console.log('Canvas data:', canvas) // ログ出力
-
-    // 親のmetadataを読み込む
-    const previousImages = (await parent).openGraph?.images || []
+    const ogImageUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/canvas/${params.canvasId}/opengraph-image`
 
     return {
+      id: params.canvasId,
       title: canvas?.name || 'Untitled Canvas',
       description: canvas?.description || 'A CircleHeart canvas',
       openGraph: {
@@ -22,23 +17,26 @@ export async function generateMetadata({ params }, parent) {
         description: canvas?.description || 'A CircleHeart canvas',
         images: [
           {
-            url: `/${params.userId}/canvas/${params.canvasId}/opengraph-image`,
+            url: ogImageUrl,
             width: 1200,
             height: 630,
             alt: canvas?.name || 'Untitled Canvas',
           },
-          ...previousImages,
         ],
       },
       twitter: {
         card: 'summary_large_image',
         title: canvas?.name || 'Untitled Canvas',
         description: canvas?.description || 'A CircleHeart canvas',
-        images: [`/${params.userId}/canvas/${params.canvasId}/opengraph-image`],
+        images: [ogImageUrl],
       },
     }
   } catch (error) {
     console.error('Error generating metadata:', error)
+    
+    // エラー時でも動的に生成されたOGP画像を使用
+    const ogImageUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/canvas/${params.canvasId}/opengraph-image`
+
     return {
       title: 'Untitled Canvas',
       description: 'A CircleHeart canvas',
@@ -47,7 +45,7 @@ export async function generateMetadata({ params }, parent) {
         description: 'A CircleHeart canvas',
         images: [
           {
-            url: `/${params.userId}/canvas/${params.canvasId}/opengraph-image`,
+            url: ogImageUrl,
             width: 1200,
             height: 630,
             alt: 'Untitled Canvas',
@@ -58,7 +56,7 @@ export async function generateMetadata({ params }, parent) {
         card: 'summary_large_image',
         title: 'Untitled Canvas',
         description: 'A CircleHeart canvas',
-        images: [`/${params.userId}/canvas/${params.canvasId}/opengraph-image`],
+        images: [ogImageUrl],
       },
     }
   }
