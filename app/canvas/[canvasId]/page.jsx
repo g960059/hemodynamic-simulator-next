@@ -1,5 +1,6 @@
 import { db } from '../../../src/utils/firebaseAdmin'
-import ClientPage from './ClientPage'
+import dynamic from 'next/dynamic'
+const ClientPage = dynamic(() => import('./ClientPage'), { ssr: false })
 
 export async function generateMetadata({ params }, parent) {
   try {

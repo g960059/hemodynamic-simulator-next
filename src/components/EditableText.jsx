@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, memo } from 'react';
 
-const EditableText = memo(({value, updateValue, ...props}) => {
+const EditableText = memo(({value, updateValue,className, ...props}) => {
     const [localValue, setLocalValue] = useState(value);
     const inputRef = useRef(null);
     const isComposingRef = useRef(false);
@@ -32,7 +32,7 @@ const EditableText = memo(({value, updateValue, ...props}) => {
         <input
             ref={inputRef}
             type="text"
-            className="appearance-none p-2 border-solid border-1 rounded-md bg-slate-100 border-slate-200 focus:outline focus:border-blue-500 focus:outline-2 focus:outline-[#bfdcff]"
+            className={className || "appearance-none p-2 border-solid border-1 rounded-md bg-slate-100 border-slate-200 focus:outline focus:border-blue-500 focus:outline-2 focus:outline-[#bfdcff]"}
             value={localValue}
             onChange={e => {setLocalValue(e.target.value)}}
             onKeyDown={handleKeyDown}
