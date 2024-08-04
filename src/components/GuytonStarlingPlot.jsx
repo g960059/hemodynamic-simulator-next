@@ -52,7 +52,6 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
   };
 
   const estimateRelations = async (clonedModel, originalVolume, itemId) => {
-    console.log(clonedModel?.name +"-"+ clonedModel?.id?.slice(0, 2), originalVolume)
     const hdps = clonedModel.getHdps();
     const cacheKey = JSON.stringify(hdps) + '_' + Math.round(originalVolume / 5) * 5;
   
@@ -473,6 +472,7 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
       initialHdps: JSON.parse(JSON.stringify(originalModel.getHdps())),
       initialData: JSON.parse(JSON.stringify(originalModel.getDataSnapshot())),
       initialTime: JSON.parse(JSON.stringify(originalModel.getTimeSnapshot())),
+      isClone: true,
     };
     engine.register(clonedModelParams);
     const clonedModel = engine.getPatient(clonedModelId);
@@ -689,8 +689,6 @@ const GuytonStarlingPlot = ({ engine, view, updateView, removeView, patients }) 
       .filter(([id, _]) => itemCalculationStatus[id] === 'inProgress')
       .map(([_, value]) => value)
   );
-  console.log("modelsToDelete: ", modelsToDelete);
-  console.log("clonedModels: ", clonedModels);
   return (
     <div className="w-full h-full flex flex-col bg-white rounded-lg shadow-md overflow-hidden">
       <div className="flex items-center justify-between p-2 pb-1 pl-4 mb-2 border-solid border-0 border-b border-b-slate-200">

@@ -17,7 +17,6 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
   const [showOnlyRunning, setShowOnlyRunning] = useState(false);
   const [newModelName, setNewModelName] = useState('');
   const [selectedBaseModel, setSelectedBaseModel] = useState('Normal');
-
   const [anchorEl, setAnchorEl] = useState(null);
   const [anchorSettingsEl, setAnchorSettingsEl] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -60,7 +59,8 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
   const [processType, setProcessType] = useState(null);
   const [processProgress, setProcessProgress] = useState(0);
   
-
+  console.log(patients)
+  console.log(engine?.getAllPatinets())
 
   const handleAccordionToggle = (category) => {
     setExpandedCategory(expandedCategory === category ? null : category);
@@ -135,7 +135,6 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
     const tmpPlaying = engine.isPlaying;
     engine.setIsPlaying(false);
     const originalModel = patients.find(patient => patient.id === id);
-    console.log(originalModel?.name)
     if (originalModel) {
       const newModel = {
         id: nanoid(),
@@ -150,7 +149,7 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
     }
   }, [patients, engine, setPatients, caseData.userId, caseData.canvasId]);
 
-  const filteredPatients = patients.filter(patient => !showOnlyRunning || patient.isPlaying);
+  const filteredPatients = patients.filter(patient => (!showOnlyRunning || patient.isPlaying) && !patient.isClone );
   const runningModels = patients.filter(patient => patient.isPlaying);
 
   const handleModelNameChange = (patientId, newName) => {

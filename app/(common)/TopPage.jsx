@@ -126,7 +126,8 @@ const TopPage = () => {
     const canvasRef = doc(db, "canvas", canvasId);
     batch.delete(canvasRef);
     await batch.commit();
-    loadMoreCanvas();
+    setCanvasList(prevCanvasList => prevCanvasList.filter(canvas => canvas.id !== canvasId));
+    setMyCases(prevMyCases => prevMyCases.filter(canvas => canvas.id !== canvasId));
   }
 
   useEffect(() => {

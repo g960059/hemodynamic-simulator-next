@@ -67,7 +67,6 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
   const [dialogOpen, setDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState();
 
-  const updateCounterRef = useRef(0);
 
   const addDataSeries = (item)=>{
     const {id,color} = item
@@ -373,7 +372,6 @@ const PVPlot = React.memo(({engine,view,updateView,removeView,patients,isOwner})
         for(let item of newItems){
           addDataSeries(item)
         }
-        updateCounterRef.current=0;
         setOriginalView(view)
         setLoading(false)
         if(isEnginePlaying){

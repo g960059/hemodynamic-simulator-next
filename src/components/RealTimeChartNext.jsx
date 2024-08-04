@@ -72,20 +72,25 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
     sciChartSurfaceRef.current.renderableSeries.add(scatterSeriesRef.current[id])
     subscriptionsRef.current.push({id:item.id, patientId: item.patientId, subscriptionId: engine.subscribe(item.patientId)(update(item))})
   }
+  console.log(dataRef.current, leadingPointRef.current)
   const deleteDataSeries = (id) => {
-    fastLineSeriesRef.current[id]?.forEach(x=>{sciChartSurfaceRef.current?.renderableSeries.remove(x)})
-    sciChartSurfaceRef.current?.renderableSeries.remove(scatterSeriesRef.current[id])
-    dataRef.current[id]?.forEach(x=>{x.delete()})
-    leadingPointRef.current[id]?.delete()
-    delete dataRef.current[id];
-    delete leadingPointRef.current[id];
-    delete fastLineSeriesRef.current[id];
-    delete scatterSeriesRef.current[id];
     try{
       const res =  subscriptionsRef.current.find(sub => sub.id==id);
       if (!res) return;
       const {patientId,subscriptionId} = res
       engine.unsubscribe(patientId)(subscriptionId);
+      subscriptionsRef.current = subscriptionsRef.current.filter(sub => sub.id !== id);
+      fastLineSeriesRef.current[id]?.forEach(x=>{sciChartSurfaceRef.current?.renderableSeries.remove(x)})
+      sciChartSurfaceRef.current?.renderableSeries.remove(scatterSeriesRef.current[id])
+
+      dataRef.current[id]?.forEach(x=>{x.delete()})
+      leadingPointRef.current[id]?.delete()
+      // delete dataRef.current[id];
+      delete leadingPointRef.current[id];
+      
+
+      delete fastLineSeriesRef.current[id];
+      delete scatterSeriesRef.current[id];
     }catch(e){
       console.log(e)
     }
@@ -175,9 +180,9 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
 
       dataSeries[j].appendRange(_time, _data)
       if(leadingPointRef.current[id]?.count()>0){
-        leadingPointRef.current[id].clear();
+        leadingPointRef.current[id]?.clear();
       }
-      leadingPointRef.current[id].append(_time[_time.length-1], _data[_data.length-1])
+      leadingPointRef.current[id]?.append(_time[_time.length-1], _data[_data.length-1])
      
       if(dataSeries[j]?.hasValues ){
         const indiceRange1 = dataSeries[j]?.getIndicesRange(new NumberRange(endTime, timeWindow))
@@ -200,16 +205,12 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
   useEffect(() => {
     (async ()=>{
       if(isClient){
-        const isEnginePlaying = engine.isPlaying
-        engine.setIsPlaying(false)
+        console.log("reset realtimechart")
         await initSciChart()
         for(let item of view.items){
           addDataSeries(item)
         }      
         setLoading(false)
-        if(isEnginePlaying){
-          engine.setIsPlaying(true);
-        }
       }
     })();
     return ()=>{
@@ -232,6 +233,7 @@ const RealTimeChart =  React.memo(({engine,view,updateView,removeView,patients, 
         engine.setIsPlaying(false)
         const oldItems = originalView.items.filter(oldItem => !view.items.some(item=> item.id===oldItem.id && item.hdp === oldItem.hdp && item.patientId === oldItem.patientId && item.color === oldItem.color))
         const newItems = view.items.filter(item => !originalView.items.some(oldItem=> oldItem.id==item.id && item.hdp === oldItem.hdp && item.patientId === oldItem.patientId && item.color === oldItem.color))
+        console.log(oldItems, newItems)
         for(let item of oldItems){
           if(dataRef.current[item.id]){
             deleteDataSeries(item.id)

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect} from 'react'
+import React, { useState, useEffect, useCallback} from 'react'
 import {Box,Typography,Button,IconButton,Stack,Switch,Dialog, Autocomplete,TextField,useMediaQuery} from '@mui/material'
 import {ArrowBack,Check,Tune} from '@mui/icons-material';
 import {useEngine, user$} from '../../../src/hooks/usePvLoop'
@@ -36,7 +36,7 @@ const ClientPage = () => {
   let isChanged = false;
   const combinedData$ = of(canvasId).pipe(
     switchMap(cid => {
-      if(cid && !isChanged){
+      if(cid){
         return combineLatest({
           canvas: docData(doc(db,"canvas",cid),{idField:"id"}),
           paramSets: collectionData(query(collection(db,"paramSets"),where("canvasId","==",cid)),{idField: 'id'}),
@@ -102,6 +102,7 @@ const ClientPage = () => {
   const {data: bookmarked} = useObservable(`bookmarked_${canvasId}`, bookmarked$);  
 
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
 
   const engine = useEngine()
   const [paramSets, setParamSets] = useImmer([]);
@@ -110,6 +111,7 @@ const ClientPage = () => {
   const [defaultBlocks, setDefaultBlocks] = useState([]);
   const [canvas, setCanvas] = useImmer({});
   const [defaultCanvas, setDefaultCanvas] = useState({});
+  const [isParamsetsChanged, setIsParamsetsChanged] = useState(false);
 
   const isOwner = canvas.uid == user?.uid 
   const isLogin = !!user?.uid
@@ -124,11 +126,17 @@ const ClientPage = () => {
                             !(deepEqual(canvas, combinedData.data.canvas, ["updatedAt","createdAt","id","layouts"])  && canvas?.layouts &&  deepEqual2(JSON.parse(JSON.stringify(canvas?.layouts)), combinedData.data.canvas?.layouts,[],true) )
 
   const isNewCanvasChanged = !combinedData.data?.canvas && !deepEqual(canvas, defaultCanvas, ["updatedAt","createdAt","id"]) 
-  const isParamsetsChanged = combinedData.status == "success" && combinedData.data?.paramSets && !paramSets.every(p=>{
-    const originalParamset = combinedData.data?.paramSets.find(({id})=>id===p.id);
-    if(!originalParamset) return false;
-    return originalParamset.name === p.name  && deepEqual(originalParamset.initialHdps,p.getHdps())
-  })
+
+  const updateIsParamsetsChanged = useCallback (()=>{
+    if(combinedData.status == "success" && combinedData.data?.paramSets){
+      setIsParamsetsChanged(combinedData.data.paramSets.length != paramSets.length || !paramSets.every(p=>{
+        const originalParamset = combinedData.data.paramSets.find(({id})=>id===p.id);
+        if(!originalParamset) return false;
+        return originalParamset.name === p.name  && deepEqual(originalParamset.initialHdps,p.getHdps())
+      }))
+    }
+  },[combinedData.data?.paramSets, paramSets])
+
   const isNewParamsetsChanged = !combinedData.data?.canvas && !paramSets.every(p=>{
     const originalParamset = defaultParamSets.find(({id})=>id===p.id);
     if(!originalParamset) return false;
@@ -182,23 +190,27 @@ const ClientPage = () => {
     batch.delete(doc(db, "bookmarks", `${user?.uid}_${canvasId}`));
     await batch.commit();
   }
-
-
-
+  console.log(combinedData.data?.paramSets)
 
   useEffect(() => {
+    if (combinedData.status != "success") return;
+    console.log(combinedData)
     setLoading(true)
-    if(combinedData.status == "success" && combinedData.data?.paramSets.length>0 && isChanged){
+    if(combinedData.data?.paramSets.length>0 && !updating){
       engine.setIsPlaying(false);
+      const allRegisteredPatientIds = engine.getAllPatinets().map(p=>p.id);
       combinedData.data.paramSets.forEach(p=>{
-        engine.register(p);
+        if(p.id && !allRegisteredPatientIds.includes(p.id)){
+          console.log("new registerd: ",p)
+          engine.register(p);
+        }
       })
-      setParamSets(engine.getAllPatinets().map(p=>({...p,...combinedData.data.paramSets.find(_p=>_p.id==p.id)})));
+      setParamSets(engine.getAllPatinets().map(p=>({...p,...combinedData.data.paramSets.find(_p=>_p.id==p.id)})).filter(p=>!p.isClone));
       setBlocks(combinedData.data.blocks)
       setCanvas(combinedData.data.canvas)
       engine.setIsPlaying(true);
     }else{
-      if(searchParams.get("newItem") && combinedData.status == "success" && combinedData.data?.paramSets.length==0 && paramSets.length==0 && !canvas?.id){
+      if(searchParams.get("newItem") && combinedData.data?.paramSets.length==0 && paramSets.length==0 && !canvas?.id){
         engine.setIsPlaying(false);
         const newParamSetId = nanoid();
         const newParamSet = {
@@ -356,67 +368,98 @@ const ClientPage = () => {
   }, [combinedData.status, combinedData.data]);
 
 
-
-
-
   const updateCanvas = async () =>{
     const batch = writeBatch(db);
     const timestamp = serverTimestamp();
-    if(!combinedData.data.canvas){
-      batch.set(doc(db,"canvas",canvasId),{...canvas,layouts: JSON.stringify(canvas.layouts), updatedAt:timestamp,createdAt:timestamp})
-    }else{
-      batch.update(doc(db,"canvas",canvasId),{...canvas,layouts: JSON.stringify(canvas.layouts),updatedAt:timestamp})
-    }
-    paramSets.forEach(p=>{
-      const paramSet = combinedData.data?.paramSets.find(({id})=>id===p.id);
-      if(!paramSet){
-        batch.set(doc(db,"paramSets",p.id),{
-          name: p.name,
-          initialHdps:p.getHdps(),
-          initialData: p.getDataSnapshot(),
-          initialTime: p.getTimeSnapshot(),
-          canvasId: canvasId,
-          uid : user?.uid,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        })
+    engine.setIsPlaying(false);
+    setLoading(true)
+    setUpdating(true)
+    try{
+      if(!combinedData.data.canvas){
+        batch.set(doc(db,"canvas",canvasId),{...canvas,layouts: JSON.stringify(canvas.layouts), updatedAt:timestamp,createdAt:timestamp})
       }else{
-        if(paramSet.name !== p.name || !isEqual(p.initialHdps,p.getHdps())){
-          batch.update(doc(db,"paramSets",p.id),{
-            name: p.name,
-            initialHdps:p.getHdps(),
-            initialData: p.getDataSnapshot(),
-            initialTime: p.getTimeSnapshot(),
-            updatedAt: timestamp,            
-          })
-        }
+        batch.update(doc(db,"canvas",canvasId),{...canvas,layouts: JSON.stringify(canvas.layouts),updatedAt:timestamp})
       }
-    })
-    combinedData.data?.blocks.forEach(v=>{
-      if(!blocks.some(({id})=>id===v.id)){
-        batch.delete(doc(db,"canvas",canvasId,"blocks",v.id))
-      }
-    })
-    blocks.forEach(v=>{
-      const view = combinedData.data?.blocks.find(({id})=>id===v.id)
-      if(!view){
-        if(v.type == "Note"){
-          batch.set(doc(db,"canvas",canvasId,"blocks",v.id),{...v,content:JSON.stringify(v.content)})
-        }else{
-          batch.set(doc(db,"canvas",canvasId,"blocks",v.id),{...v})
-        }
-      }else{
-        if(!isEqual(view,v)){
-          if(v.type == "Note"){
-            batch.update(doc(db,"canvas",canvasId,"blocks",v.id),{...v,content:JSON.stringify(v.content)})
+
+      const existingParamSets = combinedData.data?.paramSets || [];
+
+      const deletedParamSets = existingParamSets.filter(existingParamSet => !paramSets.some(paramSet => paramSet.id === existingParamSet.id));
+
+      deletedParamSets.forEach(p=>{
+        batch.delete(doc(db,"paramSets",p.id))
+      })
+
+      paramSets.forEach(p=>{
+        if(!p.isClone){
+          const paramSet = combinedData.data?.paramSets.find(({id})=>id===p.id);
+          if(!paramSet){
+            batch.set(doc(db,"paramSets",p.id),{
+              name: p.name,
+              initialHdps:p.getHdps(),
+              initialData: p.getDataSnapshot(),
+              initialTime: p.getTimeSnapshot(),
+              canvasId: canvasId,
+              uid : user?.uid,
+              createdAt: timestamp,
+              updatedAt: timestamp,
+            })
           }else{
-            batch.update(doc(db,"canvas",canvasId,"blocks",v.id),{...v})
+            if(paramSet.name !== p.name || !isEqual(p.initialHdps,p.getHdps())){
+              batch.update(doc(db,"paramSets",p.id),{
+                name: p.name,
+                initialHdps:p.getHdps(),
+                initialData: p.getDataSnapshot(),
+                initialTime: p.getTimeSnapshot(),
+                updatedAt: timestamp,            
+              })
+            }
           }
         }
-      }
-    })
-    await batch.commit()
+      })
+      combinedData.data?.blocks.forEach(v=>{
+        if(!blocks.some(({id})=>id===v.id)){
+          batch.delete(doc(db,"canvas",canvasId,"blocks",v.id))
+        }
+      })
+      blocks.forEach(v=>{
+        const view = combinedData.data?.blocks.find(({id})=>id===v.id)
+        if(!view){
+          if(v.type == "Note"){
+            batch.set(doc(db,"canvas",canvasId,"blocks",v.id),{...v,content:JSON.stringify(v.content)})
+          }else{
+            batch.set(doc(db,"canvas",canvasId,"blocks",v.id),{...v})
+          }
+        }else{
+          if(!isEqual(view,v)){
+            if(v.type == "Note"){
+              batch.update(doc(db,"canvas",canvasId,"blocks",v.id),{...v,content:JSON.stringify(v.content)})
+            }else{
+              batch.update(doc(db,"canvas",canvasId,"blocks",v.id),{...v})
+            }
+          }
+        }
+      })
+      await batch.commit()
+    }catch(e){
+      console.log(e)
+    }finally{
+      setLoading(false)
+      setUpdating(false)
+      engine.setIsPlaying(true);
+    }
   }
+
+
+  useEffect(() => {
+    updateIsParamsetsChanged()
+    const subscriptionId = engine.subscribeAllHdpMutation(async () => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      updateIsParamsetsChanged();
+    });
+    return () => {
+      engine.unsubscribeAllHdpMutation(subscriptionId);
+    };
+  }, [engine, updateIsParamsetsChanged, combinedData.data?.paramSets, paramSets]);
 
   return <>
   {

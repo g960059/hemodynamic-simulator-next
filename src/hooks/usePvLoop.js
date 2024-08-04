@@ -64,15 +64,17 @@ export const useEngine = () => {
   const hdpMutationSubscriptionsRef = useRef({});
   const hdpMutationSubscriptionsAllRef = useRef({});
   const hdpAllMutationSubscriptionsRef = useRef({});
+  const isCloneRef = useRef({});
 
   
-  const register = useCallback(({id,initialHdps,initialData,initialTime,name}) => {
+  const register = useCallback(({id,initialHdps,initialData,initialTime,name,isClone=false}) => {
     initialHdpsRef.current[id] = initialHdps;
     initialDatasRef.current[id] = initialData;
     initialTimesRef.current[id] = initialTime;
     dataRef.current[id] = initialData;
     namesRef.current[id] = name;
     hemodynamicPropsRef.current[id] = {...initialHdps};
+    isCloneRef.current[id] = isClone;
     tRef.current[id] = initialTime;
     hdpMutationsRef.current[id] = {};
     subscriptionsRef.current[id] = {};
@@ -239,7 +241,7 @@ export const useEngine = () => {
   };
 
   const setHdps = (id) =>(hdpKey, hdpValue) => {
-    console.log(hdpMutationsRef.current[id], hdpKey, hdpValue)
+    if(!hdpMutationsRef.current[id]) return;
     hdpMutationsRef.current[id][hdpKey] = hdpValue
     if (hdpMutationSubscriptionsRef.current[id]) {
       Object.values(hdpMutationSubscriptionsRef.current[id]).forEach(hdpCallbacks => {
@@ -286,12 +288,14 @@ export const useEngine = () => {
       setIsModelPlaying: setIsModelPlaying(id),
       isPlaying: isPlayingRef.current[id],
       speed: speedRef.current[id],
+      isClone: isCloneRef.current[id]
     };
   }
+  const getAllSubscriptionIds = () => Object.values(subscriptionsRef.current).map(subs=>Object.keys(subs)).flat()
   const getAllPatinets = () => idsRef.current.map(id=>getPatient(id))
   const getPatientData = id =>({id, initialHdps:initialHdpsRef.current[id], initialData:initialDatasRef.current[id],initialTime: initialTimesRef.current[id],name: namesRef.current[id]})
-  const getAllPatientsData = ()=>idsRef.current.map(id=>getPatientData(id));
-  return {register,unregister,clear,subscribe,unsubscribe,subscribeHdpMutation,unsubscribeHdpMutation,subscribeAllHdpMutation,unsubscribeAllHdpMutation,subscribeHdpMutationAll,unsubscribeHdpMutationAll, isPlaying,setIsPlaying,setIsModelPlaying, setSpeed,getPatient,getAllPatinets,getPatientData, getAllPatientsData, ids:idsRef.current, setHdps, getHdps,deleteModel}
+  const getAllPatientsData = ()=> idsRef.current.map(id=>getPatientData(id));
+  return {register,unregister,clear,subscribe,unsubscribe,subscribeHdpMutation,unsubscribeHdpMutation,subscribeAllHdpMutation,unsubscribeAllHdpMutation,subscribeHdpMutationAll,unsubscribeHdpMutationAll, isPlaying,setIsPlaying,setIsModelPlaying, setSpeed,getPatient,getAllPatinets,getPatientData, getAllPatientsData, ids:idsRef.current, setHdps, getHdps,deleteModel, getAllSubscriptionIds}
 }
 
 
