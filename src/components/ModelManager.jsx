@@ -176,7 +176,7 @@ const ModelManager = ({ view, updateView, removeView, patients, engine, setPatie
       }
       return acc;
     }, {});
-    updatedParameters['Volume'] = targetModel?  updatedParameters['Qvs_initial'] + 1233.01570263 :  updatedParameters['Qvs_initial'] + 1370.8;
+    updatedParameters['Volume'] = updatedParameters['Qvs_initial'] + 1233.01570263 ;
     delete updatedParameters['Qvs_initial'];
     updatedParameters["HR"] = result.targetMetrics.find(m => m.name === 'HR').value;
 
